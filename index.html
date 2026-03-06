@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Stargate Corporation | AI · Education · Publishing</title>
+  <meta name="description" content="스타게이트 - AI 소프트웨어 개발, 수학·정보올림피아드 교육, 전자출판.">
+  <meta property="og:title" content="Stargate Corporation">
+  <meta property="og:description" content="AI-Powered Education &amp; Software Development">
+  <meta property="og:type" content="website">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&amp;family=Noto+Sans+KR:wght@300;400;500;700;900&amp;family=JetBrains+Mono:wght@400;500&amp;display=swap" rel="stylesheet">
+  <style>
+    :root{--bg-primary:#06080d;--bg-secondary:#0c1018;--bg-card:#111620;--bg-card-hover:#161d2a;--accent:#4f8fff;--accent-glow:rgba(79,143,255,0.15);--accent-warm:#ff6b4f;--text-primary:#e8ecf4;--text-secondary:#8a94a6;--text-muted:#545d6e;--border:rgba(255,255,255,0.06);--border-hover:rgba(79,143,255,0.3);--gradient-hero:linear-gradient(135deg,#4f8fff 0%,#a855f7 50%,#ff6b4f 100%)}
+    *{margin:0;padding:0;box-sizing:border-box}
+    html{scroll-behavior:smooth;font-size:16px}
+    body{font-family:'Noto Sans KR','Outfit',sans-serif;background:var(--bg-primary);color:var(--text-primary);overflow-x:hidden;-webkit-font-smoothing:antialiased}
+    nav{position:fixed;top:0;left:0;right:0;z-index:100;padding:0 2rem;height:64px;display:flex;align-items:center;justify-content:space-between;background:rgba(6,8,13,0.8);backdrop-filter:blur(20px);border-bottom:1px solid var(--border);transition:all .3s}
+    nav.scrolled{background:rgba(6,8,13,0.95)}
+    .nav-logo{font-family:'Outfit',sans-serif;font-weight:800;font-size:1.3rem;letter-spacing:3px;text-transform:uppercase;background:var(--gradient-hero);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+    .nav-links{display:flex;gap:2rem;list-style:none}
+    .nav-links a{color:var(--text-secondary);text-decoration:none;font-size:.85rem;font-weight:500;letter-spacing:1px;text-transform:uppercase;transition:color .3s}
+    .nav-links a:hover{color:var(--accent)}
+    .nav-toggle{display:none;background:none;border:none;cursor:pointer;padding:4px}
+    .nav-toggle span{display:block;width:22px;height:2px;background:var(--text-primary);margin:5px 0;transition:.3s}
+    .hero{position:relative;min-height:100vh;display:flex;align-items:center;justify-content:center;padding:6rem 2rem 4rem;overflow:hidden}
+    .hero-bg{position:absolute;inset:0;z-index:0}
+    .hero-bg::before{content:'';position:absolute;top:-40%;left:-20%;width:80vw;height:80vw;background:radial-gradient(circle,rgba(79,143,255,0.08) 0%,transparent 60%);animation:pulse-slow 8s ease-in-out infinite alternate}
+    .hero-bg::after{content:'';position:absolute;bottom:-30%;right:-10%;width:60vw;height:60vw;background:radial-gradient(circle,rgba(168,85,247,0.06) 0%,transparent 60%);animation:pulse-slow 10s ease-in-out infinite alternate-reverse}
+    @keyframes pulse-slow{0%{transform:scale(1);opacity:.6}100%{transform:scale(1.15);opacity:1}}
+    .hero-grid{position:absolute;inset:0;background-image:linear-gradient(rgba(79,143,255,0.03) 1px,transparent 1px),linear-gradient(90deg,rgba(79,143,255,0.03) 1px,transparent 1px);background-size:60px 60px;mask-image:radial-gradient(ellipse 60% 50% at 50% 50%,black 20%,transparent 70%)}
+    .hero-content{position:relative;z-index:1;text-align:center;max-width:900px}
+    .hero-badge{display:inline-flex;align-items:center;gap:8px;padding:6px 16px;border-radius:999px;border:1px solid var(--border-hover);background:var(--accent-glow);font-family:'JetBrains Mono',monospace;font-size:.75rem;color:var(--accent);letter-spacing:1px;margin-bottom:2rem;animation:fadeUp .8s ease-out}
+    .hero-badge::before{content:'';width:6px;height:6px;border-radius:50%;background:var(--accent);animation:blink 2s infinite}
+    @keyframes blink{0%,100%{opacity:1}50%{opacity:.3}}
+    .hero h1{font-family:'Outfit',sans-serif;font-size:clamp(3rem,7vw,5.5rem);font-weight:900;line-height:1.05;letter-spacing:-2px;margin-bottom:1.5rem;animation:fadeUp .8s ease-out .1s both}
+    .hero h1 .gradient-text{background:var(--gradient-hero);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+    .hero-sub{font-size:1.15rem;color:var(--text-secondary);line-height:1.7;max-width:600px;margin:0 auto 2.5rem;animation:fadeUp .8s ease-out .2s both}
+    .hero-ctas{display:flex;gap:1rem;justify-content:center;flex-wrap:wrap;animation:fadeUp .8s ease-out .3s both}
+    .btn-primary{display:inline-flex;align-items:center;gap:8px;padding:14px 32px;background:var(--accent);color:#fff;border:none;border-radius:10px;font-size:.95rem;font-weight:600;text-decoration:none;cursor:pointer;transition:all .3s;box-shadow:0 0 30px rgba(79,143,255,0.2)}
+    .btn-primary:hover{transform:translateY(-2px);box-shadow:0 0 40px rgba(79,143,255,0.35)}
+    .btn-secondary{display:inline-flex;align-items:center;gap:8px;padding:14px 32px;background:transparent;color:var(--text-primary);border:1px solid var(--border);border-radius:10px;font-size:.95rem;font-weight:500;text-decoration:none;cursor:pointer;transition:all .3s}
+    .btn-secondary:hover{border-color:var(--border-hover);background:var(--accent-glow)}
+    @keyframes fadeUp{from{opacity:0;transform:translateY(30px)}to{opacity:1;transform:translateY(0)}}
+    .stats-bar{display:flex;justify-content:center;gap:3rem;padding:3rem 2rem;flex-wrap:wrap}
+    .stat-item{text-align:center}
+    .stat-num{font-family:'Outfit',sans-serif;font-size:2.5rem;font-weight:800;background:var(--gradient-hero);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+    .stat-label{font-size:.8rem;color:var(--text-muted);text-transform:uppercase;letter-spacing:2px;margin-top:4px}
+    section{padding:6rem 2rem;max-width:1200px;margin:0 auto}
+    .section-label{font-family:'JetBrains Mono',monospace;font-size:.75rem;color:var(--accent);letter-spacing:3px;text-transform:uppercase;margin-bottom:1rem}
+    .section-title{font-family:'Outfit',sans-serif;font-size:clamp(2rem,4vw,3rem);font-weight:800;letter-spacing:-1px;margin-bottom:1rem}
+    .section-desc{color:var(--text-secondary);font-size:1.05rem;line-height:1.7;max-width:600px;margin-bottom:3rem}
+    .services-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:1.5rem}
+    .service-card{position:relative;padding:2rem;background:var(--bg-card);border:1px solid var(--border);border-radius:16px;transition:all .4s;overflow:hidden}
+    .service-card::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:var(--gradient-hero);opacity:0;transition:opacity .4s}
+    .service-card:hover{background:var(--bg-card-hover);border-color:var(--border-hover);transform:translateY(-4px)}
+    .service-card:hover::before{opacity:1}
+    .service-icon{width:48px;height:48px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:1.4rem;margin-bottom:1.2rem}
+    .service-card:nth-child(1) .service-icon{background:rgba(79,143,255,0.12)}
+    .service-card:nth-child(2) .service-icon{background:rgba(168,85,247,0.12)}
+    .service-card:nth-child(3) .service-icon{background:rgba(255,107,79,0.12)}
+    .service-card:nth-child(4) .service-icon{background:rgba(52,211,153,0.12)}
+    .service-card h3{font-family:'Outfit',sans-serif;font-size:1.2rem;font-weight:700;margin-bottom:.7rem}
+    .service-card p{color:var(--text-secondary);font-size:.9rem;line-height:1.6}
+    .service-tags{display:flex;flex-wrap:wrap;gap:6px;margin-top:1rem}
+    .service-tags span{font-family:'JetBrains Mono',monospace;font-size:.7rem;padding:4px 10px;border-radius:6px;background:rgba(255,255,255,0.04);color:var(--text-muted);border:1px solid var(--border)}
+    .about-grid{display:grid;grid-template-columns:1fr 1fr;gap:3rem;align-items:start}
+    .about-left h3{font-family:'Outfit',sans-serif;font-size:1.6rem;font-weight:700;margin-bottom:1.5rem}
+    .timeline{position:relative;padding-left:2rem}
+    .timeline::before{content:'';position:absolute;left:0;top:0;bottom:0;width:2px;background:linear-gradient(to bottom,var(--accent),var(--border))}
+    .timeline-item{position:relative;margin-bottom:1.5rem}
+    .timeline-item::before{content:'';position:absolute;left:-2rem;top:6px;width:8px;height:8px;border-radius:50%;background:var(--accent);box-shadow:0 0 10px var(--accent)}
+    .timeline-year{font-family:'JetBrains Mono',monospace;font-size:.75rem;color:var(--accent);margin-bottom:2px}
+    .timeline-text{font-size:.9rem;color:var(--text-secondary);line-height:1.5}
+    .about-right{display:flex;flex-direction:column;gap:1rem}
+    .credential-card{padding:1.2rem 1.5rem;background:var(--bg-card);border:1px solid var(--border);border-radius:12px;transition:all .3s}
+    .credential-card:hover{border-color:var(--border-hover)}
+    .credential-card .label{font-size:.75rem;color:var(--text-muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:4px}
+    .credential-card .value{font-size:.95rem;font-weight:500}
+    .tech-marquee{display:flex;gap:2rem;padding:2rem 0;flex-wrap:wrap;justify-content:center}
+    .tech-pill{display:flex;align-items:center;gap:8px;padding:10px 20px;border-radius:999px;background:var(--bg-card);border:1px solid var(--border);font-family:'JetBrains Mono',monospace;font-size:.8rem;color:var(--text-secondary);transition:all .3s}
+    .tech-pill:hover{border-color:var(--border-hover);color:var(--text-primary)}
+    .contact-section{text-align:center}
+    .contact-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:1.5rem;margin-top:2rem}
+    .contact-card{padding:2rem;background:var(--bg-card);border:1px solid var(--border);border-radius:16px;text-decoration:none;color:inherit;transition:all .3s}
+    .contact-card:hover{border-color:var(--border-hover);transform:translateY(-2px)}
+    .contact-card .icon{font-size:1.5rem;margin-bottom:1rem}
+    .contact-card h4{font-size:.85rem;color:var(--text-muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:.5rem}
+    .contact-card p{font-size:.95rem;color:var(--text-primary)}
+    footer{border-top:1px solid var(--border);padding:3rem 2rem;text-align:center}
+    .footer-brand{font-family:'Outfit',sans-serif;font-weight:800;font-size:1rem;letter-spacing:3px;text-transform:uppercase;color:var(--text-muted);margin-bottom:1rem}
+    .footer-info{font-size:.75rem;color:var(--text-muted);line-height:2}
+    .footer-info a{color:var(--text-secondary);text-decoration:none}
+    @media(max-width:768px){.nav-links{display:none}.nav-links.active{display:flex;flex-direction:column;position:absolute;top:64px;left:0;right:0;background:rgba(6,8,13,0.98);padding:2rem;gap:1.5rem;border-bottom:1px solid var(--border)}.nav-toggle{display:block}.about-grid{grid-template-columns:1fr}.stats-bar{gap:2rem}.stat-num{font-size:2rem}section{padding:4rem 1.5rem}}
+    .reveal{opacity:0;transform:translateY(30px);transition:all .7s ease-out}
+    .reveal.visible{opacity:1;transform:translateY(0)}
+  </style>
+</head>
+<body>
+  <nav id="navbar">
+    <div class="nav-logo">STARGATE</div>
+    <ul class="nav-links" id="navLinks">
+      <li><a href="#services">Services</a></li>
+      <li><a href="#about">About</a></li>
+      <li><a href="#tech">Technology</a></li>
+      <li><a href="#contact">Contact</a></li>
+    </ul>
+    <button class="nav-toggle" id="navToggle" aria-label="Menu"><span></span><span></span><span></span></button>
+  </nav>
+  <section class="hero">
+    <div class="hero-bg"><div class="hero-grid"></div></div>
+    <div class="hero-content">
+      <div class="hero-badge">Seoul, South Korea — Est. 2025</div>
+      <h1>AI 기술로 여는<br><span class="gradient-text">교육의 새로운 문</span></h1>
+      <p class="hero-sub">인공지능 소프트웨어 개발 · 수학 &amp; 정보올림피아드 교육 · 전자출판<br>기술과 교육의 경계를 허무는 AI 스타트업, 스타게이트</p>
+      <div class="hero-ctas">
+        <a href="#contact" class="btn-primary">상담 문의 →</a>
+        <a href="#services" class="btn-secondary">서비스 보기</a>
+      </div>
+    </div>
+  </section>
+  <div class="stats-bar">
+    <div class="stat-item reveal"><div class="stat-num">SNU</div><div class="stat-label">서울대 공학 박사과정</div></div>
+    <div class="stat-item reveal"><div class="stat-num">₩803억+</div><div class="stat-label">인프라 프로젝트 관리 경험</div></div>
+    <div class="stat-item reveal"><div class="stat-num">4</div><div class="stat-label">사업 영역</div></div>
+    <div class="stat-item reveal"><div class="stat-num">KOI</div><div class="stat-label">정보올림피아드 교육</div></div>
+  </div>
+  <section id="services">
+    <div class="section-label reveal">// Services</div>
+    <h2 class="section-title reveal">사업 영역</h2>
+    <p class="section-desc reveal">AI 기술을 핵심 엔진으로, 교육·소프트웨어·출판·커머스를 연결하는 통합 플랫폼을 구축합니다.</p>
+    <div class="services-grid">
+      <div class="service-card reveal">
+        <div class="service-icon">🧠</div><h3>AI 소프트웨어</h3>
+        <p>도시 공간 분석 플랫폼, 교육용 AI 앱 등 실전 문제를 해결하는 AI 솔루션을 개발합니다.</p>
+        <div class="service-tags"><span>UrbanVision</span><span>Python</span><span>GIS</span><span>ML/DL</span></div>
+      </div>
+      <div class="service-card reveal">
+        <div class="service-icon">📐</div><h3>수학 · KOI 교육</h3>
+        <p>서울대 공대 출신 강사의 수학 심화 교육과 한국정보올림피아드(KOI) 대비 알고리즘 교육을 제공합니다.</p>
+        <div class="service-tags"><span>대치동</span><span>수학 심화</span><span>KOI/IOI</span><span>알고리즘</span></div>
+      </div>
+      <div class="service-card reveal">
+        <div class="service-icon">📚</div><h3>전자출판</h3>
+        <p>AI · 교육 분야의 전문 콘텐츠를 전자책으로 기획·제작하여 Amazon KDP 및 국내 플랫폼에 출판합니다.</p>
+        <div class="service-tags"><span>Amazon KDP</span><span>Legal AI Kit</span><span>EdTech</span></div>
+      </div>
+      <div class="service-card reveal">
+        <div class="service-icon">🌐</div><h3>글로벌 이커머스</h3>
+        <p>Amazon, Coupang, Cafe24 등 멀티채널 기반의 글로벌 전자상거래 전략을 실행합니다.</p>
+        <div class="service-tags"><span>Amazon</span><span>Coupang</span><span>Cafe24</span><span>Multi-channel</span></div>
+      </div>
+    </div>
+  </section>
+  <section id="about">
+    <div class="section-label reveal">// About</div>
+    <h2 class="section-title reveal">대표 소개</h2>
+    <p class="section-desc reveal">공학, 정책, 교육을 관통하는 융합형 리더십</p>
+    <div class="about-grid">
+      <div class="about-left reveal">
+        <h3>정동수 — CEO &amp; Founder</h3>
+        <div class="timeline">
+          <div class="timeline-item"><div class="timeline-year">2025</div><div class="timeline-text">㈜별의문(Stargate Corp.) 설립 · AI 소프트웨어 개발 및 교육 사업 시작</div></div>
+          <div class="timeline-item"><div class="timeline-year">2024</div><div class="timeline-text">서울대 건설환경공학부 스마트도시공학 박사과정 수료 · 기업 신용 빅데이터 &amp; 도시 공간 분석 연구</div></div>
+          <div class="timeline-item"><div class="timeline-year">2022</div><div class="timeline-text">서울대 행정대학원 행정학 석사</div></div>
+          <div class="timeline-item"><div class="timeline-year">2017</div><div class="timeline-text">북한대학원대학교 북한학 석사(경제/IT)</div></div>
+          <div class="timeline-item"><div class="timeline-year">2015–2018</div><div class="timeline-text">공군 시설장교 · 서울공항 활주로 재포장 ₩803억 / 격납고 ₩215억 프로젝트 관리 · 공군참모총장상</div></div>
+          <div class="timeline-item"><div class="timeline-year">2012</div><div class="timeline-text">서울대 공대 지구환경시스템공학부 졸업 (만 17세 최연소 입학)</div></div>
+        </div>
+      </div>
+      <div class="about-right reveal">
+        <div class="credential-card"><div class="label">연구 전문성</div><div class="value">공간계량모형 · 헤도닉 가격모형 · DID(이중차분법) · Python/GIS 기반 도시공간 분석</div></div>
+        <div class="credential-card"><div class="label">주요 프로젝트</div><div class="value">수원 군공항 종전부지 미래전략 · 김포 스마트 재생 예비타당성조사(KDI) · 부천 역세권 개발</div></div>
+        <div class="credential-card"><div class="label">자격</div><div class="value">토목기사 · 개인과외교습자 신고(서초강남교육지원청 제5277호)</div></div>
+        <div class="credential-card"><div class="label">교육 이력</div><div class="value">대구 정보올림피아드 수상 · 지학사(Zistory) 교재 감수 7년 · 대치동 수학/KOI 교육</div></div>
+      </div>
+    </div>
+  </section>
+  <section id="tech">
+    <div class="section-label reveal">// Technology</div>
+    <h2 class="section-title reveal">기술 스택</h2>
+    <p class="section-desc reveal">최신 AI·데이터 기술을 기반으로 제품과 서비스를 구축합니다.</p>
+    <div class="tech-marquee reveal">
+      <div class="tech-pill">◆ Python</div><div class="tech-pill">◆ TensorFlow</div><div class="tech-pill">◆ PyTorch</div>
+      <div class="tech-pill">◆ GIS / QGIS</div><div class="tech-pill">◆ Next.js</div><div class="tech-pill">◆ React</div>
+      <div class="tech-pill">◆ Node.js</div><div class="tech-pill">◆ PostgreSQL</div><div class="tech-pill">◆ n8n Automation</div>
+      <div class="tech-pill">◆ AWS / Vercel</div><div class="tech-pill">◆ Notion API</div><div class="tech-pill">◆ Claude API</div>
+    </div>
+  </section>
+  <section id="contact" class="contact-section">
+    <div class="section-label reveal">// Contact</div>
+    <h2 class="section-title reveal">문의하기</h2>
+    <p class="section-desc reveal" style="margin-left:auto;margin-right:auto;">교육 상담, AI 솔루션 협업, 투자 문의 등 어떤 주제든 연락해 주세요.</p>
+    <div class="contact-grid">
+      <a href="mailto:rvcompany77@naver.com" class="contact-card reveal"><div class="icon">✉️</div><h4>Email</h4><p>rvcompany77@naver.com</p></a>
+      <a href="tel:070-8017-8227" class="contact-card reveal"><div class="icon">📞</div><h4>Phone</h4><p>070-8017-8227</p></a>
+      <div class="contact-card reveal"><div class="icon">📍</div><h4>Location</h4><p>서울특별시 강남구 대치동</p></div>
+    </div>
+  </section>
+  <footer>
+    <div class="footer-brand">STARGATE</div>
+    <div class="footer-info">
+      회사명 : 주식회사 별의문(Stargate Corporation)<br>
+      대표 : 정동수 · 사업자등록번호 371-99-01827<br>
+      통신판매업 신고번호 2025-서울강남-03504호 · 출판사 발행자번호 993413<br>
+      개인과외교습자 신고번호 서초강남교육지원청 제5277호<br><br>
+      © 2025 Stargate Corporation. All rights reserved.
+    </div>
+  </footer>
+  <script>
+    const nav=document.getElementById('navbar');window.addEventListener('scroll',()=>{nav.classList.toggle('scrolled',window.scrollY>50)});
+    const toggle=document.getElementById('navToggle'),links=document.getElementById('navLinks');toggle.addEventListener('click',()=>links.classList.toggle('active'));links.querySelectorAll('a').forEach(a=>a.addEventListener('click',()=>links.classList.remove('active')));
+    const reveals=document.querySelectorAll('.reveal');const observer=new IntersectionObserver(e=>{e.forEach((el,i)=>{if(el.isIntersecting){setTimeout(()=>el.target.classList.add('visible'),i*80);observer.unobserve(el.target)}})},{threshold:.15});reveals.forEach(el=>observer.observe(el));
+  </script>
+</body>
+</html>
