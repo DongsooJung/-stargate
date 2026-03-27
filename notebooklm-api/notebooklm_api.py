@@ -1,366 +1,404 @@
 #!/usr/bin/env python3
 """
-NotebookLM Enterprise API Client
-=================================
-A Python CLI to interact with Google Cloud's NotebookLM Enterprise API
-(Discovery Engine v1alpha).
+NotebookLM-Style Tool (Powered by Gemini API Free Tier)
+=======================================================
+Google Gemini API를 활용하여 NotebookLM과 유사한 기능을 제공하는 CLI 프로그램.
 
-Supports:
-- Creating and managing notebooks
-- Adding sources (text, URL, YouTube, Google Drive, file upload)
-- Generating audio overviews (podcast-style summaries)
-- Generating standalone podcasts (Podcast API v1)
+기능:
+  - 파일 업로드 (PDF, TXT, 이미지 등) → Gemini File API
+  - 문서 기반 Q&A 채팅 (NotebookLM 채팅과 동일)
+  - 문서 요약 생성
+  - 팟캐스트 스크립트 생성 (NotebookLM 오디오 오버뷰 스타일)
+  - 업로드된 파일 관리
 
-Prerequisites:
-    1. A Google Cloud project with Discovery Engine API enabled
-    2. gcloud CLI installed and authenticated:
-       $ gcloud auth application-default login
-    3. IAM roles assigned (Cloud NotebookLM Admin or User)
+무료 티어 (gemini-2.0-flash):
+  - 15 RPM / 1,500 RPD / 1M TPM
+  - 파일 업로드 무료
 
-Usage:
-    python notebooklm_api.py create-notebook --title "My Notebook"
-    python notebooklm_api.py list-notebooks
-    python notebooklm_api.py add-source --notebook <ID> --text "Content here"
-    python notebooklm_api.py add-source --notebook <ID> --url "https://example.com"
-    python notebooklm_api.py add-source --notebook <ID> --youtube "https://youtube.com/watch?v=..."
-    python notebooklm_api.py add-source --notebook <ID> --drive-doc-id "DOC_ID"
-    python notebooklm_api.py upload-file --notebook <ID> --file document.pdf
-    python notebooklm_api.py list-sources --notebook <ID>
-    python notebooklm_api.py generate-audio --notebook <ID>
-    python notebooklm_api.py generate-podcast --text "Content" --title "My Podcast"
-    python notebooklm_api.py delete-notebook --notebook <ID>
-    python notebooklm_api.py delete-source --notebook <ID> --source <SOURCE_ID>
+사전 준비:
+  1. API 키 발급: https://aistudio.google.com/apikey
+  2. pip install -r requirements.txt
+  3. .env 파일에 GOOGLE_API_KEY 설정
+
+사용법:
+  python notebooklm_api.py upload --file document.pdf
+  python notebooklm_api.py upload --file paper.txt --file image.png
+  python notebooklm_api.py list-files
+  python notebooklm_api.py delete-file --name files/abc123
+  python notebooklm_api.py summarize --file-name files/abc123
+  python notebooklm_api.py summarize --text "내용..."
+  python notebooklm_api.py chat --file-name files/abc123 --question "핵심 내용은?"
+  python notebooklm_api.py podcast --file-name files/abc123 --topic "AI 트렌드"
+  python notebooklm_api.py podcast --text "내용..." --topic "주제"
 """
 
 import argparse
-import base64
 import json
 import os
 import sys
-import time
 from pathlib import Path
 
-import google.auth
-import google.auth.transport.requests
-import requests
 from dotenv import load_dotenv
+from google import genai
+from google.genai import types
 
 load_dotenv()
 
 # ---------------------------------------------------------------------------
-# Configuration
+# 설정
 # ---------------------------------------------------------------------------
 
-GCP_PROJECT_NUMBER = os.environ.get("GCP_PROJECT_NUMBER", "")
-GCP_LOCATION = os.environ.get("GCP_LOCATION", "global")
-GCP_ENDPOINT_LOCATION = os.environ.get("GCP_ENDPOINT_LOCATION", "us")
+GOOGLE_API_KEY = os.environ.get("GOOGLE_API_KEY", "")
+GEMINI_MODEL = os.environ.get("GEMINI_MODEL", "gemini-2.0-flash")
 
 
-def _base_url():
-    return (
-        f"https://{GCP_ENDPOINT_LOCATION}-discoveryengine.googleapis.com/v1alpha"
-        f"/projects/{GCP_PROJECT_NUMBER}/locations/{GCP_LOCATION}"
-    )
-
-
-def _get_access_token():
-    """Get an OAuth 2.0 access token via Application Default Credentials."""
-    credentials, _ = google.auth.default()
-    credentials.refresh(google.auth.transport.requests.Request())
-    return credentials.token
-
-
-def _headers():
-    return {
-        "Authorization": f"Bearer {_get_access_token()}",
-        "Content-Type": "application/json",
-    }
-
-
-def _check_config():
-    if not GCP_PROJECT_NUMBER:
-        print("Error: GCP_PROJECT_NUMBER environment variable is not set.")
-        print("Set it via: export GCP_PROJECT_NUMBER='your_project_number'")
-        print("Or create a .env file (see .env.example)")
+def get_client():
+    """Gemini API 클라이언트 생성."""
+    if not GOOGLE_API_KEY:
+        print("오류: GOOGLE_API_KEY 환경변수가 설정되지 않았습니다.")
+        print("API 키 발급: https://aistudio.google.com/apikey")
+        print("설정 방법: export GOOGLE_API_KEY='your_key'")
+        print("또는 .env 파일 생성 (.env.example 참고)")
         sys.exit(1)
-
-
-def _handle_response(resp, success_msg=None):
-    """Handle API response: print result or error."""
-    if resp.ok:
-        data = resp.json() if resp.text else {}
-        if success_msg:
-            print(success_msg)
-        return data
-    else:
-        print(f"Error ({resp.status_code}): {resp.text}")
-        sys.exit(1)
+    return genai.Client(api_key=GOOGLE_API_KEY)
 
 
 # ---------------------------------------------------------------------------
-# Notebook operations
+# 파일 업로드 / 관리 (Gemini File API)
 # ---------------------------------------------------------------------------
 
-def create_notebook(title="Untitled Notebook"):
-    """Create a new NotebookLM notebook."""
-    _check_config()
-    url = f"{_base_url()}/notebooks"
-    payload = {"title": title}
-    resp = requests.post(url, headers=_headers(), json=payload)
-    data = _handle_response(resp, "Notebook created successfully!")
-    print(f"  ID:    {data.get('name', 'N/A')}")
-    print(f"  NB ID: {data.get('notebookId', 'N/A')}")
-    return data
+def upload_files(file_paths):
+    """파일을 Gemini File API에 업로드."""
+    client = get_client()
+    uploaded = []
+
+    for fp in file_paths:
+        path = Path(fp)
+        if not path.exists():
+            print(f"오류: 파일을 찾을 수 없습니다: {fp}")
+            continue
+
+        print(f"업로드 중: {path.name}...")
+        uploaded_file = client.files.upload(file=path)
+        print(f"  완료!")
+        print(f"  파일명:    {uploaded_file.name}")
+        print(f"  표시명:    {uploaded_file.display_name}")
+        print(f"  MIME:      {uploaded_file.mime_type}")
+        print(f"  크기:      {uploaded_file.size_bytes:,} bytes")
+        print(f"  상태:      {uploaded_file.state}")
+        print(f"  URI:       {uploaded_file.uri}")
+        print()
+        uploaded.append(uploaded_file)
+
+    if uploaded:
+        print(f"총 {len(uploaded)}개 파일 업로드 완료.")
+    return uploaded
 
 
-def list_notebooks():
-    """List recently viewed notebooks (up to 500)."""
-    _check_config()
-    url = f"{_base_url()}/notebooks:listRecentlyViewed"
-    resp = requests.get(url, headers=_headers())
-    data = _handle_response(resp)
+def list_files():
+    """업로드된 파일 목록 조회."""
+    client = get_client()
+    files = list(client.files.list())
 
-    notebooks = data.get("notebooks", [])
-    if not notebooks:
-        print("No notebooks found.")
+    if not files:
+        print("업로드된 파일이 없습니다.")
         return []
 
-    print(f"Found {len(notebooks)} notebook(s):\n")
-    for nb in notebooks:
-        print(f"  Name:  {nb.get('name', 'N/A')}")
-        print(f"  Title: {nb.get('title', 'N/A')}")
-        print(f"  ID:    {nb.get('notebookId', 'N/A')}")
+    print(f"총 {len(files)}개 파일:\n")
+    for f in files:
+        print(f"  이름:   {f.name}")
+        print(f"  표시명: {f.display_name}")
+        print(f"  MIME:   {f.mime_type}")
+        print(f"  크기:   {f.size_bytes:,} bytes")
+        print(f"  상태:   {f.state}")
         print()
-    return notebooks
+    return files
 
 
-def delete_notebook(notebook_id):
-    """Delete notebooks by ID (batch delete)."""
-    _check_config()
-    url = f"{_base_url()}/notebooks:batchDelete"
-    payload = {"names": [f"{_base_url()}/notebooks/{notebook_id}"]}
-    resp = requests.post(url, headers=_headers(), json=payload)
-    _handle_response(resp, f"Notebook '{notebook_id}' deleted successfully.")
+def delete_file(file_name):
+    """업로드된 파일 삭제."""
+    client = get_client()
+    client.files.delete(name=file_name)
+    print(f"파일 '{file_name}' 삭제 완료.")
 
 
-def share_notebook(notebook_id, email, role="USER_ROLE"):
-    """Share a notebook with a user."""
-    _check_config()
-    url = f"{_base_url()}/notebooks/{notebook_id}:share"
-    payload = {
-        "accountAndRoles": [
-            {"email": email, "role": role}
-        ]
-    }
-    resp = requests.post(url, headers=_headers(), json=payload)
-    _handle_response(resp, f"Notebook shared with {email} (role: {role}).")
-
-
-# ---------------------------------------------------------------------------
-# Source operations
-# ---------------------------------------------------------------------------
-
-def _add_sources_batch(notebook_id, user_contents):
-    """Add sources to a notebook via batchCreate."""
-    _check_config()
-    url = f"{_base_url()}/notebooks/{notebook_id}/sources:batchCreate"
-    payload = {"userContents": user_contents}
-    resp = requests.post(url, headers=_headers(), json=payload)
-    return _handle_response(resp, "Source(s) added successfully!")
-
-
-def add_text_source(notebook_id, text):
-    """Add plain text content as a source."""
-    return _add_sources_batch(notebook_id, [{"textContent": text}])
-
-
-def add_url_source(notebook_id, url):
-    """Add a web URL as a source."""
-    return _add_sources_batch(notebook_id, [{"webSource": {"url": url}}])
-
-
-def add_youtube_source(notebook_id, youtube_url):
-    """Add a YouTube video URL as a source."""
-    return _add_sources_batch(notebook_id, [{"youtubeSource": {"url": youtube_url}}])
-
-
-def add_drive_source(notebook_id, document_id, mime_type="application/vnd.google-apps.document"):
-    """Add a Google Drive document as a source."""
-    return _add_sources_batch(notebook_id, [{
-        "googleDriveSource": {
-            "documentId": document_id,
-            "mimeType": mime_type,
-        }
-    }])
-
-
-def upload_file_source(notebook_id, file_path):
-    """Upload a file (PDF, DOCX, TXT, etc.) as a source."""
-    _check_config()
-    filepath = Path(file_path)
-    if not filepath.exists():
-        print(f"Error: File not found: {file_path}")
-        sys.exit(1)
-
-    mime_types = {
-        ".pdf": "application/pdf",
-        ".txt": "text/plain",
-        ".md": "text/markdown",
-        ".html": "text/html",
-        ".csv": "text/csv",
-        ".docx": "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
-        ".pptx": "application/vnd.openxmlformats-officedocument.presentationml.presentation",
-    }
-    mime_type = mime_types.get(filepath.suffix.lower(), "application/octet-stream")
-
-    url = (
-        f"https://{GCP_ENDPOINT_LOCATION}-discoveryengine.googleapis.com"
-        f"/upload/v1alpha/projects/{GCP_PROJECT_NUMBER}/locations/{GCP_LOCATION}"
-        f"/notebooks/{notebook_id}/sources:uploadFile"
-    )
-
-    with open(filepath, "rb") as f:
-        file_data = f.read()
-
-    headers = {
-        "Authorization": f"Bearer {_get_access_token()}",
-        "Content-Type": mime_type,
-        "X-Goog-Upload-File-Name": filepath.name,
-        "X-Goog-Upload-Protocol": "raw",
-    }
-    resp = requests.post(url, headers=headers, data=file_data)
-    data = _handle_response(resp, f"File '{filepath.name}' uploaded successfully!")
-    if data:
-        print(f"  Source: {json.dumps(data, indent=2)}")
-    return data
-
-
-def list_sources(notebook_id):
-    """List all sources in a notebook."""
-    _check_config()
-    url = f"{_base_url()}/notebooks/{notebook_id}/sources"
-    resp = requests.get(url, headers=_headers())
-    data = _handle_response(resp)
-
-    sources = data.get("sources", [])
-    if not sources:
-        print(f"No sources found in notebook '{notebook_id}'.")
-        return []
-
-    print(f"Found {len(sources)} source(s):\n")
-    for src in sources:
-        print(f"  ID:     {src.get('sourceId', 'N/A')}")
-        print(f"  Name:   {src.get('name', 'N/A')}")
-        print(f"  Title:  {src.get('title', 'N/A')}")
-        meta = src.get("metadata", {})
-        if meta:
-            print(f"  Words:  {meta.get('wordCount', 'N/A')}")
-            print(f"  Tokens: {meta.get('tokenCount', 'N/A')}")
-        status = src.get("settings", {}).get("status", "N/A")
-        print(f"  Status: {status}")
-        print()
-    return sources
-
-
-def delete_source(notebook_id, source_ids):
-    """Delete sources from a notebook (batch delete)."""
-    _check_config()
-    url = f"{_base_url()}/notebooks/{notebook_id}/sources:batchDelete"
-    if isinstance(source_ids, str):
-        source_ids = [source_ids]
-    payload = {"names": source_ids}
-    resp = requests.post(url, headers=_headers(), json=payload)
-    _handle_response(resp, "Source(s) deleted successfully.")
+def get_file(file_name):
+    """파일 정보 조회."""
+    client = get_client()
+    f = client.files.get(name=file_name)
+    print(f"  이름:   {f.name}")
+    print(f"  표시명: {f.display_name}")
+    print(f"  MIME:   {f.mime_type}")
+    print(f"  크기:   {f.size_bytes:,} bytes")
+    print(f"  상태:   {f.state}")
+    print(f"  URI:    {f.uri}")
+    return f
 
 
 # ---------------------------------------------------------------------------
-# Audio overview
+# 문서 요약
 # ---------------------------------------------------------------------------
 
-def generate_audio_overview(notebook_id, source_ids=None, focus=None, language="en"):
-    """Generate an audio overview (podcast-style) for a notebook.
+def summarize(file_names=None, text=None, language="ko"):
+    """문서 요약 생성 (NotebookLM 요약 기능과 유사)."""
+    client = get_client()
+    contents = []
 
-    Only one audio overview per notebook. Delete the existing one first
-    if you want to regenerate.
-    """
-    _check_config()
-    url = f"{_base_url()}/notebooks/{notebook_id}/audioOverviews"
-    payload = {}
-    if source_ids:
-        payload["sourceIds"] = source_ids
-    if focus:
-        payload["episodeFocus"] = focus
-    if language:
-        payload["languageCode"] = language
+    if file_names:
+        for name in file_names:
+            f = client.files.get(name=name)
+            contents.append(types.Part.from_uri(file_uri=f.uri, mime_type=f.mime_type))
 
-    print("Generating audio overview... (this may take several minutes)")
-    resp = requests.post(url, headers=_headers(), json=payload)
-    data = _handle_response(resp, "Audio overview generation initiated!")
-    print(f"  Response: {json.dumps(data, indent=2)}")
-    return data
+    prompt = f"""당신은 전문 문서 분석가입니다. 다음 내용을 분석하고 구조화된 요약을 작성해주세요.
 
+요약 형식:
+1. **핵심 요약** (3-5문장)
+2. **주요 포인트** (불릿 포인트)
+3. **핵심 키워드** (5-10개)
+4. **추가 탐구 질문** (3개)
 
-def delete_audio_overview(notebook_id):
-    """Delete the audio overview from a notebook."""
-    _check_config()
-    url = f"{_base_url()}/notebooks/{notebook_id}/audioOverviews/default"
-    resp = requests.delete(url, headers=_headers())
-    _handle_response(resp, "Audio overview deleted successfully.")
+언어: {'한국어' if language == 'ko' else language}로 작성해주세요.
+"""
 
-
-# ---------------------------------------------------------------------------
-# Standalone Podcast API (v1 GA, allowlist required)
-# ---------------------------------------------------------------------------
-
-def generate_podcast(title, text=None, file_path=None, focus=None,
-                     length="MEDIUM", language="en"):
-    """Generate a standalone podcast (no notebook required).
-
-    Requires the Podcast API User IAM role.
-    Uses the v1 GA endpoint.
-    """
-    _check_config()
-    url = (
-        f"https://discoveryengine.googleapis.com/v1"
-        f"/projects/{GCP_PROJECT_NUMBER}/locations/global/podcasts"
-    )
-
-    contexts = []
     if text:
-        contexts.append({"text": text})
-    if file_path:
-        fp = Path(file_path)
-        if not fp.exists():
-            print(f"Error: File not found: {file_path}")
-            sys.exit(1)
-        mime_types = {
-            ".png": "image/png", ".jpg": "image/jpeg", ".jpeg": "image/jpeg",
-            ".pdf": "application/pdf", ".txt": "text/plain",
-        }
-        mime_type = mime_types.get(fp.suffix.lower(), "application/octet-stream")
-        with open(fp, "rb") as f:
-            encoded = base64.b64encode(f.read()).decode("utf-8")
-        contexts.append({"blob": {"mimeType": mime_type, "data": encoded}})
+        prompt += f"\n\n분석할 내용:\n{text}"
 
-    if not contexts:
-        print("Error: Provide --text and/or --file for podcast content.")
-        sys.exit(1)
+    contents.append(types.Part.from_text(text=prompt))
 
-    payload = {
-        "title": title,
-        "podcastConfig": {
-            "focus": focus or "",
-            "length": length,
-            "languageCode": language,
-        },
-        "contexts": contexts,
-    }
+    print("요약 생성 중...\n")
+    response = client.models.generate_content(
+        model=GEMINI_MODEL,
+        contents=contents,
+    )
+    print(response.text)
+    return response.text
 
-    print("Generating podcast... (this may take several minutes)")
-    resp = requests.post(url, headers=_headers(), json=payload)
-    data = _handle_response(resp, "Podcast generation initiated!")
-    print(f"  Response: {json.dumps(data, indent=2)}")
-    return data
+
+# ---------------------------------------------------------------------------
+# 문서 기반 Q&A 채팅
+# ---------------------------------------------------------------------------
+
+def chat_with_docs(file_names=None, text=None, question="", language="ko"):
+    """문서 기반 Q&A (NotebookLM 채팅 기능과 유사)."""
+    client = get_client()
+    contents = []
+
+    if file_names:
+        for name in file_names:
+            f = client.files.get(name=name)
+            contents.append(types.Part.from_uri(file_uri=f.uri, mime_type=f.mime_type))
+
+    prompt = f"""당신은 주어진 문서를 기반으로 질문에 답변하는 AI 어시스턴트입니다.
+문서에 포함된 정보만을 사용하여 정확하게 답변해주세요.
+문서에 없는 내용이라면 "문서에서 해당 정보를 찾을 수 없습니다"라고 답해주세요.
+
+언어: {'한국어' if language == 'ko' else language}로 답변해주세요.
+"""
+
+    if text:
+        prompt += f"\n\n참고 자료:\n{text}"
+
+    prompt += f"\n\n질문: {question}"
+    contents.append(types.Part.from_text(text=prompt))
+
+    print("답변 생성 중...\n")
+    response = client.models.generate_content(
+        model=GEMINI_MODEL,
+        contents=contents,
+    )
+    print(response.text)
+    return response.text
+
+
+def interactive_chat(file_names=None, text=None, language="ko"):
+    """대화형 Q&A 세션 (NotebookLM 채팅과 동일한 경험)."""
+    client = get_client()
+
+    # 시스템 프롬프트와 문서를 포함한 초기 컨텍스트 구성
+    system_instruction = f"""당신은 주어진 문서를 기반으로 질문에 답변하는 AI 어시스턴트입니다.
+문서에 포함된 정보만을 사용하여 정확하게 답변해주세요.
+문서에 없는 내용이라면 "문서에서 해당 정보를 찾을 수 없습니다"라고 답해주세요.
+언어: {'한국어' if language == 'ko' else language}로 답변해주세요."""
+
+    initial_parts = []
+    if file_names:
+        for name in file_names:
+            f = client.files.get(name=name)
+            initial_parts.append(types.Part.from_uri(file_uri=f.uri, mime_type=f.mime_type))
+    if text:
+        initial_parts.append(types.Part.from_text(text=f"참고 자료:\n{text}"))
+
+    chat = client.chats.create(
+        model=GEMINI_MODEL,
+        config=types.GenerateContentConfig(system_instruction=system_instruction),
+        history=[
+            types.Content(role="user", parts=initial_parts),
+            types.Content(role="model", parts=[
+                types.Part.from_text(text="문서를 확인했습니다. 질문해주세요!")
+            ]),
+        ] if initial_parts else [],
+    )
+
+    print("=" * 60)
+    print(" NotebookLM 스타일 대화형 Q&A")
+    print(" 종료: 'quit' 또는 'exit' 입력")
+    print("=" * 60)
+    print()
+
+    if initial_parts:
+        print("문서가 로드되었습니다. 질문해주세요!\n")
+
+    while True:
+        try:
+            question = input("질문> ").strip()
+        except (EOFError, KeyboardInterrupt):
+            print("\n세션 종료.")
+            break
+
+        if not question:
+            continue
+        if question.lower() in ("quit", "exit", "종료"):
+            print("세션 종료.")
+            break
+
+        response = chat.send_message(question)
+        print(f"\n{response.text}\n")
+
+
+# ---------------------------------------------------------------------------
+# 팟캐스트 스크립트 생성 (NotebookLM 오디오 오버뷰 스타일)
+# ---------------------------------------------------------------------------
+
+def generate_podcast_script(file_names=None, text=None, topic=None,
+                            language="ko", hosts=2):
+    """팟캐스트 대본 생성 (NotebookLM 오디오 오버뷰와 유사).
+
+    2명의 진행자가 대화하는 형식의 팟캐스트 스크립트를 생성합니다.
+    """
+    client = get_client()
+    contents = []
+
+    if file_names:
+        for name in file_names:
+            f = client.files.get(name=name)
+            contents.append(types.Part.from_uri(file_uri=f.uri, mime_type=f.mime_type))
+
+    host_names = ["호스트A", "호스트B"] if language == "ko" else ["Host A", "Host B"]
+    if hosts > 2:
+        for i in range(2, hosts):
+            suffix = chr(ord("C") + i - 2)
+            host_names.append(f"호스트{suffix}" if language == "ko" else f"Host {suffix}")
+
+    prompt = f"""당신은 전문 팟캐스트 작가입니다. 주어진 자료를 바탕으로
+{hosts}명의 진행자({', '.join(host_names)})가 대화하는 팟캐스트 대본을 작성해주세요.
+
+형식:
+- 자연스러운 대화체 사용
+- 각 발화는 "[진행자명]: 대사" 형식
+- 인트로 → 핵심 내용 논의 → 심화 토론 → 마무리 구조
+- 청취자가 이해하기 쉽게 비유와 예시 활용
+- 대본 길이: 약 2000-3000자
+
+언어: {'한국어' if language == 'ko' else language}
+"""
+
+    if topic:
+        prompt += f"\n주제/포커스: {topic}"
+
+    if text:
+        prompt += f"\n\n분석할 자료:\n{text}"
+
+    contents.append(types.Part.from_text(text=prompt))
+
+    print("팟캐스트 스크립트 생성 중...\n")
+    print("=" * 60)
+    response = client.models.generate_content(
+        model=GEMINI_MODEL,
+        contents=contents,
+    )
+    print(response.text)
+    print("=" * 60)
+    return response.text
+
+
+# ---------------------------------------------------------------------------
+# 학습 가이드 생성
+# ---------------------------------------------------------------------------
+
+def generate_study_guide(file_names=None, text=None, language="ko"):
+    """학습 가이드 생성 (NotebookLM 학습 가이드 기능)."""
+    client = get_client()
+    contents = []
+
+    if file_names:
+        for name in file_names:
+            f = client.files.get(name=name)
+            contents.append(types.Part.from_uri(file_uri=f.uri, mime_type=f.mime_type))
+
+    prompt = f"""당신은 교육 전문가입니다. 주어진 자료를 바탕으로 종합 학습 가이드를 작성해주세요.
+
+학습 가이드 형식:
+1. **학습 목표** - 이 자료에서 배울 수 있는 핵심 내용
+2. **개념 정리** - 주요 개념을 표 형식으로 정리
+3. **핵심 요약** - 챕터/섹션별 요약
+4. **이해도 점검 퀴즈** - 객관식 5문제 + 서술형 3문제
+5. **심화 학습 키워드** - 추가로 공부할 주제
+
+언어: {'한국어' if language == 'ko' else language}로 작성해주세요.
+"""
+
+    if text:
+        prompt += f"\n\n학습 자료:\n{text}"
+
+    contents.append(types.Part.from_text(text=prompt))
+
+    print("학습 가이드 생성 중...\n")
+    response = client.models.generate_content(
+        model=GEMINI_MODEL,
+        contents=contents,
+    )
+    print(response.text)
+    return response.text
+
+
+# ---------------------------------------------------------------------------
+# FAQ 생성
+# ---------------------------------------------------------------------------
+
+def generate_faq(file_names=None, text=None, count=10, language="ko"):
+    """자주 묻는 질문(FAQ) 자동 생성."""
+    client = get_client()
+    contents = []
+
+    if file_names:
+        for name in file_names:
+            f = client.files.get(name=name)
+            contents.append(types.Part.from_uri(file_uri=f.uri, mime_type=f.mime_type))
+
+    prompt = f"""주어진 자료를 분석하여 자주 묻는 질문(FAQ) {count}개를 생성해주세요.
+
+형식:
+**Q1: [질문]**
+A1: [상세한 답변]
+
+...
+
+질문은 실제 독자/사용자가 궁금해할 만한 실용적인 내용으로 작성해주세요.
+언어: {'한국어' if language == 'ko' else language}로 작성해주세요.
+"""
+
+    if text:
+        prompt += f"\n\n자료:\n{text}"
+
+    contents.append(types.Part.from_text(text=prompt))
+
+    print("FAQ 생성 중...\n")
+    response = client.models.generate_content(
+        model=GEMINI_MODEL,
+        contents=contents,
+    )
+    print(response.text)
+    return response.text
 
 
 # ---------------------------------------------------------------------------
@@ -369,123 +407,124 @@ def generate_podcast(title, text=None, file_path=None, focus=None,
 
 def main():
     parser = argparse.ArgumentParser(
-        description="NotebookLM Enterprise API Client",
+        description="NotebookLM 스타일 도구 (Gemini API 무료 티어)",
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog="""
-Examples:
-  %(prog)s create-notebook --title "Research Notes"
-  %(prog)s list-notebooks
-  %(prog)s add-source --notebook NB_ID --text "Some content to analyze"
-  %(prog)s add-source --notebook NB_ID --url "https://example.com/article"
-  %(prog)s add-source --notebook NB_ID --youtube "https://youtube.com/watch?v=abc"
-  %(prog)s add-source --notebook NB_ID --drive-doc-id "GOOGLE_DOC_ID"
-  %(prog)s upload-file --notebook NB_ID --file paper.pdf
-  %(prog)s list-sources --notebook NB_ID
-  %(prog)s generate-audio --notebook NB_ID --focus "Key findings"
-  %(prog)s delete-audio --notebook NB_ID
-  %(prog)s generate-podcast --title "My Podcast" --text "Content here"
-  %(prog)s delete-notebook --notebook NB_ID
-  %(prog)s delete-source --notebook NB_ID --source SRC_ID
-  %(prog)s share-notebook --notebook NB_ID --email user@example.com
+사용 예시:
+  # 파일 업로드
+  %(prog)s upload --file document.pdf
+  %(prog)s upload --file paper.txt --file image.png
+
+  # 파일 관리
+  %(prog)s list-files
+  %(prog)s get-file --name files/abc123
+  %(prog)s delete-file --name files/abc123
+
+  # 문서 요약
+  %(prog)s summarize --file-name files/abc123
+  %(prog)s summarize --text "요약할 내용..."
+
+  # 문서 Q&A
+  %(prog)s chat --file-name files/abc123 --question "핵심은?"
+  %(prog)s interactive --file-name files/abc123
+
+  # 팟캐스트 스크립트 생성 (오디오 오버뷰)
+  %(prog)s podcast --file-name files/abc123 --topic "AI 트렌드"
+
+  # 학습 가이드 생성
+  %(prog)s study-guide --file-name files/abc123
+
+  # FAQ 생성
+  %(prog)s faq --file-name files/abc123 --count 10
         """,
     )
 
     subparsers = parser.add_subparsers(dest="command", required=True)
 
-    # create-notebook
-    p_create = subparsers.add_parser("create-notebook", help="Create a new notebook")
-    p_create.add_argument("--title", default="Untitled Notebook", help="Notebook title")
+    # upload
+    p_upload = subparsers.add_parser("upload", help="파일 업로드")
+    p_upload.add_argument("--file", action="append", required=True,
+                          help="업로드할 파일 경로 (여러 개 가능)")
 
-    # list-notebooks
-    subparsers.add_parser("list-notebooks", help="List recently viewed notebooks")
+    # list-files
+    subparsers.add_parser("list-files", help="업로드된 파일 목록")
 
-    # delete-notebook
-    p_del_nb = subparsers.add_parser("delete-notebook", help="Delete a notebook")
-    p_del_nb.add_argument("--notebook", required=True, help="Notebook ID")
+    # get-file
+    p_get = subparsers.add_parser("get-file", help="파일 정보 조회")
+    p_get.add_argument("--name", required=True, help="파일명 (예: files/abc123)")
 
-    # share-notebook
-    p_share = subparsers.add_parser("share-notebook", help="Share a notebook")
-    p_share.add_argument("--notebook", required=True, help="Notebook ID")
-    p_share.add_argument("--email", required=True, help="User email to share with")
-    p_share.add_argument("--role", default="USER_ROLE", help="Role (default: USER_ROLE)")
+    # delete-file
+    p_del = subparsers.add_parser("delete-file", help="파일 삭제")
+    p_del.add_argument("--name", required=True, help="파일명 (예: files/abc123)")
 
-    # add-source
-    p_add = subparsers.add_parser("add-source", help="Add a source to a notebook")
-    p_add.add_argument("--notebook", required=True, help="Notebook ID")
-    source_group = p_add.add_mutually_exclusive_group(required=True)
-    source_group.add_argument("--text", help="Plain text content")
-    source_group.add_argument("--url", help="Web URL")
-    source_group.add_argument("--youtube", help="YouTube video URL")
-    source_group.add_argument("--drive-doc-id", help="Google Drive document ID")
+    # summarize
+    p_sum = subparsers.add_parser("summarize", help="문서 요약")
+    p_sum.add_argument("--file-name", action="append", help="파일명 (여러 개 가능)")
+    p_sum.add_argument("--text", help="직접 입력할 텍스트")
+    p_sum.add_argument("--language", default="ko", help="출력 언어 (기본: ko)")
 
-    # upload-file
-    p_upload = subparsers.add_parser("upload-file", help="Upload a file as source")
-    p_upload.add_argument("--notebook", required=True, help="Notebook ID")
-    p_upload.add_argument("--file", required=True, help="File path to upload")
+    # chat (단일 질문)
+    p_chat = subparsers.add_parser("chat", help="문서 Q&A (단일 질문)")
+    p_chat.add_argument("--file-name", action="append", help="파일명")
+    p_chat.add_argument("--text", help="참고 텍스트")
+    p_chat.add_argument("--question", "-q", required=True, help="질문")
+    p_chat.add_argument("--language", default="ko", help="출력 언어 (기본: ko)")
 
-    # list-sources
-    p_list_src = subparsers.add_parser("list-sources", help="List sources in a notebook")
-    p_list_src.add_argument("--notebook", required=True, help="Notebook ID")
+    # interactive (대화형)
+    p_inter = subparsers.add_parser("interactive", help="대화형 Q&A 세션")
+    p_inter.add_argument("--file-name", action="append", help="파일명")
+    p_inter.add_argument("--text", help="참고 텍스트")
+    p_inter.add_argument("--language", default="ko", help="출력 언어 (기본: ko)")
 
-    # delete-source
-    p_del_src = subparsers.add_parser("delete-source", help="Delete a source")
-    p_del_src.add_argument("--notebook", required=True, help="Notebook ID")
-    p_del_src.add_argument("--source", required=True, help="Source ID")
+    # podcast
+    p_pod = subparsers.add_parser("podcast", help="팟캐스트 스크립트 생성")
+    p_pod.add_argument("--file-name", action="append", help="파일명")
+    p_pod.add_argument("--text", help="참고 텍스트")
+    p_pod.add_argument("--topic", help="팟캐스트 주제/포커스")
+    p_pod.add_argument("--hosts", type=int, default=2, help="진행자 수 (기본: 2)")
+    p_pod.add_argument("--language", default="ko", help="출력 언어 (기본: ko)")
 
-    # generate-audio
-    p_audio = subparsers.add_parser("generate-audio", help="Generate audio overview")
-    p_audio.add_argument("--notebook", required=True, help="Notebook ID")
-    p_audio.add_argument("--source-ids", nargs="*", help="Specific source IDs (optional)")
-    p_audio.add_argument("--focus", help="Episode focus description")
-    p_audio.add_argument("--language", default="en", help="Language code (default: en)")
+    # study-guide
+    p_study = subparsers.add_parser("study-guide", help="학습 가이드 생성")
+    p_study.add_argument("--file-name", action="append", help="파일명")
+    p_study.add_argument("--text", help="학습 자료 텍스트")
+    p_study.add_argument("--language", default="ko", help="출력 언어 (기본: ko)")
 
-    # delete-audio
-    p_del_audio = subparsers.add_parser("delete-audio", help="Delete audio overview")
-    p_del_audio.add_argument("--notebook", required=True, help="Notebook ID")
-
-    # generate-podcast (standalone)
-    p_podcast = subparsers.add_parser("generate-podcast", help="Generate standalone podcast")
-    p_podcast.add_argument("--title", required=True, help="Podcast title")
-    p_podcast.add_argument("--text", help="Text content for the podcast")
-    p_podcast.add_argument("--file", help="File to include (image, PDF, etc.)")
-    p_podcast.add_argument("--focus", help="Focus topic")
-    p_podcast.add_argument("--length", default="MEDIUM", choices=["SHORT", "MEDIUM", "LONG"],
-                           help="Podcast length")
-    p_podcast.add_argument("--language", default="en", help="Language code (default: en)")
+    # faq
+    p_faq = subparsers.add_parser("faq", help="FAQ 자동 생성")
+    p_faq.add_argument("--file-name", action="append", help="파일명")
+    p_faq.add_argument("--text", help="참고 텍스트")
+    p_faq.add_argument("--count", type=int, default=10, help="생성할 FAQ 수 (기본: 10)")
+    p_faq.add_argument("--language", default="ko", help="출력 언어 (기본: ko)")
 
     args = parser.parse_args()
 
-    if args.command == "create-notebook":
-        create_notebook(title=args.title)
-    elif args.command == "list-notebooks":
-        list_notebooks()
-    elif args.command == "delete-notebook":
-        delete_notebook(args.notebook)
-    elif args.command == "share-notebook":
-        share_notebook(args.notebook, args.email, args.role)
-    elif args.command == "add-source":
-        if args.text:
-            add_text_source(args.notebook, args.text)
-        elif args.url:
-            add_url_source(args.notebook, args.url)
-        elif args.youtube:
-            add_youtube_source(args.notebook, args.youtube)
-        elif args.drive_doc_id:
-            add_drive_source(args.notebook, args.drive_doc_id)
-    elif args.command == "upload-file":
-        upload_file_source(args.notebook, args.file)
-    elif args.command == "list-sources":
-        list_sources(args.notebook)
-    elif args.command == "delete-source":
-        delete_source(args.notebook, args.source)
-    elif args.command == "generate-audio":
-        generate_audio_overview(args.notebook, source_ids=args.source_ids,
-                                focus=args.focus, language=args.language)
-    elif args.command == "delete-audio":
-        delete_audio_overview(args.notebook)
-    elif args.command == "generate-podcast":
-        generate_podcast(title=args.title, text=args.text, file_path=args.file,
-                         focus=args.focus, length=args.length, language=args.language)
+    if args.command == "upload":
+        upload_files(args.file)
+    elif args.command == "list-files":
+        list_files()
+    elif args.command == "get-file":
+        get_file(args.name)
+    elif args.command == "delete-file":
+        delete_file(args.name)
+    elif args.command == "summarize":
+        summarize(file_names=args.file_name, text=args.text, language=args.language)
+    elif args.command == "chat":
+        chat_with_docs(file_names=args.file_name, text=args.text,
+                       question=args.question, language=args.language)
+    elif args.command == "interactive":
+        interactive_chat(file_names=args.file_name, text=args.text,
+                         language=args.language)
+    elif args.command == "podcast":
+        generate_podcast_script(file_names=args.file_name, text=args.text,
+                                topic=args.topic, language=args.language,
+                                hosts=args.hosts)
+    elif args.command == "study-guide":
+        generate_study_guide(file_names=args.file_name, text=args.text,
+                             language=args.language)
+    elif args.command == "faq":
+        generate_faq(file_names=args.file_name, text=args.text,
+                     count=args.count, language=args.language)
 
 
 if __name__ == "__main__":
