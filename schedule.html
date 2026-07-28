@@ -29,6 +29,11 @@
       --gradient-hero: linear-gradient(135deg, #4f8fff 0%, #a855f7 50%, #ff6b4f 100%);
       --slot-h: 52px;
       --time-w: 64px;
+      --sub-math: #4f8fff;
+      --sub-koi: #a855f7;
+      --sub-info: #34d399;
+      --sub-coach: #f59e0b;
+      --sub-consult: #ff6b4f;
     }
     * { margin: 0; padding: 0; box-sizing: border-box; }
     html { scroll-behavior: smooth; font-size: 16px; }
@@ -86,7 +91,7 @@
       padding: 96px 1.5rem 4rem;
     }
 
-    .hero-block { margin-bottom: 2rem; animation: fadeUp .7s ease-out; }
+    .hero-block { margin-bottom: 1.5rem; animation: fadeUp .7s ease-out; }
     .eyebrow {
       display: inline-flex; align-items: center; gap: 8px;
       font-family: 'JetBrains Mono', monospace; font-size: .75rem;
@@ -112,11 +117,14 @@
       color: var(--text-secondary); font-size: 1rem; line-height: 1.7;
       max-width: 640px;
     }
+    .hero-actions {
+      display: flex; flex-wrap: wrap; gap: .6rem; margin-top: 1rem;
+    }
 
     .toolbar {
       display: flex; flex-wrap: wrap; gap: 1rem; align-items: center;
       justify-content: space-between;
-      margin-bottom: 1.25rem;
+      margin-bottom: 1rem;
       animation: fadeUp .7s ease-out .08s both;
     }
     .week-nav { display: flex; align-items: center; gap: .5rem; flex-wrap: wrap; }
@@ -129,7 +137,7 @@
       font-family: 'JetBrains Mono', monospace; font-size: .72rem;
       color: var(--text-muted); margin-top: 2px;
     }
-    .icon-btn, .btn-primary, .btn-secondary, .btn-ghost {
+    .icon-btn, .btn-primary, .btn-secondary, .btn-ghost, .btn-danger {
       display: inline-flex; align-items: center; justify-content: center; gap: 8px;
       border-radius: 10px; font-size: .9rem; font-weight: 600;
       cursor: pointer; transition: all .25s; font-family: inherit; text-decoration: none;
@@ -139,28 +147,51 @@
       background: var(--bg-card); border: 1px solid var(--border); color: var(--text-primary);
     }
     .icon-btn:hover:not(:disabled) { border-color: var(--border-hover); background: var(--bg-card-hover); }
-    .icon-btn:disabled { opacity: .35; cursor: not-allowed; }
+    .icon-btn:disabled, .btn-primary:disabled, .btn-secondary:disabled { opacity: .45; cursor: not-allowed; transform: none; }
     .btn-primary {
       padding: 10px 18px; background: var(--accent); color: #fff; border: none;
       box-shadow: 0 0 24px rgba(79, 143, 255, 0.2);
     }
-    .btn-primary:hover { transform: translateY(-1px); box-shadow: 0 0 32px rgba(79, 143, 255, 0.35); }
-    .btn-primary:disabled { opacity: .5; cursor: not-allowed; transform: none; }
+    .btn-primary:hover:not(:disabled) { transform: translateY(-1px); box-shadow: 0 0 32px rgba(79, 143, 255, 0.35); }
     .btn-secondary {
       padding: 10px 18px; background: transparent; color: var(--text-primary);
       border: 1px solid var(--border);
     }
-    .btn-secondary:hover { border-color: var(--border-hover); background: var(--accent-glow); }
+    .btn-secondary:hover:not(:disabled) { border-color: var(--border-hover); background: var(--accent-glow); }
+    .btn-danger {
+      padding: 10px 18px; background: rgba(255, 107, 79, 0.15); color: #ffb4a4;
+      border: 1px solid rgba(255, 107, 79, 0.35);
+    }
+    .btn-danger:hover { background: rgba(255, 107, 79, 0.25); }
     .btn-ghost {
       padding: 8px 12px; background: transparent; color: var(--text-secondary);
       border: 1px solid transparent; font-size: .8rem; font-weight: 500;
     }
     .btn-ghost:hover { color: var(--accent); }
     .toolbar-actions { display: flex; flex-wrap: wrap; gap: .5rem; align-items: center; }
+    .week-picker {
+      background: var(--bg-card); border: 1px solid var(--border); color: var(--text-primary);
+      border-radius: 10px; padding: 8px 10px; font-family: inherit; font-size: .85rem;
+    }
+
+    .day-tabs {
+      display: none; gap: .4rem; overflow-x: auto; padding-bottom: .35rem;
+      margin-bottom: 1rem; animation: fadeUp .7s ease-out .1s both;
+    }
+    .day-tab {
+      flex: 0 0 auto; min-width: 68px; padding: 8px 10px;
+      border-radius: 10px; border: 1px solid var(--border);
+      background: var(--bg-card); color: var(--text-secondary);
+      font-size: .78rem; cursor: pointer; text-align: center;
+    }
+    .day-tab strong { display: block; color: var(--text-primary); font-size: .9rem; }
+    .day-tab.active {
+      border-color: var(--border-hover); background: var(--accent-glow); color: var(--accent);
+    }
 
     .legend {
-      display: flex; flex-wrap: wrap; gap: 1rem; margin-bottom: 1rem;
-      font-size: .8rem; color: var(--text-secondary);
+      display: flex; flex-wrap: wrap; gap: .85rem; margin-bottom: 1rem;
+      font-size: .78rem; color: var(--text-secondary);
       animation: fadeUp .7s ease-out .12s both;
     }
     .legend span { display: inline-flex; align-items: center; gap: 6px; }
@@ -168,20 +199,53 @@
     .dot.open { background: rgba(79, 143, 255, 0.25); border: 1px solid var(--border-hover); }
     .dot.booked { background: rgba(255, 107, 79, 0.35); border: 1px solid rgba(255, 107, 79, 0.5); }
     .dot.past { background: rgba(255, 255, 255, 0.04); border: 1px solid var(--border); }
+    .dot.math { background: var(--sub-math); }
+    .dot.koi { background: var(--sub-koi); }
+    .dot.info { background: var(--sub-info); }
+    .dot.coach { background: var(--sub-coach); }
+    .dot.consult { background: var(--sub-consult); }
 
     .board-wrap {
+      position: relative;
       border: 1px solid var(--border);
       border-radius: 16px;
       background: rgba(12, 16, 24, 0.72);
       backdrop-filter: blur(12px);
       overflow: hidden;
       animation: fadeUp .7s ease-out .16s both;
+      min-height: 280px;
     }
+    .board-banner {
+      display: none; padding: .85rem 1rem;
+      border-bottom: 1px solid var(--border);
+      font-size: .85rem; color: var(--text-secondary);
+      background: rgba(79, 143, 255, 0.06);
+    }
+    .board-banner.show { display: block; }
+    .board-banner.warn { background: rgba(255, 107, 79, 0.08); color: #ffc4b8; }
     .board-scroll { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+    .board-loading {
+      position: absolute; inset: 0; z-index: 5;
+      display: none; align-items: center; justify-content: center;
+      background: rgba(6, 8, 13, 0.45); backdrop-filter: blur(2px);
+      color: var(--text-secondary); font-size: .9rem;
+    }
+    .board-loading.show { display: flex; }
+    .spinner {
+      width: 18px; height: 18px; border-radius: 50%;
+      border: 2px solid rgba(255,255,255,.15); border-top-color: var(--accent);
+      animation: spin .8s linear infinite; margin-right: 10px;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
     .timetable {
       display: grid;
       grid-template-columns: var(--time-w) repeat(7, minmax(110px, 1fr));
       min-width: 900px;
+    }
+    .timetable.day-mode {
+      grid-template-columns: var(--time-w) minmax(180px, 1fr);
+      min-width: 0;
     }
     .head-cell, .time-cell, .slot {
       border-bottom: 1px solid var(--border);
@@ -212,7 +276,7 @@
     }
     .slot {
       height: var(--slot-h); position: relative; background: transparent;
-      transition: background .2s; cursor: pointer; border: none;
+      transition: background .2s, box-shadow .35s; cursor: pointer; border: none;
       border-bottom: 1px solid var(--border); border-right: 1px solid var(--border);
       width: 100%; padding: 4px; color: inherit; font-family: inherit; text-align: left;
     }
@@ -224,20 +288,26 @@
       color: var(--text-muted); font-size: 1rem; opacity: 0; transition: opacity .2s;
     }
     .slot.open:hover::after { opacity: 1; color: var(--accent); }
-    .slot.booked { background: rgba(255, 107, 79, 0.18); cursor: pointer; }
+    .slot.booked { cursor: pointer; }
     .slot.past { background: rgba(255, 255, 255, 0.02); cursor: not-allowed; opacity: .55; }
+    .slot.flash { box-shadow: inset 0 0 0 2px var(--accent-warm); animation: flashPulse .9s ease; }
+    @keyframes flashPulse {
+      0%, 100% { background: rgba(255, 107, 79, 0.08); }
+      50% { background: rgba(255, 107, 79, 0.28); }
+    }
     .slot-chip {
       display: block; width: 100%; height: 100%;
       border-radius: 6px; padding: 4px 6px;
       font-size: .68rem; line-height: 1.25; overflow: hidden;
-    }
-    .slot.booked .slot-chip {
-      background: rgba(255, 107, 79, 0.25);
-      border: 1px solid rgba(255, 107, 79, 0.35);
-      color: #ffc4b8;
+      border: 1px solid transparent;
     }
     .slot-chip strong { display: block; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-    .slot-chip em { font-style: normal; color: var(--text-muted); font-size: .62rem; }
+    .slot-chip em { font-style: normal; color: rgba(255,255,255,.7); font-size: .62rem; }
+    .subj-math .slot-chip { background: rgba(79,143,255,.22); border-color: rgba(79,143,255,.35); color: #c9dbff; }
+    .subj-koi .slot-chip { background: rgba(168,85,247,.22); border-color: rgba(168,85,247,.35); color: #e4ccff; }
+    .subj-info .slot-chip { background: rgba(52,211,153,.2); border-color: rgba(52,211,153,.35); color: #baf7dc; }
+    .subj-coach .slot-chip { background: rgba(245,158,11,.2); border-color: rgba(245,158,11,.35); color: #ffe0a8; }
+    .subj-consult .slot-chip { background: rgba(255,107,79,.22); border-color: rgba(255,107,79,.35); color: #ffc4b8; }
 
     .panels {
       display: grid; grid-template-columns: 1fr 1fr; gap: 1.25rem;
@@ -272,6 +342,7 @@
       width: 7px; height: 7px; border-radius: 50%; background: var(--accent-good);
       box-shadow: 0 0 8px rgba(52, 211, 153, .6);
     }
+    .contact-row { display: flex; flex-wrap: wrap; gap: .5rem; margin-top: .9rem; }
 
     .booking-list { list-style: none; padding: 0; margin-top: .75rem; max-height: 320px; overflow: auto; }
     .booking-list li {
@@ -286,7 +357,7 @@
       color: var(--text-muted); border-radius: 8px; padding: 4px 8px;
       cursor: pointer; font-size: .72rem;
     }
-    .booking-list button:hover { color: var(--accent-warm); border-color: rgba(255, 107, 79, 0.4); }
+    .booking-list button:hover { color: var(--accent); border-color: var(--border-hover); }
     .empty-note { color: var(--text-muted); font-size: .85rem; padding: .5rem 0; }
 
     .modal-backdrop {
@@ -314,6 +385,15 @@
       font-family: 'JetBrains Mono', monospace; font-size: .8rem;
       color: var(--accent); margin-bottom: 1.1rem;
     }
+    .detail-grid {
+      display: grid; gap: .65rem; margin-bottom: 1rem;
+      font-size: .9rem; color: var(--text-secondary);
+    }
+    .detail-grid div {
+      display: grid; grid-template-columns: 88px 1fr; gap: .5rem;
+      padding-bottom: .55rem; border-bottom: 1px solid var(--border);
+    }
+    .detail-grid strong { color: var(--text-muted); font-weight: 500; font-size: .78rem; }
     .form-grid { display: grid; gap: .85rem; }
     label { display: grid; gap: 6px; font-size: .8rem; color: var(--text-secondary); }
     input, select, textarea {
@@ -369,6 +449,9 @@
       .toolbar { align-items: stretch; }
       .toolbar-actions { width: 100%; }
       .toolbar-actions .btn-primary, .toolbar-actions .btn-secondary { flex: 1; }
+      .day-tabs { display: flex; }
+      .timetable { min-width: 0; }
+      :root { --slot-h: 58px; }
     }
   </style>
 </head>
@@ -389,12 +472,16 @@
 
   <main>
     <header class="hero-block">
-      <div class="eyebrow">Class Timetable · Supabase · From Aug 2026</div>
+      <div class="eyebrow">Class Timetable · Supabase · Asia/Seoul · From Aug 2026</div>
       <h1>수업 <span class="grad">시간표 · 예약</span></h1>
       <p>
-        가로축은 일요일~토요일, 세로축은 9시~22시(1시간 단위)입니다.
-        빈 칸을 눌러 예약을 확정하면 Supabase에 저장되어 모든 사용자에게 같은 캘린더로 공유됩니다.
+        가로축은 일요일~토요일, 세로축은 9시~22시(1시간)입니다.
+        빈 칸을 누르면 Supabase에 저장되어 모든 사용자와 같은 캘린더를 공유합니다.
       </p>
+      <div class="hero-actions">
+        <a class="btn-secondary" href="mailto:ceo@stargateedu.co.kr">메일 문의</a>
+        <a class="btn-secondary" href="tel:070-8017-8227">전화 070-8017-8227</a>
+      </div>
     </header>
 
     <div class="toolbar">
@@ -402,24 +489,33 @@
         <button class="icon-btn" id="prevWeek" aria-label="이전 주">‹</button>
         <div>
           <div class="week-label" id="weekLabel">—</div>
-          <div class="week-sub" id="weekSub">예약 가능: 2026년 8월 1일부터 · Supabase</div>
+          <div class="week-sub" id="weekSub">예약 가능: 2026년 8월 1일부터 · Asia/Seoul</div>
         </div>
         <button class="icon-btn" id="nextWeek" aria-label="다음 주">›</button>
         <button class="btn-ghost" id="thisWeekBtn" type="button">이번 주</button>
       </div>
       <div class="toolbar-actions">
+        <input class="week-picker" id="weekPicker" type="date" aria-label="날짜로 주 이동" title="날짜를 고르면 해당 주로 이동합니다">
         <button class="btn-secondary" id="syncBtn" type="button">새로고침</button>
-        <button class="btn-primary" id="jumpAugBtn" type="button">8월 첫 주로</button>
+        <button class="btn-primary" id="jumpAugBtn" type="button">8월 첫 주</button>
       </div>
     </div>
 
+    <div class="day-tabs" id="dayTabs" aria-label="요일 선택"></div>
+
     <div class="legend">
       <span><i class="dot open"></i> 예약 가능</span>
-      <span><i class="dot booked"></i> 예약됨</span>
-      <span><i class="dot past"></i> 지난 시간 / 8월 이전</span>
+      <span><i class="dot past"></i> 지난/불가</span>
+      <span><i class="dot math"></i> 수학</span>
+      <span><i class="dot koi"></i> KOI</span>
+      <span><i class="dot info"></i> 정보올림</span>
+      <span><i class="dot coach"></i> 1:1</span>
+      <span><i class="dot consult"></i> 상담</span>
     </div>
 
-    <div class="board-wrap">
+    <div class="board-wrap" id="boardWrap">
+      <div class="board-banner" id="boardBanner"></div>
+      <div class="board-loading" id="boardLoading"><span class="spinner"></span>불러오는 중…</div>
       <div class="board-scroll">
         <div class="timetable" id="timetable" role="grid" aria-label="주간 수업 시간표"></div>
       </div>
@@ -429,41 +525,44 @@
       <section class="panel">
         <h2>Supabase 캘린더</h2>
         <p>
-          Google Calendar 대신 Stargate Supabase에 수업 예약을 저장합니다.
-          테이블(<code style="font-family:'JetBrains Mono',monospace;font-size:.78em">class_bookings</code>)이 있으면 DB 모드,
-          없으면 Storage 폴더에 슬롯 단위로 저장합니다.
+          Google Calendar 없이 Stargate Supabase에 예약을 저장합니다.
+          테이블이 있으면 DB 모드, 없으면 Storage 모드로 동작합니다.
         </p>
         <ul>
           <li>프로젝트: <code style="font-family:'JetBrains Mono',monospace;font-size:.78em">inftexpcnfinglwlrvsj</code></li>
-          <li>양식: 일~토 × 09–22 (1시간)</li>
-          <li>시작: 2026-08-01</li>
+          <li>시간대: Asia/Seoul · 일~토 · 09–22</li>
+          <li>충돌 시 자동 새로고침</li>
         </ul>
         <div class="mode-pill"><span class="dot-live"></span><span id="modeLabel">연결 중…</span></div>
         <div class="status-line" id="syncStatus">Supabase 연결 확인 중…</div>
+        <div class="contact-row">
+          <a class="btn-secondary" href="mailto:ceo@stargateedu.co.kr">ceo@stargateedu.co.kr</a>
+          <a class="btn-secondary" href="tel:070-8017-8227">070-8017-8227</a>
+        </div>
       </section>
 
       <section class="panel">
-        <h2>이번 주 예약</h2>
-        <p>현재 주에 확정된 수업 예약 목록입니다.</p>
+        <h2>이번 주 예약 <span id="weekCount" style="color:var(--text-muted);font-size:.85rem;font-weight:500"></span></h2>
+        <p>현재 주에 확정된 수업입니다. 항목을 누르면 상세를 볼 수 있습니다.</p>
         <ul class="booking-list" id="bookingList"></ul>
         <div class="empty-note" id="bookingEmpty">아직 예약이 없습니다. 시간표에서 빈 칸을 선택하세요.</div>
       </section>
     </div>
   </main>
 
-  <div class="modal-backdrop" id="modal" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
+  <div class="modal-backdrop" id="bookModal" role="dialog" aria-modal="true" aria-labelledby="bookTitle">
     <div class="modal">
-      <h3 id="modalTitle">수업 예약</h3>
-      <div class="slot-info" id="modalSlotInfo">—</div>
+      <h3 id="bookTitle">수업 예약</h3>
+      <div class="slot-info" id="bookSlotInfo">—</div>
       <form id="bookingForm" class="form-grid">
         <label>학생 / 학부모 이름 *
-          <input name="name" required maxlength="40" placeholder="홍길동">
+          <input name="name" required maxlength="40" placeholder="홍길동" autocomplete="name">
         </label>
         <label>연락처 *
-          <input name="phone" required maxlength="30" placeholder="010-0000-0000">
+          <input name="phone" required maxlength="30" placeholder="010-0000-0000" autocomplete="tel">
         </label>
         <label>이메일
-          <input name="email" type="email" maxlength="80" placeholder="parent@example.com">
+          <input name="email" type="email" maxlength="80" placeholder="parent@example.com" autocomplete="email">
         </label>
         <label>과목 *
           <select name="subject" required>
@@ -478,10 +577,22 @@
           <textarea name="note" maxlength="300" placeholder="학년, 교재, 요청사항 등"></textarea>
         </label>
         <div class="modal-actions">
-          <button type="button" class="btn-secondary" id="cancelBtn">닫기</button>
+          <button type="button" class="btn-secondary" id="bookCloseBtn">닫기</button>
           <button type="submit" class="btn-primary" id="submitBtn">예약 확정</button>
         </div>
       </form>
+    </div>
+  </div>
+
+  <div class="modal-backdrop" id="detailModal" role="dialog" aria-modal="true" aria-labelledby="detailTitle">
+    <div class="modal">
+      <h3 id="detailTitle">예약 상세</h3>
+      <div class="slot-info" id="detailSlotInfo">—</div>
+      <div class="detail-grid" id="detailGrid"></div>
+      <div class="modal-actions">
+        <button type="button" class="btn-secondary" id="detailCloseBtn">닫기</button>
+        <button type="button" class="btn-danger" id="detailCancelBtn">예약 취소</button>
+      </div>
     </div>
   </div>
 
@@ -500,13 +611,21 @@
     (function () {
       const HOURS = Array.from({ length: 14 }, (_, i) => 9 + i);
       const DAY_LABELS = ['일', '월', '화', '수', '목', '금', '토'];
-      const BOOKING_START = new Date(2026, 7, 1);
+      const TZ = 'Asia/Seoul';
+      const BOOKING_START_KEY = '2026-08-01';
       const SUPABASE_URL = 'https://inftexpcnfinglwlrvsj.supabase.co';
       const SUPABASE_ANON_KEY =
         'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImluZnRleHBjbmZpbmdsd2xydnNqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzI5MTMyMzgsImV4cCI6MjA4ODQ4OTIzOH0.HONuULp0L3B5T0gTiwJMnowjJonJzzNHhUV_LtpDQoI';
       const TABLE = 'class_bookings';
       const STORAGE_BUCKET = 'public-data-csv';
       const STORAGE_PREFIX = 'class-bookings/';
+      const SUBJECT_CLASS = {
+        '수학 심화': 'subj-math',
+        'KOI 알고리즘': 'subj-koi',
+        '정보올림피아드': 'subj-info',
+        '1:1 코칭': 'subj-coach',
+        '상담': 'subj-consult',
+      };
 
       const els = {
         timetable: document.getElementById('timetable'),
@@ -516,14 +635,24 @@
         nextWeek: document.getElementById('nextWeek'),
         thisWeekBtn: document.getElementById('thisWeekBtn'),
         jumpAugBtn: document.getElementById('jumpAugBtn'),
+        weekPicker: document.getElementById('weekPicker'),
         syncBtn: document.getElementById('syncBtn'),
-        modal: document.getElementById('modal'),
-        modalSlotInfo: document.getElementById('modalSlotInfo'),
+        dayTabs: document.getElementById('dayTabs'),
+        boardBanner: document.getElementById('boardBanner'),
+        boardLoading: document.getElementById('boardLoading'),
+        bookModal: document.getElementById('bookModal'),
+        bookSlotInfo: document.getElementById('bookSlotInfo'),
         bookingForm: document.getElementById('bookingForm'),
-        cancelBtn: document.getElementById('cancelBtn'),
+        bookCloseBtn: document.getElementById('bookCloseBtn'),
         submitBtn: document.getElementById('submitBtn'),
+        detailModal: document.getElementById('detailModal'),
+        detailSlotInfo: document.getElementById('detailSlotInfo'),
+        detailGrid: document.getElementById('detailGrid'),
+        detailCloseBtn: document.getElementById('detailCloseBtn'),
+        detailCancelBtn: document.getElementById('detailCancelBtn'),
         bookingList: document.getElementById('bookingList'),
         bookingEmpty: document.getElementById('bookingEmpty'),
+        weekCount: document.getElementById('weekCount'),
         toast: document.getElementById('toast'),
         syncStatus: document.getElementById('syncStatus'),
         modeLabel: document.getElementById('modeLabel'),
@@ -531,45 +660,73 @@
         navLinks: document.getElementById('navLinks'),
       };
 
-      let weekStart = startOfWeek(clampToBookingWindow(new Date()));
+      let weekStart = startOfWeek(clampToBookingWindow(seoulNow()));
+      let selectedDay = Math.min(6, Math.max(0, seoulParts(seoulNow()).day));
       let selectedSlot = null;
+      let selectedBooking = null;
       let bookings = [];
-      let backend = 'unknown'; // 'db' | 'storage'
-      let loading = false;
+      let backend = 'unknown';
+      let loadId = 0;
+      let flashKey = '';
+      let mq = window.matchMedia('(max-width: 768px)');
 
       els.navToggle.addEventListener('click', () => els.navLinks.classList.toggle('active'));
       els.navLinks.querySelectorAll('a').forEach((a) =>
         a.addEventListener('click', () => els.navLinks.classList.remove('active'))
       );
-      els.prevWeek.addEventListener('click', () => {
-        const next = addDays(weekStart, -7);
-        if (endOfDay(addDays(next, 6)) < BOOKING_START) return;
-        weekStart = next;
-        loadWeek();
-      });
-      els.nextWeek.addEventListener('click', () => {
-        weekStart = addDays(weekStart, 7);
-        loadWeek();
-      });
+      els.prevWeek.addEventListener('click', () => shiftWeek(-7));
+      els.nextWeek.addEventListener('click', () => shiftWeek(7));
       els.thisWeekBtn.addEventListener('click', () => {
-        weekStart = startOfWeek(clampToBookingWindow(new Date()));
-        loadWeek();
+        weekStart = startOfWeek(clampToBookingWindow(seoulNow()));
+        selectedDay = seoulParts(seoulNow()).day;
+        loadWeek(true);
       });
       els.jumpAugBtn.addEventListener('click', () => {
-        weekStart = startOfWeek(BOOKING_START);
-        loadWeek();
+        weekStart = startOfWeek(fromSeoulYmd(BOOKING_START_KEY, 12));
+        selectedDay = 0;
+        loadWeek(true);
+      });
+      els.weekPicker.addEventListener('change', () => {
+        if (!els.weekPicker.value) return;
+        const d = fromSeoulYmd(els.weekPicker.value, 12);
+        weekStart = startOfWeek(clampToBookingWindow(d));
+        selectedDay = seoulParts(d).day;
+        loadWeek(true);
       });
       els.syncBtn.addEventListener('click', () => loadWeek(true));
-      els.cancelBtn.addEventListener('click', closeModal);
-      els.modal.addEventListener('click', (e) => {
-        if (e.target === els.modal) closeModal();
+      els.bookCloseBtn.addEventListener('click', closeBookModal);
+      els.detailCloseBtn.addEventListener('click', closeDetailModal);
+      els.detailCancelBtn.addEventListener('click', async () => {
+        if (!selectedBooking) return;
+        els.detailCancelBtn.disabled = true;
+        await cancelBooking(selectedBooking);
+        els.detailCancelBtn.disabled = false;
+        closeDetailModal();
+      });
+      els.bookModal.addEventListener('click', (e) => {
+        if (e.target === els.bookModal) closeBookModal();
+      });
+      els.detailModal.addEventListener('click', (e) => {
+        if (e.target === els.detailModal) closeDetailModal();
       });
       document.addEventListener('keydown', (e) => {
-        if (e.key === 'Escape') closeModal();
+        if (e.key === 'Escape') {
+          closeBookModal();
+          closeDetailModal();
+        }
       });
       els.bookingForm.addEventListener('submit', onSubmitBooking);
+      mq.addEventListener('change', () => render());
 
+      els.weekPicker.min = BOOKING_START_KEY;
       detectBackend().then(() => loadWeek(true));
+
+      function shiftWeek(days) {
+        const next = addDays(weekStart, days);
+        if (endOfDay(addDays(next, 6)) < fromSeoulYmd(BOOKING_START_KEY, 0)) return;
+        weekStart = next;
+        loadWeek(true);
+      }
 
       async function sb(path, options = {}) {
         const headers = {
@@ -587,25 +744,22 @@
           els.modeLabel.textContent = 'DB 모드 · class_bookings';
           return;
         }
-        const data = await res.json().catch(() => ({}));
-        const missing =
-          res.status === 404 ||
-          data.code === 'PGRST205' ||
-          /Could not find the table/i.test(data.message || '');
-        backend = missing ? 'storage' : 'storage';
+        backend = 'storage';
         els.modeLabel.textContent = 'Storage 모드 · public-data-csv/class-bookings';
       }
 
       async function loadWeek(manual) {
-        if (loading) return;
-        loading = true;
+        const myId = ++loadId;
+        setLoading(true);
         els.syncStatus.className = 'status-line';
         els.syncStatus.textContent = 'Supabase에서 예약을 불러오는 중…';
         renderShell();
         try {
           if (backend === 'unknown') await detectBackend();
-          bookings =
+          const rows =
             backend === 'db' ? await loadFromDb() : await loadFromStorage();
+          if (myId !== loadId) return;
+          bookings = rows;
           els.syncStatus.className = 'status-line ok';
           els.syncStatus.textContent =
             '동기화 완료 · ' +
@@ -613,18 +767,31 @@
             '건 · ' +
             (backend === 'db' ? 'DB' : 'Storage') +
             ' · ' +
-            new Date().toLocaleTimeString('ko-KR');
+            seoulNow().toLocaleTimeString('ko-KR', { timeZone: TZ });
           if (manual) showToast('Supabase 예약을 불러왔습니다.');
         } catch (err) {
+          if (myId !== loadId) return;
           bookings = [];
           els.syncStatus.className = 'status-line err';
           els.syncStatus.textContent = '동기화 실패: ' + err.message;
           if (manual) showToast('불러오기 실패: ' + err.message);
         } finally {
-          loading = false;
-          render();
-          renderBookingList();
+          if (myId === loadId) {
+            setLoading(false);
+            render();
+            renderBookingList();
+          }
         }
+      }
+
+      function setLoading(on) {
+        els.boardLoading.classList.toggle('show', on);
+        els.prevWeek.disabled = on || endOfDay(addDays(addDays(weekStart, -7), 6)) < fromSeoulYmd(BOOKING_START_KEY, 0);
+        els.nextWeek.disabled = on;
+        els.syncBtn.disabled = on;
+        els.jumpAugBtn.disabled = on;
+        els.thisWeekBtn.disabled = on;
+        els.weekPicker.disabled = on;
       }
 
       async function loadFromDb() {
@@ -663,7 +830,7 @@
         const weekEnd = addDays(weekStart, 7);
         const names = (Array.isArray(files) ? files : [])
           .map((f) => f.name)
-          .filter((name) => name && name.endsWith('.json') && name !== 'bookings.json');
+          .filter((name) => name && name.endsWith('.json') && !name.startsWith('_') && name !== 'bookings.json');
 
         const rows = await Promise.all(
           names.map(async (name) => {
@@ -715,17 +882,40 @@
       }
 
       function renderShell() {
-        const days = Array.from({ length: 7 }, (_, i) => addDays(weekStart, i));
+        const days = weekDays();
         els.weekLabel.textContent =
-          formatMD(days[0]) + ' — ' + formatMD(days[6]) + ' · ' + days[0].getFullYear();
+          formatMD(days[0]) + ' — ' + formatMD(days[6]) + ' · ' + seoulParts(days[0]).year;
         els.weekSub.textContent = '예약 가능: 2026년 8월 1일부터 · Asia/Seoul · Supabase';
-        els.prevWeek.disabled = endOfDay(addDays(addDays(weekStart, -7), 6)) < BOOKING_START;
+        els.weekPicker.value = toSeoulYmd(days[selectedDay] || days[0]);
+        renderDayTabs(days);
+      }
+
+      function renderDayTabs(days) {
+        els.dayTabs.replaceChildren();
+        days.forEach((d, i) => {
+          const p = seoulParts(d);
+          const btn = document.createElement('button');
+          btn.type = 'button';
+          btn.className = 'day-tab' + (i === selectedDay ? ' active' : '');
+          btn.innerHTML = '<strong>' + DAY_LABELS[i] + '</strong>' + p.month + '/' + p.dayOfMonth;
+          btn.addEventListener('click', () => {
+            selectedDay = i;
+            render();
+          });
+          els.dayTabs.appendChild(btn);
+        });
       }
 
       function render() {
         renderShell();
-        const days = Array.from({ length: 7 }, (_, i) => addDays(weekStart, i));
-        const today = new Date();
+        const days = weekDays();
+        const mobile = mq.matches;
+        const visibleDays = mobile ? [days[selectedDay]] : days;
+        const visibleIndexes = mobile ? [selectedDay] : [0, 1, 2, 3, 4, 5, 6];
+        const today = seoulNow();
+        const todayParts = seoulParts(today);
+
+        els.timetable.classList.toggle('day-mode', mobile);
         const frag = document.createDocumentFragment();
 
         const corner = document.createElement('div');
@@ -733,17 +923,42 @@
         corner.textContent = '시간';
         frag.appendChild(corner);
 
-        days.forEach((d, i) => {
+        visibleDays.forEach((d, idx) => {
+          const p = seoulParts(d);
           const cell = document.createElement('div');
-          cell.className = 'head-cell' + (isSameDay(d, today) ? ' today' : '');
+          const isToday =
+            p.year === todayParts.year &&
+            p.month === todayParts.month &&
+            p.dayOfMonth === todayParts.dayOfMonth;
+          cell.className = 'head-cell' + (isToday ? ' today' : '');
           cell.innerHTML =
-            DAY_LABELS[i] +
+            DAY_LABELS[visibleIndexes[idx]] +
             '<span class="date">' +
-            (d.getMonth() + 1) +
+            p.month +
             '/' +
-            d.getDate() +
+            p.dayOfMonth +
             '</span>';
           frag.appendChild(cell);
+        });
+
+        const bookingStart = fromSeoulYmd(BOOKING_START_KEY, 0);
+        let openCountWeek = 0;
+        days.forEach((day) => {
+          const p = seoulParts(day);
+          HOURS.forEach((hour) => {
+            const start = fromSeoulYmd(
+              p.year +
+                '-' +
+                String(p.month).padStart(2, '0') +
+                '-' +
+                String(p.dayOfMonth).padStart(2, '0'),
+              hour
+            );
+            const end = new Date(start.getTime() + 3600000);
+            const key = slotKeyFromParts(p, hour);
+            const booked = bookings.some((b) => b.slotKey === key);
+            if (!(end <= today || start < bookingStart) && !booked) openCountWeek += 1;
+          });
         });
 
         HOURS.forEach((hour) => {
@@ -752,67 +967,128 @@
           time.textContent = String(hour).padStart(2, '0') + ':00';
           frag.appendChild(time);
 
-          days.forEach((day) => {
-            const start = new Date(day.getFullYear(), day.getMonth(), day.getDate(), hour, 0, 0, 0);
-            const end = new Date(day.getFullYear(), day.getMonth(), day.getDate(), hour + 1, 0, 0, 0);
-            const key = slotKey(start);
+          visibleDays.forEach((day) => {
+            const p = seoulParts(day);
+            const start = fromSeoulYmd(
+              p.year +
+                '-' +
+                String(p.month).padStart(2, '0') +
+                '-' +
+                String(p.dayOfMonth).padStart(2, '0'),
+              hour
+            );
+            const end = new Date(start.getTime() + 3600000);
+            const key = slotKeyFromParts(p, hour);
             const booking = bookings.find((b) => b.slotKey === key);
-            const past = end <= new Date() || start < BOOKING_START;
+            const past = end <= today || start < bookingStart;
 
             const btn = document.createElement('button');
             btn.type = 'button';
             btn.className = 'slot';
             btn.dataset.slotKey = key;
+            if (flashKey === key) btn.classList.add('flash');
 
             if (past) {
               btn.classList.add('past');
               btn.disabled = true;
-              btn.title = start < BOOKING_START ? '8월 이전 슬롯' : '지난 시간';
+              btn.title = start < bookingStart ? '8월 이전 슬롯' : '지난 시간';
             } else if (booking) {
-              btn.classList.add('booked');
+              const subj = SUBJECT_CLASS[booking.subject] || 'subj-consult';
+              btn.classList.add('booked', subj);
               btn.innerHTML =
                 '<span class="slot-chip"><strong>' +
                 escapeHtml(booking.subject) +
                 '</strong><em>' +
                 escapeHtml(booking.name) +
                 '</em></span>';
-              btn.title = '예약 상세 / 취소';
-              btn.addEventListener('click', () => showBookingDetail(booking));
+              btn.title = '예약 상세';
+              btn.addEventListener('click', () => openDetailModal(booking));
             } else {
               btn.classList.add('open');
               btn.title = formatSlotLabel(start) + ' 예약';
               btn.setAttribute('aria-label', formatSlotLabel(start) + ' 예약');
-              btn.addEventListener('click', () => openModal(start));
+              btn.addEventListener('click', () => openBookModal(start, key));
             }
             frag.appendChild(btn);
           });
         });
 
         els.timetable.replaceChildren(frag);
+
+        const beforeWindow = endOfDay(days[6]) < bookingStart;
+        if (beforeWindow) {
+          showBanner('2026년 8월 1일 이전 주는 예약할 수 없습니다.', true);
+        } else if (!bookings.length) {
+          showBanner(
+            '이번 주 확정 예약이 없습니다. 빈 칸(+)을 눌러 수업을 예약하세요. 예약 가능 슬롯 ' +
+              openCountWeek +
+              '개',
+            false
+          );
+        } else {
+          showBanner(
+            '이번 주 확정 예약 ' + bookings.length + '건 · 남은 슬롯 ' + openCountWeek + '개',
+            false
+          );
+        }
       }
 
-      function openModal(start) {
-        selectedSlot = start;
-        els.modalSlotInfo.textContent = formatSlotLabel(start) + ' · 1시간';
+      function showBanner(text, warn) {
+        els.boardBanner.textContent = text;
+        els.boardBanner.className = 'board-banner show' + (warn ? ' warn' : '');
+      }
+
+      function openBookModal(start, key) {
+        selectedSlot = { start, key };
+        els.bookSlotInfo.textContent = formatSlotLabel(start) + ' · 1시간';
         els.bookingForm.reset();
         els.submitBtn.disabled = false;
-        els.modal.classList.add('open');
+        els.submitBtn.textContent = '예약 확정';
+        els.bookModal.classList.add('open');
         els.bookingForm.elements.name.focus();
       }
 
-      function closeModal() {
-        els.modal.classList.remove('open');
+      function closeBookModal() {
+        els.bookModal.classList.remove('open');
         selectedSlot = null;
+      }
+
+      function openDetailModal(booking) {
+        selectedBooking = booking;
+        const start = new Date(booking.startISO);
+        els.detailSlotInfo.textContent = formatSlotLabel(start) + ' · 1시간';
+        els.detailGrid.innerHTML =
+          row('과목', booking.subject) +
+          row('이름', booking.name) +
+          row('연락처', booking.phone) +
+          row('이메일', booking.email || '—') +
+          row('메모', booking.note || '—');
+        els.detailModal.classList.add('open');
+      }
+
+      function closeDetailModal() {
+        els.detailModal.classList.remove('open');
+        selectedBooking = null;
+      }
+
+      function row(label, value) {
+        return (
+          '<div><strong>' +
+          escapeHtml(label) +
+          '</strong><span>' +
+          escapeHtml(value) +
+          '</span></div>'
+        );
       }
 
       async function onSubmitBooking(e) {
         e.preventDefault();
         if (!selectedSlot) return;
         const fd = new FormData(els.bookingForm);
-        const start = selectedSlot;
-        const end = new Date(start.getTime() + 60 * 60 * 1000);
+        const start = selectedSlot.start;
+        const end = new Date(start.getTime() + 3600000);
         const payload = {
-          slot_key: slotKey(start),
+          slot_key: selectedSlot.key,
           starts_at: start.toISOString(),
           ends_at: end.toISOString(),
           student_name: String(fd.get('name') || '').trim(),
@@ -828,15 +1104,28 @@
         }
 
         els.submitBtn.disabled = true;
+        els.submitBtn.textContent = '저장 중…';
         try {
           if (backend === 'db') await saveToDb(payload);
           else await saveToStorage(payload);
-          closeModal();
+          closeBookModal();
           showToast('예약이 Supabase에 저장되었습니다.');
           await loadWeek();
         } catch (err) {
-          showToast(err.message);
-          els.submitBtn.disabled = false;
+          if (/이미 예약|Duplicate|409|unique/i.test(err.message)) {
+            flashKey = payload.slot_key;
+            closeBookModal();
+            showToast('이미 예약된 시간입니다. 시간표를 갱신했습니다.');
+            await loadWeek();
+            setTimeout(() => {
+              flashKey = '';
+              render();
+            }, 1200);
+          } else {
+            showToast(err.message);
+            els.submitBtn.disabled = false;
+            els.submitBtn.textContent = '예약 확정';
+          }
         }
       }
 
@@ -850,18 +1139,34 @@
           body: JSON.stringify(payload),
         });
         const data = await res.json().catch(() => ({}));
-        if (!res.ok) {
-          if (res.status === 409 || /duplicate|unique/i.test(JSON.stringify(data))) {
-            throw new Error('이미 예약된 시간입니다. 새로고침 후 다시 확인하세요.');
+        if (res.ok) return;
+
+        const conflict =
+          res.status === 409 || /duplicate|unique/i.test(JSON.stringify(data));
+        if (!conflict) throw new Error(data.message || 'DB 저장 실패 (' + res.status + ')');
+
+        // 취소된 동일 슬롯이 있으면 재활성화
+        const patch = await sb(
+          '/rest/v1/' +
+            TABLE +
+            '?slot_key=eq.' +
+            encodeURIComponent(payload.slot_key) +
+            '&status=eq.cancelled',
+          {
+            method: 'PATCH',
+            headers: {
+              'Content-Type': 'application/json',
+              Prefer: 'return=representation',
+            },
+            body: JSON.stringify(payload),
           }
-          throw new Error(data.message || 'DB 저장 실패 (' + res.status + ')');
-        }
+        );
+        const patched = await patch.json().catch(() => []);
+        if (patch.ok && Array.isArray(patched) && patched.length) return;
+        throw new Error('이미 예약된 시간입니다.');
       }
 
       async function saveToStorage(payload) {
-        const existing = bookings.find((b) => b.slotKey === payload.slot_key);
-        if (existing) throw new Error('이미 예약된 시간입니다.');
-
         const path =
           '/storage/v1/object/' +
           STORAGE_BUCKET +
@@ -869,38 +1174,39 @@
           STORAGE_PREFIX +
           payload.slot_key +
           '.json';
-        const body = JSON.stringify(payload);
-        let res = await sb(path, {
-          method: 'POST',
-          headers: { 'Content-Type': 'text/plain', 'x-upsert': 'true' },
-          body,
-        });
-        if (!res.ok) {
-          res = await sb(path, {
+
+        // 기존 파일 확인
+        const existingRes = await sb(path);
+        if (existingRes.ok) {
+          const existing = await existingRes.json().catch(() => null);
+          if (existing && existing.status === 'confirmed') {
+            throw new Error('이미 예약된 시간입니다.');
+          }
+          // cancelled면 덮어쓰기 허용
+          const put = await sb(path, {
             method: 'PUT',
             headers: { 'Content-Type': 'text/plain', 'x-upsert': 'true' },
-            body,
+            body: JSON.stringify(payload),
           });
+          if (!put.ok) {
+            const err = await put.json().catch(() => ({}));
+            throw new Error(err.message || 'Storage 저장 실패');
+          }
+          return;
         }
-        const data = await res.json().catch(() => ({}));
-        if (!res.ok) throw new Error(data.message || 'Storage 저장 실패 (' + res.status + ')');
-      }
 
-      async function showBookingDetail(booking) {
-        const start = new Date(booking.startISO);
-        const msg =
-          formatSlotLabel(start) +
-          '\n' +
-          booking.subject +
-          ' · ' +
-          booking.name +
-          '\n' +
-          booking.phone +
-          (booking.email ? '\n' + booking.email : '') +
-          (booking.note ? '\n' + booking.note : '') +
-          '\n\n이 예약을 취소할까요?';
-        if (!confirm(msg)) return;
-        await cancelBooking(booking);
+        // 신규 생성 (upsert 없이 → 동시 예약 시 409)
+        const create = await sb(path, {
+          method: 'POST',
+          headers: { 'Content-Type': 'text/plain' },
+          body: JSON.stringify(payload),
+        });
+        if (create.ok) return;
+        const err = await create.json().catch(() => ({}));
+        if (create.status === 409 || /Duplicate|already exists/i.test(err.message || '')) {
+          throw new Error('이미 예약된 시간입니다.');
+        }
+        throw new Error(err.message || 'Storage 저장 실패 (' + create.status + ')');
       }
 
       async function cancelBooking(booking) {
@@ -957,6 +1263,8 @@
           .sort((a, b) => new Date(a.startISO) - new Date(b.startISO));
         els.bookingList.replaceChildren();
         els.bookingEmpty.style.display = upcoming.length ? 'none' : 'block';
+        els.weekCount.textContent = upcoming.length ? '(' + upcoming.length + ')' : '';
+
         upcoming.forEach((b) => {
           const li = document.createElement('li');
           const left = document.createElement('div');
@@ -970,72 +1278,158 @@
             ' · ' +
             escapeHtml(b.phone) +
             '</div>';
-          const delBtn = document.createElement('button');
-          delBtn.type = 'button';
-          delBtn.textContent = '취소';
-          delBtn.addEventListener('click', () => cancelBooking(b));
+          const viewBtn = document.createElement('button');
+          viewBtn.type = 'button';
+          viewBtn.textContent = '상세';
+          viewBtn.addEventListener('click', () => openDetailModal(b));
           li.appendChild(left);
-          li.appendChild(delBtn);
+          li.appendChild(viewBtn);
           els.bookingList.appendChild(li);
         });
       }
 
-      function startOfWeek(date) {
-        const d = new Date(date.getFullYear(), date.getMonth(), date.getDate());
-        d.setDate(d.getDate() - d.getDay());
-        d.setHours(0, 0, 0, 0);
-        return d;
+      /* ---- Asia/Seoul helpers ---- */
+      function seoulNow() {
+        return new Date();
       }
-      function addDays(date, n) {
-        const d = new Date(date);
-        d.setDate(d.getDate() + n);
-        return d;
+      function seoulParts(date) {
+        const fmt = new Intl.DateTimeFormat('en-CA', {
+          timeZone: TZ,
+          year: 'numeric',
+          month: '2-digit',
+          day: '2-digit',
+          hour: '2-digit',
+          minute: '2-digit',
+          hour12: false,
+          weekday: 'short',
+        });
+        const parts = Object.fromEntries(
+          fmt.formatToParts(date).filter((p) => p.type !== 'literal').map((p) => [p.type, p.value])
+        );
+        const weekdayMap = { Sun: 0, Mon: 1, Tue: 2, Wed: 3, Thu: 4, Fri: 5, Sat: 6 };
+        return {
+          year: +parts.year,
+          month: +parts.month,
+          dayOfMonth: +parts.day,
+          hour: +parts.hour % 24,
+          minute: +parts.minute,
+          day: weekdayMap[parts.weekday] ?? 0,
+        };
       }
-      function endOfDay(date) {
-        return new Date(date.getFullYear(), date.getMonth(), date.getDate(), 23, 59, 59, 999);
+      function fromSeoulYmd(ymd, hour) {
+        // Interpret ymd + hour as Asia/Seoul wall time → UTC Date
+        const [y, m, d] = ymd.split('-').map(Number);
+        // Use a formatter inversion via known offset sampling
+        const guess = new Date(Date.UTC(y, m - 1, d, hour, 0, 0));
+        // Adjust until Seoul parts match
+        for (let i = 0; i < 4; i++) {
+          const p = seoulParts(guess);
+          const target = Date.UTC(y, m - 1, d, hour);
+          const actual = Date.UTC(p.year, p.month - 1, p.dayOfMonth, p.hour);
+          const delta = target - actual;
+          if (delta === 0) break;
+          guess.setTime(guess.getTime() + delta);
+        }
+        return guess;
       }
-      function clampToBookingWindow(date) {
-        return date < BOOKING_START ? new Date(BOOKING_START) : date;
-      }
-      function isSameDay(a, b) {
+      function toSeoulYmd(date) {
+        const p = seoulParts(date);
         return (
-          a.getFullYear() === b.getFullYear() &&
-          a.getMonth() === b.getMonth() &&
-          a.getDate() === b.getDate()
+          p.year +
+          '-' +
+          String(p.month).padStart(2, '0') +
+          '-' +
+          String(p.dayOfMonth).padStart(2, '0')
         );
       }
-      function slotKey(date) {
+      function startOfWeek(date) {
+        const p = seoulParts(date);
+        const ymd = toSeoulYmd(date);
+        const noon = fromSeoulYmd(ymd, 12);
+        const sunday = new Date(noon.getTime() - p.day * 86400000);
+        const sp = seoulParts(sunday);
+        return fromSeoulYmd(
+          sp.year +
+            '-' +
+            String(sp.month).padStart(2, '0') +
+            '-' +
+            String(sp.dayOfMonth).padStart(2, '0'),
+          0
+        );
+      }
+      function addDays(date, n) {
+        const p = seoulParts(date);
+        const base = fromSeoulYmd(
+          p.year +
+            '-' +
+            String(p.month).padStart(2, '0') +
+            '-' +
+            String(p.dayOfMonth).padStart(2, '0'),
+          12
+        );
+        const moved = new Date(base.getTime() + n * 86400000);
+        const mp = seoulParts(moved);
+        return fromSeoulYmd(
+          mp.year +
+            '-' +
+            String(mp.month).padStart(2, '0') +
+            '-' +
+            String(mp.dayOfMonth).padStart(2, '0'),
+          0
+        );
+      }
+      function endOfDay(date) {
+        const p = seoulParts(date);
+        return fromSeoulYmd(
+          p.year +
+            '-' +
+            String(p.month).padStart(2, '0') +
+            '-' +
+            String(p.dayOfMonth).padStart(2, '0'),
+          23
+        );
+      }
+      function clampToBookingWindow(date) {
+        const start = fromSeoulYmd(BOOKING_START_KEY, 0);
+        return date < start ? start : date;
+      }
+      function weekDays() {
+        return Array.from({ length: 7 }, (_, i) => addDays(weekStart, i));
+      }
+      function slotKeyFromParts(p, hour) {
         return (
-          date.getFullYear() +
+          p.year +
           '-' +
-          String(date.getMonth() + 1).padStart(2, '0') +
+          String(p.month).padStart(2, '0') +
           '-' +
-          String(date.getDate()).padStart(2, '0') +
+          String(p.dayOfMonth).padStart(2, '0') +
           'T' +
-          String(date.getHours()).padStart(2, '0')
+          String(hour).padStart(2, '0')
         );
       }
       function parseSlotKey(key) {
         const m = String(key || '').match(/^(\d{4})-(\d{2})-(\d{2})T(\d{2})$/);
         if (!m) return null;
-        return new Date(+m[1], +m[2] - 1, +m[3], +m[4], 0, 0, 0);
+        return fromSeoulYmd(m[1] + '-' + m[2] + '-' + m[3], +m[4]);
       }
       function formatMD(date) {
-        return date.getMonth() + 1 + '/' + date.getDate() + '(' + DAY_LABELS[date.getDay()] + ')';
+        const p = seoulParts(date);
+        return p.month + '/' + p.dayOfMonth + '(' + DAY_LABELS[p.day] + ')';
       }
       function formatSlotLabel(date) {
+        const p = seoulParts(date);
         return (
-          date.getFullYear() +
+          p.year +
           '년 ' +
-          (date.getMonth() + 1) +
+          p.month +
           '월 ' +
-          date.getDate() +
+          p.dayOfMonth +
           '일 (' +
-          DAY_LABELS[date.getDay()] +
+          DAY_LABELS[p.day] +
           ') ' +
-          String(date.getHours()).padStart(2, '0') +
+          String(p.hour).padStart(2, '0') +
           ':00–' +
-          String(date.getHours() + 1).padStart(2, '0') +
+          String(p.hour + 1).padStart(2, '0') +
           ':00'
         );
       }

@@ -88,9 +88,10 @@ stargate-homepage/
 ### 동작 방식
 
 1. 빈 슬롯 클릭 → 학생/연락처/과목 입력
-2. 예약 확정 시 Supabase `class_bookings`에 insert
-3. 같은 슬롯은 unique 제약으로 중복 예약 방지
-4. 취소 시 `status = cancelled`
+2. 예약 확정 시 Supabase에 저장 (DB 또는 Storage)
+3. 같은 슬롯 중복 예약은 409 충돌로 차단 후 시간표 갱신
+4. 취소 시 `status = cancelled` (취소 슬롯 재예약 가능)
+5. 시간대는 **Asia/Seoul** 고정 · 모바일은 요일 탭(일간) 뷰
 
 ### Supabase 저장 방식
 
