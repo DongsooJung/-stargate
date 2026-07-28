@@ -63,23 +63,44 @@ Automation:  n8n / Google Apps Script / Custom Pipelines
 
 ```
 stargate-homepage/
-├── public/
-│   ├── index.html
-│   ├── assets/
-│   └── favicon.ico
-├── src/
-│   ├── components/
-│   ├── pages/
-│   ├── styles/
-│   └── utils/
-├── functions/          # Firebase Cloud Functions
-├── .github/
-│   └── workflows/
-│       └── deploy.yml  # CI/CD Pipeline
-├── package.json
-├── wrangler.toml       # Cloudflare config
+├── index.html          # 홈페이지
+├── schedule.html       # 수업 주간 시간표 · 예약 (8월~)
+├── STARGATE HOMEPAGE.html
 └── README.md
 ```
+
+---
+
+## 수업 시간표 · 예약 (`schedule.html`)
+
+주간 그리드 시간표로 수업을 예약할 수 있습니다.
+
+| 축 | 구성 |
+|----|------|
+| 가로 | 일요일 → 토요일 |
+| 세로 | 09:00 → 22:00 (1시간 단위) |
+| 시작일 | **2026년 8월 1일**부터 예약 가능 |
+
+### 동작 방식
+
+1. 빈 슬롯 클릭 → 학생/연락처/과목 입력
+2. 예약 확정 시
+   - 브라우저(localStorage)에 저장
+   - **Google Calendar** 일정 추가 창 오픈 (`ceo@stargateedu.co.kr` 초대)
+   - 예약 내용 **메일 초안** (`mailto:ceo@stargateedu.co.kr`) 오픈
+3. 페이지 하단에서 Google Calendar 주간 뷰 임베드 확인
+
+### Google Calendar API 연동 (선택)
+
+busy 슬롯을 자동으로 막으려면 [Google Cloud Console](https://console.cloud.google.com/)에서 Calendar API를 활성화하고 API Key를 발급하세요.
+
+1. Google Cloud → **Google Calendar API** 사용 설정
+2. API Key 생성 (HTTP referrer 제한 권장: `stargateedu.co.kr/*`)
+3. Google Calendar에서 `ceo@stargateedu.co.kr` 캘린더를 **공개**하거나, API Key로 읽을 수 있게 공유
+4. `schedule.html` 페이지의 **API Key / Calendar ID** 입력란에 저장 후 **캘린더 동기화**
+
+> Calendar ID 기본값: `ceo@stargateedu.co.kr`  
+> 임베드 URL: `https://calendar.google.com/calendar/embed?src=ceo%40stargateedu.co.kr&ctz=Asia%2FSeoul&mode=WEEK`
 
 ---
 
