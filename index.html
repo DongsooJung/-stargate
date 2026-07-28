@@ -22,6 +22,8 @@
     .nav-links{display:flex;gap:2rem;list-style:none}
     .nav-links a{color:var(--text-secondary);text-decoration:none;font-size:.85rem;font-weight:500;letter-spacing:1px;text-transform:uppercase;transition:color .3s}
     .nav-links a:hover{color:var(--accent)}
+    .nav-book{display:inline-flex;align-items:center;padding:8px 16px;border-radius:999px;background:var(--accent);color:#fff!important;font-size:.8rem!important;font-weight:700!important;letter-spacing:.5px;text-transform:none!important;box-shadow:0 0 20px rgba(79,143,255,.25);transition:all .3s}
+    .nav-book:hover{color:#fff!important;transform:translateY(-1px);box-shadow:0 0 28px rgba(79,143,255,.4)}
     .nav-toggle{display:none;background:none;border:none;cursor:pointer;padding:4px}
     .nav-toggle span{display:block;width:22px;height:2px;background:var(--text-primary);margin:5px 0;transition:.3s}
     .hero{position:relative;min-height:100vh;display:flex;align-items:center;justify-content:center;padding:6rem 2rem 4rem;overflow:hidden}
@@ -92,21 +94,23 @@
     .footer-brand{font-family:'Outfit',sans-serif;font-weight:800;font-size:1rem;letter-spacing:3px;text-transform:uppercase;color:var(--text-muted);margin-bottom:1rem}
     .footer-info{font-size:.75rem;color:var(--text-muted);line-height:2}
     .footer-info a{color:var(--text-secondary);text-decoration:none}
-    @media(max-width:768px){.nav-links{display:none}.nav-links.active{display:flex;flex-direction:column;position:absolute;top:64px;left:0;right:0;background:rgba(6,8,13,0.98);padding:2rem;gap:1.5rem;border-bottom:1px solid var(--border)}.nav-toggle{display:block}.about-grid{grid-template-columns:1fr}.stats-bar{gap:2rem}.stat-num{font-size:2rem}section{padding:4rem 1.5rem}}
+    .nav-book-mobile{display:none}
+    @media(max-width:768px){.nav-links{display:none}.nav-links.active{display:flex;flex-direction:column;position:absolute;top:64px;left:0;right:0;background:rgba(6,8,13,0.98);padding:2rem;gap:1.5rem;border-bottom:1px solid var(--border)}.nav-book-mobile{display:inline-flex}.nav-links .nav-book{display:none}.nav-toggle{display:block}.about-grid{grid-template-columns:1fr}.stats-bar{gap:2rem}.stat-num{font-size:2rem}section{padding:4rem 1.5rem}}
     .reveal{opacity:0;transform:translateY(30px);transition:all .7s ease-out}
     .reveal.visible{opacity:1;transform:translateY(0)}
   </style>
 </head>
 <body>
   <nav id="navbar">
-    <div class="nav-logo">STARGATE</div>
+    <a href="index.html" class="nav-logo">STARGATE</a>
     <ul class="nav-links" id="navLinks">
-      <li><a href="schedule.html">Schedule</a></li>
       <li><a href="#services">Services</a></li>
       <li><a href="#about">About</a></li>
       <li><a href="#tech">Technology</a></li>
       <li><a href="#contact">Contact</a></li>
+      <li><a href="schedule.html" class="nav-book">예약</a></li>
     </ul>
+    <a href="schedule.html" class="nav-book nav-book-mobile" style="margin-left:auto;margin-right:12px">예약</a>
     <button class="nav-toggle" id="navToggle" aria-label="Menu"><span></span><span></span><span></span></button>
   </nav>
   <section class="hero">
@@ -116,8 +120,9 @@
       <h1>AI 기술로 여는<br><span class="gradient-text">교육의 새로운 문</span></h1>
       <p class="hero-sub">인공지능 소프트웨어 개발 · 수학 &amp; 정보올림피아드 교육 · 전자출판<br>기술과 교육의 경계를 허무는 AI 스타트업, 스타게이트</p>
       <div class="hero-ctas">
-        <a href="schedule.html" class="btn-primary">수업 시간표 예약 →</a>
+        <a href="schedule.html" class="btn-primary">예약</a>
         <a href="#services" class="btn-secondary">서비스 보기</a>
+        <a href="#contact" class="btn-secondary">상담 문의</a>
       </div>
     </div>
   </section>
