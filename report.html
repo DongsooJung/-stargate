@@ -444,6 +444,12 @@
       let reportBackend = 'storage';
       let loadId = 0;
 
+      // URL ?date=YYYY-MM-DD 지원 (예약 상세 → 출결 작성 연동)
+      try {
+        const q = new URLSearchParams(location.search).get('date');
+        if (q && /^\d{4}-\d{2}-\d{2}$/.test(q)) currentYmd = q;
+      } catch (_) {}
+
       els.navToggle.addEventListener('click', () => els.navLinks.classList.toggle('active'));
       els.navLinks.querySelectorAll('a').forEach((a) =>
         a.addEventListener('click', () => els.navLinks.classList.remove('active'))
@@ -452,11 +458,13 @@
       els.nextDay.addEventListener('click', () => shiftDay(1));
       els.todayBtn.addEventListener('click', () => {
         currentYmd = toSeoulYmd(new Date());
+        syncUrl();
         loadDay(true);
       });
       els.datePicker.addEventListener('change', () => {
         if (!els.datePicker.value) return;
         currentYmd = els.datePicker.value;
+        syncUrl();
         loadDay(true);
       });
       els.reloadBtn.addEventListener('click', () => loadDay(true));
@@ -471,12 +479,24 @@
         els[id].addEventListener('input', updatePreview);
       });
 
-      detectBackends().then(() => loadDay(true));
+      function syncUrl() {
+        try {
+          const url = new URL(location.href);
+          url.searchParams.set('date', currentYmd);
+          history.replaceState(null, '', url);
+        } catch (_) {}
+      }
+
+      detectBackends().then(() => {
+        syncUrl();
+        loadDay(true);
+      });
 
       function shiftDay(n) {
         const d = fromSeoulYmd(currentYmd, 12);
         d.setTime(d.getTime() + n * 86400000);
         currentYmd = toSeoulYmd(d);
+        syncUrl();
         loadDay(true);
       }
 

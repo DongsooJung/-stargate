@@ -343,6 +343,40 @@
       box-shadow: 0 0 8px rgba(52, 211, 153, .6);
     }
     .contact-row { display: flex; flex-wrap: wrap; gap: .5rem; margin-top: .9rem; }
+    .filter-bar {
+      display: flex; flex-wrap: wrap; gap: .45rem; align-items: center;
+      margin: 0 0 1rem; animation: fadeUp .7s ease-out .13s both;
+    }
+    .filter-bar .label {
+      font-size: .75rem; color: var(--text-muted); margin-right: .25rem;
+      font-family: 'JetBrains Mono', monospace;
+    }
+    .chip {
+      border: 1px solid var(--border); background: transparent; color: var(--text-secondary);
+      border-radius: 999px; padding: 6px 12px; font-size: .75rem; font-weight: 600;
+      cursor: pointer; font-family: inherit; transition: all .2s;
+    }
+    .chip:hover { border-color: var(--border-hover); color: var(--text-primary); }
+    .chip.active { background: var(--accent-glow); border-color: var(--border-hover); color: var(--accent); }
+    .btn-muted {
+      padding: 10px 14px; background: transparent; color: var(--text-secondary);
+      border: 1px solid var(--border); border-radius: 10px; font-size: .85rem; font-weight: 600;
+      cursor: pointer; font-family: inherit; text-decoration: none;
+      display: inline-flex; align-items: center; gap: 6px;
+    }
+    .btn-muted:hover { border-color: var(--border-hover); color: var(--text-primary); }
+    .cancel-box {
+      margin-top: 1rem; padding: 1rem; border-radius: 12px;
+      border: 1px solid rgba(255,107,79,.25); background: rgba(255,107,79,.06);
+      display: none;
+    }
+    .cancel-box.show { display: grid; gap: .65rem; }
+    .cancel-box p { color: var(--text-secondary); font-size: .82rem; line-height: 1.5; margin: 0; }
+    .hint { font-size: .72rem; color: var(--text-muted); margin-top: 2px; }
+    .detail-actions { display: flex; flex-wrap: wrap; gap: .5rem; margin-top: 1rem; }
+    .auto-hint {
+      font-family: 'JetBrains Mono', monospace; font-size: .68rem; color: var(--text-muted);
+    }
 
     .booking-list { list-style: none; padding: 0; margin-top: .75rem; max-height: 320px; overflow: auto; }
     .booking-list li {
@@ -498,8 +532,10 @@
       <div class="toolbar-actions">
         <input class="week-picker" id="weekPicker" type="date" aria-label="날짜로 주 이동" title="날짜를 고르면 해당 주로 이동합니다">
         <button class="btn-secondary" id="syncBtn" type="button">새로고침</button>
+        <button class="btn-muted" id="exportCsvBtn" type="button">CSV</button>
         <a class="btn-secondary" href="report.html">출결 · 보고서</a>
         <button class="btn-primary" id="jumpAugBtn" type="button">8월 첫 주</button>
+        <span class="auto-hint" id="autoHint">자동갱신 ON</span>
       </div>
     </div>
 
@@ -513,6 +549,16 @@
       <span><i class="dot info"></i> 정보올림</span>
       <span><i class="dot coach"></i> 1:1</span>
       <span><i class="dot consult"></i> 상담</span>
+    </div>
+
+    <div class="filter-bar" id="filterBar" aria-label="과목 필터">
+      <span class="label">FILTER</span>
+      <button type="button" class="chip active" data-filter="all">전체</button>
+      <button type="button" class="chip" data-filter="수학 심화">수학</button>
+      <button type="button" class="chip" data-filter="KOI 알고리즘">KOI</button>
+      <button type="button" class="chip" data-filter="정보올림피아드">정보올림</button>
+      <button type="button" class="chip" data-filter="1:1 코칭">1:1</button>
+      <button type="button" class="chip" data-filter="상담">상담</button>
     </div>
 
     <div class="board-wrap" id="boardWrap">
@@ -529,6 +575,7 @@
         <p>
           Google Calendar 없이 Stargate Supabase에 예약을 저장합니다.
           테이블이 있으면 DB 모드, 없으면 Storage 모드로 동작합니다.
+          취소는 예약 연락처 확인 후 가능하며, .ics·CSV·출결 보고서로 이어집니다.
         </p>
         <ul>
           <li>프로젝트: <code style="font-family:'JetBrains Mono',monospace;font-size:.78em">inftexpcnfinglwlrvsj</code></li>
@@ -561,7 +608,8 @@
           <input name="name" required maxlength="40" placeholder="홍길동" autocomplete="name">
         </label>
         <label>연락처 *
-          <input name="phone" required maxlength="30" placeholder="010-0000-0000" autocomplete="tel">
+          <input name="phone" required maxlength="30" placeholder="010-0000-0000" autocomplete="tel" inputmode="tel">
+          <span class="hint">취소 시 이 번호로 본인 확인합니다. 입력값은 이 기기에 기억됩니다.</span>
         </label>
         <label>이메일
           <input name="email" type="email" maxlength="80" placeholder="parent@example.com" autocomplete="email">
@@ -591,7 +639,22 @@
       <h3 id="detailTitle">예약 상세</h3>
       <div class="slot-info" id="detailSlotInfo">—</div>
       <div class="detail-grid" id="detailGrid"></div>
-      <div class="modal-actions">
+      <div class="detail-actions">
+        <button type="button" class="btn-muted" id="detailIcsBtn">.ics 저장</button>
+        <a class="btn-muted" id="detailReportLink" href="report.html">출결 작성</a>
+        <button type="button" class="btn-muted" id="detailMailBtn">메일 알림</button>
+      </div>
+      <div class="cancel-box" id="cancelBox">
+        <p>예약을 취소하려면 예약 시 입력한 연락처를 입력하세요.</p>
+        <label>연락처 확인
+          <input id="cancelPhoneInput" maxlength="30" placeholder="010-0000-0000" autocomplete="tel" inputmode="tel">
+        </label>
+        <div class="modal-actions" style="margin-top:0">
+          <button type="button" class="btn-secondary" id="cancelAbortBtn">돌아가기</button>
+          <button type="button" class="btn-danger" id="cancelConfirmBtn">확인 후 취소</button>
+        </div>
+      </div>
+      <div class="modal-actions" id="detailMainActions">
         <button type="button" class="btn-secondary" id="detailCloseBtn">닫기</button>
         <button type="button" class="btn-danger" id="detailCancelBtn">예약 취소</button>
       </div>
@@ -652,6 +715,17 @@
         detailGrid: document.getElementById('detailGrid'),
         detailCloseBtn: document.getElementById('detailCloseBtn'),
         detailCancelBtn: document.getElementById('detailCancelBtn'),
+        detailIcsBtn: document.getElementById('detailIcsBtn'),
+        detailReportLink: document.getElementById('detailReportLink'),
+        detailMailBtn: document.getElementById('detailMailBtn'),
+        cancelBox: document.getElementById('cancelBox'),
+        cancelPhoneInput: document.getElementById('cancelPhoneInput'),
+        cancelAbortBtn: document.getElementById('cancelAbortBtn'),
+        cancelConfirmBtn: document.getElementById('cancelConfirmBtn'),
+        detailMainActions: document.getElementById('detailMainActions'),
+        exportCsvBtn: document.getElementById('exportCsvBtn'),
+        autoHint: document.getElementById('autoHint'),
+        filterBar: document.getElementById('filterBar'),
         bookingList: document.getElementById('bookingList'),
         bookingEmpty: document.getElementById('bookingEmpty'),
         weekCount: document.getElementById('weekCount'),
@@ -670,7 +744,10 @@
       let backend = 'unknown';
       let loadId = 0;
       let flashKey = '';
+      let subjectFilter = 'all';
       let mq = window.matchMedia('(max-width: 768px)');
+      const FORM_KEY = 'stargate-edu-booking-form-v1';
+      const OWNER_KEY = 'stargate-edu-booking-owners-v1';
 
       els.navToggle.addEventListener('click', () => els.navLinks.classList.toggle('active'));
       els.navLinks.querySelectorAll('a').forEach((a) =>
@@ -696,15 +773,55 @@
         loadWeek(true);
       });
       els.syncBtn.addEventListener('click', () => loadWeek(true));
+      els.exportCsvBtn.addEventListener('click', exportWeekCsv);
       els.bookCloseBtn.addEventListener('click', closeBookModal);
       els.detailCloseBtn.addEventListener('click', closeDetailModal);
-      els.detailCancelBtn.addEventListener('click', async () => {
+      els.detailCancelBtn.addEventListener('click', () => {
         if (!selectedBooking) return;
-        els.detailCancelBtn.disabled = true;
+        els.cancelBox.classList.add('show');
+        els.detailMainActions.style.display = 'none';
+        els.cancelPhoneInput.value = '';
+        els.cancelPhoneInput.focus();
+      });
+      els.cancelAbortBtn.addEventListener('click', () => {
+        els.cancelBox.classList.remove('show');
+        els.detailMainActions.style.display = 'flex';
+      });
+      els.cancelConfirmBtn.addEventListener('click', async () => {
+        if (!selectedBooking) return;
+        const typed = normalizePhone(els.cancelPhoneInput.value);
+        const saved = normalizePhone(selectedBooking.phone);
+        const owners = loadOwners();
+        const isOwner = owners[selectedBooking.slotKey] === true;
+        if (!typed || (typed !== saved && !isOwner)) {
+          showToast('연락처가 일치하지 않습니다.');
+          return;
+        }
+        els.cancelConfirmBtn.disabled = true;
         await cancelBooking(selectedBooking);
-        els.detailCancelBtn.disabled = false;
+        els.cancelConfirmBtn.disabled = false;
         closeDetailModal();
       });
+      els.detailIcsBtn.addEventListener('click', () => {
+        if (selectedBooking) downloadIcs(selectedBooking);
+      });
+      els.detailMailBtn.addEventListener('click', () => {
+        if (selectedBooking) openMailNotify(selectedBooking);
+      });
+      els.filterBar.querySelectorAll('.chip').forEach((chip) => {
+        chip.addEventListener('click', () => {
+          subjectFilter = chip.dataset.filter || 'all';
+          els.filterBar.querySelectorAll('.chip').forEach((c) => c.classList.toggle('active', c === chip));
+          render();
+          renderBookingList();
+        });
+      });
+      document.addEventListener('visibilitychange', () => {
+        if (!document.hidden) loadWeek(false, true);
+      });
+      setInterval(() => {
+        if (!document.hidden) loadWeek(false, true);
+      }, 45000);
       els.bookModal.addEventListener('click', (e) => {
         if (e.target === els.bookModal) closeBookModal();
       });
@@ -721,7 +838,10 @@
       mq.addEventListener('change', () => render());
 
       els.weekPicker.min = BOOKING_START_KEY;
+      restoreFormDraft();
       detectBackend().then(() => loadWeek(true));
+      // URL ?week=YYYY-MM-DD or ?slot=YYYY-MM-DDTHH
+      applyUrlParams();
 
       function shiftWeek(days) {
         const next = addDays(weekStart, days);
@@ -750,11 +870,11 @@
         els.modeLabel.textContent = 'Storage 모드 · public-data-csv/class-bookings';
       }
 
-      async function loadWeek(manual) {
+      async function loadWeek(manual, silent) {
         const myId = ++loadId;
-        setLoading(true);
+        if (!silent) setLoading(true);
         els.syncStatus.className = 'status-line';
-        els.syncStatus.textContent = 'Supabase에서 예약을 불러오는 중…';
+        if (!silent) els.syncStatus.textContent = 'Supabase에서 예약을 불러오는 중…';
         renderShell();
         try {
           if (backend === 'unknown') await detectBackend();
@@ -773,13 +893,13 @@
           if (manual) showToast('Supabase 예약을 불러왔습니다.');
         } catch (err) {
           if (myId !== loadId) return;
-          bookings = [];
+          if (!silent) bookings = [];
           els.syncStatus.className = 'status-line err';
           els.syncStatus.textContent = '동기화 실패: ' + err.message;
           if (manual) showToast('불러오기 실패: ' + err.message);
         } finally {
           if (myId === loadId) {
-            setLoading(false);
+            if (!silent) setLoading(false);
             render();
             renderBookingList();
           }
@@ -996,7 +1116,9 @@
               btn.title = start < bookingStart ? '8월 이전 슬롯' : '지난 시간';
             } else if (booking) {
               const subj = SUBJECT_CLASS[booking.subject] || 'subj-consult';
+              const filteredOut = subjectFilter !== 'all' && booking.subject !== subjectFilter;
               btn.classList.add('booked', subj);
+              if (filteredOut) btn.style.opacity = '0.28';
               btn.innerHTML =
                 '<span class="slot-chip"><strong>' +
                 escapeHtml(booking.subject) +
@@ -1044,6 +1166,7 @@
         selectedSlot = { start, key };
         els.bookSlotInfo.textContent = formatSlotLabel(start) + ' · 1시간';
         els.bookingForm.reset();
+        restoreFormDraft();
         els.submitBtn.disabled = false;
         els.submitBtn.textContent = '예약 확정';
         els.bookModal.classList.add('open');
@@ -1058,19 +1181,25 @@
       function openDetailModal(booking) {
         selectedBooking = booking;
         const start = new Date(booking.startISO);
+        const ymd = toSeoulYmd(start);
         els.detailSlotInfo.textContent = formatSlotLabel(start) + ' · 1시간';
         els.detailGrid.innerHTML =
           row('과목', booking.subject) +
           row('이름', booking.name) +
-          row('연락처', booking.phone) +
+          row('연락처', maskPhone(booking.phone)) +
           row('이메일', booking.email || '—') +
           row('메모', booking.note || '—');
+        els.detailReportLink.href = 'report.html?date=' + encodeURIComponent(ymd);
+        els.cancelBox.classList.remove('show');
+        els.detailMainActions.style.display = 'flex';
         els.detailModal.classList.add('open');
       }
 
       function closeDetailModal() {
         els.detailModal.classList.remove('open');
         selectedBooking = null;
+        els.cancelBox.classList.remove('show');
+        els.detailMainActions.style.display = 'flex';
       }
 
       function row(label, value) {
@@ -1100,8 +1229,13 @@
           note: String(fd.get('note') || '').trim(),
           status: 'confirmed',
         };
+        payload.phone = normalizePhone(payload.phone);
         if (!payload.student_name || !payload.phone || !payload.subject) {
           showToast('이름, 연락처, 과목을 입력해 주세요.');
+          return;
+        }
+        if (!isValidPhone(payload.phone)) {
+          showToast('연락처 형식을 확인해 주세요. 예: 010-1234-5678');
           return;
         }
 
@@ -1110,8 +1244,15 @@
         try {
           if (backend === 'db') await saveToDb(payload);
           else await saveToStorage(payload);
+          saveFormDraft({
+            name: payload.student_name,
+            phone: payload.phone,
+            email: payload.email,
+            subject: payload.subject,
+          });
+          markOwner(payload.slot_key);
           closeBookModal();
-          showToast('예약이 Supabase에 저장되었습니다.');
+          showToast('예약이 Supabase에 저장되었습니다. 상세에서 .ics·메일·출결로 이어갈 수 있습니다.');
           await loadWeek();
         } catch (err) {
           if (/이미 예약|Duplicate|409|unique/i.test(err.message)) {
@@ -1252,6 +1393,7 @@
             });
             if (!res.ok) throw new Error((await res.text()).slice(0, 180) || '취소 실패');
           }
+          unmarkOwner(booking.slotKey);
           showToast('예약을 취소했습니다.');
           await loadWeek();
         } catch (err) {
@@ -1262,9 +1404,13 @@
       function renderBookingList() {
         const upcoming = bookings
           .slice()
+          .filter((b) => subjectFilter === 'all' || b.subject === subjectFilter)
           .sort((a, b) => new Date(a.startISO) - new Date(b.startISO));
         els.bookingList.replaceChildren();
         els.bookingEmpty.style.display = upcoming.length ? 'none' : 'block';
+        els.bookingEmpty.textContent = bookings.length && !upcoming.length
+          ? '선택한 과목 필터에 해당하는 예약이 없습니다.'
+          : '아직 예약이 없습니다. 시간표에서 빈 칸을 선택하세요.';
         els.weekCount.textContent = upcoming.length ? '(' + upcoming.length + ')' : '';
 
         upcoming.forEach((b) => {
@@ -1288,6 +1434,167 @@
           li.appendChild(viewBtn);
           els.bookingList.appendChild(li);
         });
+      }
+
+
+      function normalizePhone(raw) {
+        const digits = String(raw || '').replace(/\D/g, '');
+        if (digits.length === 11) {
+          return digits.slice(0, 3) + '-' + digits.slice(3, 7) + '-' + digits.slice(7);
+        }
+        if (digits.length === 10) {
+          return digits.slice(0, 3) + '-' + digits.slice(3, 6) + '-' + digits.slice(6);
+        }
+        return String(raw || '').trim();
+      }
+      function isValidPhone(phone) {
+        return /^0\d{1,2}-\d{3,4}-\d{4}$/.test(normalizePhone(phone));
+      }
+      function maskPhone(phone) {
+        const n = normalizePhone(phone);
+        const m = n.match(/^(\d{2,3})-(\d{3,4})-(\d{4})$/);
+        if (!m) return n || '—';
+        return m[1] + '-' + '*'.repeat(m[2].length) + '-' + m[3];
+      }
+      function saveFormDraft(draft) {
+        try { localStorage.setItem(FORM_KEY, JSON.stringify(draft)); } catch (_) {}
+      }
+      function restoreFormDraft() {
+        try {
+          const draft = JSON.parse(localStorage.getItem(FORM_KEY) || 'null');
+          if (!draft) return;
+          if (draft.name) els.bookingForm.elements.name.value = draft.name;
+          if (draft.phone) els.bookingForm.elements.phone.value = draft.phone;
+          if (draft.email) els.bookingForm.elements.email.value = draft.email;
+          if (draft.subject) els.bookingForm.elements.subject.value = draft.subject;
+        } catch (_) {}
+      }
+      function loadOwners() {
+        try { return JSON.parse(localStorage.getItem(OWNER_KEY) || '{}'); } catch (_) { return {}; }
+      }
+      function markOwner(slotKey) {
+        const o = loadOwners();
+        o[slotKey] = true;
+        try { localStorage.setItem(OWNER_KEY, JSON.stringify(o)); } catch (_) {}
+      }
+      function unmarkOwner(slotKey) {
+        const o = loadOwners();
+        delete o[slotKey];
+        try { localStorage.setItem(OWNER_KEY, JSON.stringify(o)); } catch (_) {}
+      }
+      function applyUrlParams() {
+        const params = new URLSearchParams(location.search);
+        const week = params.get('week');
+        const slot = params.get('slot');
+        if (week && /^\d{4}-\d{2}-\d{2}$/.test(week)) {
+          const d = fromSeoulYmd(week, 12);
+          weekStart = startOfWeek(clampToBookingWindow(d));
+          selectedDay = seoulParts(d).day;
+        }
+        if (slot) {
+          const start = parseSlotKey(slot);
+          if (start) {
+            weekStart = startOfWeek(clampToBookingWindow(start));
+            selectedDay = seoulParts(start).day;
+            flashKey = slot;
+          }
+        }
+      }
+      function exportWeekCsv() {
+        const rows = [['slot_key', 'starts_at', 'ends_at', 'subject', 'student_name', 'phone', 'email', 'note']];
+        bookings
+          .slice()
+          .sort((a, b) => new Date(a.startISO) - new Date(b.startISO))
+          .forEach((b) => {
+            rows.push([
+              b.slotKey,
+              b.startISO,
+              b.endISO,
+              b.subject,
+              b.name,
+              b.phone,
+              b.email,
+              (b.note || '').replace(/\n/g, ' '),
+            ]);
+          });
+        const csv = rows
+          .map((r) => r.map((c) => '"' + String(c ?? '').replace(/"/g, '""') + '"').join(','))
+          .join('\n');
+        const blob = new Blob(['\ufeff' + csv], { type: 'text/csv;charset=utf-8' });
+        const a = document.createElement('a');
+        const days = weekDays();
+        a.href = URL.createObjectURL(blob);
+        a.download =
+          'stargate-bookings-' +
+          toSeoulYmd(days[0]) +
+          '_' +
+          toSeoulYmd(days[6]) +
+          '.csv';
+        a.click();
+        URL.revokeObjectURL(a.href);
+        showToast('이번 주 예약을 CSV로 저장했습니다.');
+      }
+      function downloadIcs(booking) {
+        const start = new Date(booking.startISO);
+        const end = new Date(booking.endISO || start.getTime() + 3600000);
+        const stamp = (d) =>
+          d.getUTCFullYear() +
+          String(d.getUTCMonth() + 1).padStart(2, '0') +
+          String(d.getUTCDate()).padStart(2, '0') +
+          'T' +
+          String(d.getUTCHours()).padStart(2, '0') +
+          String(d.getUTCMinutes()).padStart(2, '0') +
+          String(d.getUTCSeconds()).padStart(2, '0') +
+          'Z';
+        const ics = [
+          'BEGIN:VCALENDAR',
+          'VERSION:2.0',
+          'PRODID:-//Stargate Edu//Class Booking//KO',
+          'CALSCALE:GREGORIAN',
+          'BEGIN:VEVENT',
+          'UID:' + booking.slotKey + '@stargateedu.co.kr',
+          'DTSTAMP:' + stamp(new Date()),
+          'DTSTART:' + stamp(start),
+          'DTEND:' + stamp(end),
+          'SUMMARY:[Stargate] ' + booking.subject + ' · ' + booking.name,
+          'DESCRIPTION:연락처 ' + booking.phone + (booking.note ? '\\n' + booking.note : ''),
+          'LOCATION:서울 강남구 대치동 · Stargate Edu',
+          'END:VEVENT',
+          'END:VCALENDAR',
+        ].join('\r\n');
+        const blob = new Blob([ics], { type: 'text/calendar;charset=utf-8' });
+        const a = document.createElement('a');
+        a.href = URL.createObjectURL(blob);
+        a.download = 'stargate-' + booking.slotKey + '.ics';
+        a.click();
+        URL.revokeObjectURL(a.href);
+        showToast('.ics 파일을 저장했습니다.');
+      }
+      function openMailNotify(booking, soft) {
+        const start = new Date(booking.startISO);
+        const subject = encodeURIComponent('[수업예약] ' + booking.subject + ' · ' + formatSlotLabel(start));
+        const body = encodeURIComponent(
+          [
+            'Stargate Edu 수업 예약 알림',
+            '',
+            '일시: ' + formatSlotLabel(start),
+            '과목: ' + booking.subject,
+            '이름: ' + booking.name,
+            '연락처: ' + booking.phone,
+            booking.email ? '이메일: ' + booking.email : '',
+            booking.note ? '메모: ' + booking.note : '',
+            '',
+            '예약 페이지: ' + location.href.split('?')[0],
+          ]
+            .filter(Boolean)
+            .join('\n')
+        );
+        const href = 'mailto:ceo@stargateedu.co.kr?subject=' + subject + '&body=' + body;
+        if (soft) {
+          // 예약 직후 자동은 사용자 환경에 따라 방해될 수 있어 스킵하고 토스트만
+          return;
+        }
+        location.href = href;
       }
 
       /* ---- Asia/Seoul helpers ---- */

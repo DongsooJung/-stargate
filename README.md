@@ -114,7 +114,13 @@ SUPABASE_ACCESS_TOKEN=... node scripts/apply-class-bookings-schema.mjs
 DATABASE_URL=postgres://... node scripts/apply-class-bookings-schema.mjs
 ```
 
-테이블이 없어도 Storage 모드로 바로 예약·공유가 가능합니다.
+### 최근 보완 (UX)
+- 예약 취소 시 **연락처 본인 확인**
+- 이름/연락처/이메일/과목 **기기 기억**
+- 과목 필터 · 주간 **CSV** 내보내기 · 예약 **.ics** 저장
+- 상세에서 **출결 보고서**(`report.html?date=`)·메일 알림 연동
+- 45초 자동 새로고침(탭 활성 시, 로딩 깜빡임 없음)
+- `?week=` / `?slot=` URL로 특정 주·슬롯 바로가기
 
 ---
 
