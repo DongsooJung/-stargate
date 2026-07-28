@@ -4,9 +4,9 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>수업 시간표 · 예약 | Stargate Edu</title>
-  <meta name="description" content="스타게이트 수학·KOI 수업 시간표. 일요일~토요일, 9시~22시 슬롯을 선택해 수업을 예약하세요. (2026년 8월부터)">
+  <meta name="description" content="스타게이트 수학·KOI 수업 시간표. 일요일~토요일, 9시~22시 슬롯을 Supabase에 저장해 예약하세요. (2026년 8월부터)">
   <meta property="og:title" content="Stargate Edu · 수업 시간표 예약">
-  <meta property="og:description" content="주간 시간표에서 수업 슬롯을 예약하고 Google Calendar와 연동합니다.">
+  <meta property="og:description" content="주간 시간표에서 수업 슬롯을 예약하고 Supabase에 저장합니다.">
   <meta property="og:type" content="website">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -40,7 +40,6 @@
       -webkit-font-smoothing: antialiased;
       min-height: 100vh;
     }
-
     nav {
       position: fixed; top: 0; left: 0; right: 0; z-index: 100;
       padding: 0 2rem; height: 64px;
@@ -120,9 +119,7 @@
       margin-bottom: 1.25rem;
       animation: fadeUp .7s ease-out .08s both;
     }
-    .week-nav {
-      display: flex; align-items: center; gap: .5rem; flex-wrap: wrap;
-    }
+    .week-nav { display: flex; align-items: center; gap: .5rem; flex-wrap: wrap; }
     .week-label {
       font-family: 'Outfit', sans-serif; font-weight: 700; font-size: 1.05rem;
       min-width: 220px; text-align: center;
@@ -148,6 +145,7 @@
       box-shadow: 0 0 24px rgba(79, 143, 255, 0.2);
     }
     .btn-primary:hover { transform: translateY(-1px); box-shadow: 0 0 32px rgba(79, 143, 255, 0.35); }
+    .btn-primary:disabled { opacity: .5; cursor: not-allowed; transform: none; }
     .btn-secondary {
       padding: 10px 18px; background: transparent; color: var(--text-primary);
       border: 1px solid var(--border);
@@ -166,12 +164,9 @@
       animation: fadeUp .7s ease-out .12s both;
     }
     .legend span { display: inline-flex; align-items: center; gap: 6px; }
-    .dot {
-      width: 10px; height: 10px; border-radius: 3px; display: inline-block;
-    }
+    .dot { width: 10px; height: 10px; border-radius: 3px; display: inline-block; }
     .dot.open { background: rgba(79, 143, 255, 0.25); border: 1px solid var(--border-hover); }
     .dot.booked { background: rgba(255, 107, 79, 0.35); border: 1px solid rgba(255, 107, 79, 0.5); }
-    .dot.busy { background: rgba(84, 93, 110, 0.5); border: 1px solid var(--border); }
     .dot.past { background: rgba(255, 255, 255, 0.04); border: 1px solid var(--border); }
 
     .board-wrap {
@@ -206,10 +201,7 @@
     }
     .head-cell.today { color: var(--accent); }
     .head-cell.today .date { color: var(--accent); }
-    .corner {
-      position: sticky; left: 0; z-index: 4;
-      background: var(--bg-secondary);
-    }
+    .corner { position: sticky; left: 0; z-index: 4; background: var(--bg-secondary); }
     .time-cell {
       position: sticky; left: 0; z-index: 2;
       background: var(--bg-secondary);
@@ -219,63 +211,36 @@
       color: var(--text-muted);
     }
     .slot {
-      height: var(--slot-h);
-      position: relative;
-      background: transparent;
-      transition: background .2s, border-color .2s;
-      cursor: pointer;
-      border: none;
-      border-bottom: 1px solid var(--border);
-      border-right: 1px solid var(--border);
-      width: 100%;
-      padding: 4px;
-      color: inherit;
-      font-family: inherit;
-      text-align: left;
+      height: var(--slot-h); position: relative; background: transparent;
+      transition: background .2s; cursor: pointer; border: none;
+      border-bottom: 1px solid var(--border); border-right: 1px solid var(--border);
+      width: 100%; padding: 4px; color: inherit; font-family: inherit; text-align: left;
     }
     .slot:focus-visible { outline: 2px solid var(--accent); outline-offset: -2px; z-index: 1; }
     .slot.open:hover { background: var(--accent-glow); }
     .slot.open::after {
-      content: '+';
-      position: absolute; inset: 0;
+      content: '+'; position: absolute; inset: 0;
       display: flex; align-items: center; justify-content: center;
       color: var(--text-muted); font-size: 1rem; opacity: 0; transition: opacity .2s;
     }
     .slot.open:hover::after { opacity: 1; color: var(--accent); }
-    .slot.booked {
-      background: rgba(255, 107, 79, 0.18);
-      cursor: pointer;
-    }
-    .slot.busy {
-      background: rgba(84, 93, 110, 0.28);
-      cursor: not-allowed;
-    }
-    .slot.past {
-      background: rgba(255, 255, 255, 0.02);
-      cursor: not-allowed;
-      opacity: .55;
-    }
+    .slot.booked { background: rgba(255, 107, 79, 0.18); cursor: pointer; }
+    .slot.past { background: rgba(255, 255, 255, 0.02); cursor: not-allowed; opacity: .55; }
     .slot-chip {
       display: block; width: 100%; height: 100%;
       border-radius: 6px; padding: 4px 6px;
-      font-size: .68rem; line-height: 1.25;
-      overflow: hidden;
+      font-size: .68rem; line-height: 1.25; overflow: hidden;
     }
     .slot.booked .slot-chip {
       background: rgba(255, 107, 79, 0.25);
       border: 1px solid rgba(255, 107, 79, 0.35);
       color: #ffc4b8;
     }
-    .slot.busy .slot-chip {
-      background: rgba(84, 93, 110, 0.35);
-      border: 1px solid var(--border);
-      color: var(--text-secondary);
-    }
     .slot-chip strong { display: block; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
     .slot-chip em { font-style: normal; color: var(--text-muted); font-size: .62rem; }
 
     .panels {
-      display: grid; grid-template-columns: 1.2fr .8fr; gap: 1.25rem;
+      display: grid; grid-template-columns: 1fr 1fr; gap: 1.25rem;
       margin-top: 1.5rem;
       animation: fadeUp .7s ease-out .2s both;
     }
@@ -289,32 +254,26 @@
       font-family: 'Outfit', sans-serif; font-size: 1.1rem; font-weight: 700;
       margin-bottom: .5rem;
     }
-    .panel p, .panel li {
-      color: var(--text-secondary); font-size: .88rem; line-height: 1.65;
-    }
+    .panel p, .panel li { color: var(--text-secondary); font-size: .88rem; line-height: 1.65; }
     .panel ul { padding-left: 1.1rem; margin-top: .5rem; }
-    .gcal-frame {
-      width: 100%; height: 420px; border: 0; border-radius: 12px;
-      background: #111; margin-top: .75rem;
-    }
-    .config-row {
-      display: flex; gap: .5rem; flex-wrap: wrap; margin-top: .75rem;
-    }
-    .config-row input {
-      flex: 1; min-width: 180px;
-      background: var(--bg-secondary); border: 1px solid var(--border);
-      border-radius: 8px; padding: 10px 12px; color: var(--text-primary);
-      font-family: 'JetBrains Mono', monospace; font-size: .75rem;
-    }
-    .config-row input:focus { outline: none; border-color: var(--border-hover); }
     .status-line {
       margin-top: .65rem; font-family: 'JetBrains Mono', monospace;
       font-size: .72rem; color: var(--text-muted);
     }
     .status-line.ok { color: var(--accent-good); }
     .status-line.err { color: var(--accent-warm); }
+    .mode-pill {
+      display: inline-flex; align-items: center; gap: 6px;
+      margin-top: .75rem; padding: 6px 10px; border-radius: 999px;
+      border: 1px solid var(--border); background: rgba(255,255,255,.03);
+      font-family: 'JetBrains Mono', monospace; font-size: .7rem; color: var(--text-secondary);
+    }
+    .mode-pill .dot-live {
+      width: 7px; height: 7px; border-radius: 50%; background: var(--accent-good);
+      box-shadow: 0 0 8px rgba(52, 211, 153, .6);
+    }
 
-    .booking-list { list-style: none; padding: 0; margin-top: .75rem; max-height: 280px; overflow: auto; }
+    .booking-list { list-style: none; padding: 0; margin-top: .75rem; max-height: 320px; overflow: auto; }
     .booking-list li {
       display: flex; justify-content: space-between; gap: .75rem; align-items: flex-start;
       padding: .75rem 0; border-bottom: 1px solid var(--border);
@@ -330,7 +289,6 @@
     .booking-list button:hover { color: var(--accent-warm); border-color: rgba(255, 107, 79, 0.4); }
     .empty-note { color: var(--text-muted); font-size: .85rem; padding: .5rem 0; }
 
-    /* Modal */
     .modal-backdrop {
       position: fixed; inset: 0; z-index: 200;
       background: rgba(4, 6, 10, 0.72);
@@ -394,7 +352,6 @@
       from { opacity: 0; transform: translateY(24px); }
       to { opacity: 1; transform: translateY(0); }
     }
-
     @media (max-width: 900px) {
       .panels { grid-template-columns: 1fr; }
       .week-label { min-width: 0; }
@@ -419,7 +376,7 @@
   <div class="page-bg"></div>
   <div class="page-grid"></div>
 
-  <nav id="navbar">
+  <nav>
     <a class="nav-logo" href="index.html">STARGATE</a>
     <ul class="nav-links" id="navLinks">
       <li><a href="index.html">Home</a></li>
@@ -432,11 +389,11 @@
 
   <main>
     <header class="hero-block">
-      <div class="eyebrow">Class Timetable · From Aug 2026</div>
+      <div class="eyebrow">Class Timetable · Supabase · From Aug 2026</div>
       <h1>수업 <span class="grad">시간표 · 예약</span></h1>
       <p>
         가로축은 일요일~토요일, 세로축은 9시~22시(1시간 단위)입니다.
-        빈 칸을 눌러 수학·KOI 수업을 예약하면 Google Calendar(<code style="font-family:'JetBrains Mono',monospace;font-size:.85em;color:var(--accent)">ceo@stargateedu.co.kr</code>)로 연동할 수 있습니다.
+        빈 칸을 눌러 예약을 확정하면 Supabase에 저장되어 모든 사용자에게 같은 캘린더로 공유됩니다.
       </p>
     </header>
 
@@ -445,13 +402,13 @@
         <button class="icon-btn" id="prevWeek" aria-label="이전 주">‹</button>
         <div>
           <div class="week-label" id="weekLabel">—</div>
-          <div class="week-sub" id="weekSub">예약 가능: 2026년 8월 1일부터</div>
+          <div class="week-sub" id="weekSub">예약 가능: 2026년 8월 1일부터 · Supabase</div>
         </div>
         <button class="icon-btn" id="nextWeek" aria-label="다음 주">›</button>
         <button class="btn-ghost" id="thisWeekBtn" type="button">이번 주</button>
       </div>
       <div class="toolbar-actions">
-        <button class="btn-secondary" id="syncBtn" type="button">캘린더 동기화</button>
+        <button class="btn-secondary" id="syncBtn" type="button">새로고침</button>
         <button class="btn-primary" id="jumpAugBtn" type="button">8월 첫 주로</button>
       </div>
     </div>
@@ -459,7 +416,6 @@
     <div class="legend">
       <span><i class="dot open"></i> 예약 가능</span>
       <span><i class="dot booked"></i> 예약됨</span>
-      <span><i class="dot busy"></i> 캘린더 사용 중</span>
       <span><i class="dot past"></i> 지난 시간 / 8월 이전</span>
     </div>
 
@@ -471,29 +427,24 @@
 
     <div class="panels">
       <section class="panel">
-        <h2>Google Calendar</h2>
+        <h2>Supabase 캘린더</h2>
         <p>
-          공개 캘린더를 임베드해 실제 일정을 함께 확인합니다.
-          API Key와 Calendar ID를 입력하면 busy 슬롯을 자동으로 표시합니다.
+          Google Calendar 대신 Stargate Supabase에 수업 예약을 저장합니다.
+          테이블(<code style="font-family:'JetBrains Mono',monospace;font-size:.78em">class_bookings</code>)이 있으면 DB 모드,
+          없으면 Storage 폴더에 슬롯 단위로 저장합니다.
         </p>
-        <div class="config-row">
-          <input id="gcalApiKey" type="password" placeholder="Google API Key (선택)" autocomplete="off">
-          <input id="gcalCalendarId" type="text" placeholder="Calendar ID (기본: ceo@stargateedu.co.kr)" autocomplete="off">
-          <button class="btn-secondary" id="saveConfigBtn" type="button">저장</button>
-        </div>
-        <div class="status-line" id="syncStatus">API Key가 없으면 로컬 예약 + Google Calendar 템플릿 링크로 동작합니다.</div>
-        <iframe
-          class="gcal-frame"
-          id="gcalEmbed"
-          title="Google Calendar"
-          loading="lazy"
-          src="https://calendar.google.com/calendar/embed?src=ceo%40stargateedu.co.kr&amp;ctz=Asia%2FSeoul&amp;mode=WEEK&amp;showTitle=0&amp;showPrint=0&amp;showTabs=1&amp;showCalendars=0&amp;hl=ko"
-        ></iframe>
+        <ul>
+          <li>프로젝트: <code style="font-family:'JetBrains Mono',monospace;font-size:.78em">inftexpcnfinglwlrvsj</code></li>
+          <li>양식: 일~토 × 09–22 (1시간)</li>
+          <li>시작: 2026-08-01</li>
+        </ul>
+        <div class="mode-pill"><span class="dot-live"></span><span id="modeLabel">연결 중…</span></div>
+        <div class="status-line" id="syncStatus">Supabase 연결 확인 중…</div>
       </section>
 
       <section class="panel">
-        <h2>내 예약 목록</h2>
-        <p>이 브라우저에 저장된 예약입니다. 제출 시 메일 초안과 Google Calendar 일정 추가 창이 열립니다.</p>
+        <h2>이번 주 예약</h2>
+        <p>현재 주에 확정된 수업 예약 목록입니다.</p>
         <ul class="booking-list" id="bookingList"></ul>
         <div class="empty-note" id="bookingEmpty">아직 예약이 없습니다. 시간표에서 빈 칸을 선택하세요.</div>
       </section>
@@ -527,8 +478,8 @@
           <textarea name="note" maxlength="300" placeholder="학년, 교재, 요청사항 등"></textarea>
         </label>
         <div class="modal-actions">
-          <button type="button" class="btn-secondary" id="cancelBtn">취소</button>
-          <button type="submit" class="btn-primary">예약 확정</button>
+          <button type="button" class="btn-secondary" id="cancelBtn">닫기</button>
+          <button type="submit" class="btn-primary" id="submitBtn">예약 확정</button>
         </div>
       </form>
     </div>
@@ -547,13 +498,15 @@
 
   <script>
     (function () {
-      const HOURS = Array.from({ length: 14 }, (_, i) => 9 + i); // 9..22
+      const HOURS = Array.from({ length: 14 }, (_, i) => 9 + i);
       const DAY_LABELS = ['일', '월', '화', '수', '목', '금', '토'];
-      const BOOKING_START = new Date(2026, 7, 1); // Aug 1, 2026 local
-      const STORAGE_KEY = 'stargate-edu-bookings-v1';
-      const CONFIG_KEY = 'stargate-edu-gcal-config-v1';
-      const DEFAULT_CALENDAR_ID = 'ceo@stargateedu.co.kr';
-      const TZ = 'Asia/Seoul';
+      const BOOKING_START = new Date(2026, 7, 1);
+      const SUPABASE_URL = 'https://inftexpcnfinglwlrvsj.supabase.co';
+      const SUPABASE_ANON_KEY =
+        'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImluZnRleHBjbmZpbmdsd2xydnNqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzI5MTMyMzgsImV4cCI6MjA4ODQ4OTIzOH0.HONuULp0L3B5T0gTiwJMnowjJonJzzNHhUV_LtpDQoI';
+      const TABLE = 'class_bookings';
+      const STORAGE_BUCKET = 'public-data-csv';
+      const STORAGE_PREFIX = 'class-bookings/';
 
       const els = {
         timetable: document.getElementById('timetable'),
@@ -568,66 +521,45 @@
         modalSlotInfo: document.getElementById('modalSlotInfo'),
         bookingForm: document.getElementById('bookingForm'),
         cancelBtn: document.getElementById('cancelBtn'),
+        submitBtn: document.getElementById('submitBtn'),
         bookingList: document.getElementById('bookingList'),
         bookingEmpty: document.getElementById('bookingEmpty'),
         toast: document.getElementById('toast'),
-        gcalApiKey: document.getElementById('gcalApiKey'),
-        gcalCalendarId: document.getElementById('gcalCalendarId'),
-        saveConfigBtn: document.getElementById('saveConfigBtn'),
         syncStatus: document.getElementById('syncStatus'),
-        gcalEmbed: document.getElementById('gcalEmbed'),
+        modeLabel: document.getElementById('modeLabel'),
         navToggle: document.getElementById('navToggle'),
         navLinks: document.getElementById('navLinks'),
       };
 
       let weekStart = startOfWeek(clampToBookingWindow(new Date()));
       let selectedSlot = null;
-      let busyEvents = [];
-      let bookings = loadBookings();
-      let config = loadConfig();
-
-      els.gcalApiKey.value = config.apiKey || '';
-      els.gcalCalendarId.value = config.calendarId || DEFAULT_CALENDAR_ID;
-      updateEmbed(config.calendarId || DEFAULT_CALENDAR_ID);
+      let bookings = [];
+      let backend = 'unknown'; // 'db' | 'storage'
+      let loading = false;
 
       els.navToggle.addEventListener('click', () => els.navLinks.classList.toggle('active'));
       els.navLinks.querySelectorAll('a').forEach((a) =>
         a.addEventListener('click', () => els.navLinks.classList.remove('active'))
       );
-
       els.prevWeek.addEventListener('click', () => {
         const next = addDays(weekStart, -7);
         if (endOfDay(addDays(next, 6)) < BOOKING_START) return;
         weekStart = next;
-        render();
-        syncBusy();
+        loadWeek();
       });
       els.nextWeek.addEventListener('click', () => {
         weekStart = addDays(weekStart, 7);
-        render();
-        syncBusy();
+        loadWeek();
       });
       els.thisWeekBtn.addEventListener('click', () => {
         weekStart = startOfWeek(clampToBookingWindow(new Date()));
-        render();
-        syncBusy();
+        loadWeek();
       });
       els.jumpAugBtn.addEventListener('click', () => {
         weekStart = startOfWeek(BOOKING_START);
-        render();
-        syncBusy();
+        loadWeek();
       });
-      els.syncBtn.addEventListener('click', () => syncBusy(true));
-      els.saveConfigBtn.addEventListener('click', () => {
-        config = {
-          apiKey: els.gcalApiKey.value.trim(),
-          calendarId: els.gcalCalendarId.value.trim() || DEFAULT_CALENDAR_ID,
-        };
-        localStorage.setItem(CONFIG_KEY, JSON.stringify(config));
-        updateEmbed(config.calendarId);
-        showToast('캘린더 설정을 저장했습니다.');
-        syncBusy(true);
-      });
+      els.syncBtn.addEventListener('click', () => loadWeek(true));
       els.cancelBtn.addEventListener('click', closeModal);
       els.modal.addEventListener('click', (e) => {
         if (e.target === els.modal) closeModal();
@@ -637,19 +569,165 @@
       });
       els.bookingForm.addEventListener('submit', onSubmitBooking);
 
-      render();
-      renderBookingList();
-      syncBusy();
+      detectBackend().then(() => loadWeek(true));
 
-      function render() {
+      async function sb(path, options = {}) {
+        const headers = {
+          apikey: SUPABASE_ANON_KEY,
+          Authorization: 'Bearer ' + SUPABASE_ANON_KEY,
+          ...(options.headers || {}),
+        };
+        return fetch(SUPABASE_URL + path, { ...options, headers });
+      }
+
+      async function detectBackend() {
+        const res = await sb('/rest/v1/' + TABLE + '?select=id&limit=1');
+        if (res.ok) {
+          backend = 'db';
+          els.modeLabel.textContent = 'DB 모드 · class_bookings';
+          return;
+        }
+        const data = await res.json().catch(() => ({}));
+        const missing =
+          res.status === 404 ||
+          data.code === 'PGRST205' ||
+          /Could not find the table/i.test(data.message || '');
+        backend = missing ? 'storage' : 'storage';
+        els.modeLabel.textContent = 'Storage 모드 · public-data-csv/class-bookings';
+      }
+
+      async function loadWeek(manual) {
+        if (loading) return;
+        loading = true;
+        els.syncStatus.className = 'status-line';
+        els.syncStatus.textContent = 'Supabase에서 예약을 불러오는 중…';
+        renderShell();
+        try {
+          if (backend === 'unknown') await detectBackend();
+          bookings =
+            backend === 'db' ? await loadFromDb() : await loadFromStorage();
+          els.syncStatus.className = 'status-line ok';
+          els.syncStatus.textContent =
+            '동기화 완료 · ' +
+            bookings.length +
+            '건 · ' +
+            (backend === 'db' ? 'DB' : 'Storage') +
+            ' · ' +
+            new Date().toLocaleTimeString('ko-KR');
+          if (manual) showToast('Supabase 예약을 불러왔습니다.');
+        } catch (err) {
+          bookings = [];
+          els.syncStatus.className = 'status-line err';
+          els.syncStatus.textContent = '동기화 실패: ' + err.message;
+          if (manual) showToast('불러오기 실패: ' + err.message);
+        } finally {
+          loading = false;
+          render();
+          renderBookingList();
+        }
+      }
+
+      async function loadFromDb() {
+        const timeMin = weekStart.toISOString();
+        const timeMax = addDays(weekStart, 7).toISOString();
+        const res = await sb(
+          '/rest/v1/' +
+            TABLE +
+            '?select=*&status=eq.confirmed&starts_at=gte.' +
+            encodeURIComponent(timeMin) +
+            '&starts_at=lt.' +
+            encodeURIComponent(timeMax) +
+            '&order=starts_at.asc'
+        );
+        const data = await res.json();
+        if (!res.ok) {
+          if (data.code === 'PGRST205') {
+            backend = 'storage';
+            els.modeLabel.textContent = 'Storage 모드 · public-data-csv/class-bookings';
+            return loadFromStorage();
+          }
+          throw new Error(data.message || 'DB 조회 실패');
+        }
+        return (data || []).map(normalizeDbRow);
+      }
+
+      async function loadFromStorage() {
+        const listRes = await sb('/storage/v1/object/list/' + STORAGE_BUCKET, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ prefix: STORAGE_PREFIX, limit: 1000 }),
+        });
+        const files = await listRes.json();
+        if (!listRes.ok) throw new Error(files.message || 'Storage 목록 실패');
+
+        const weekEnd = addDays(weekStart, 7);
+        const names = (Array.isArray(files) ? files : [])
+          .map((f) => f.name)
+          .filter((name) => name && name.endsWith('.json') && name !== 'bookings.json');
+
+        const rows = await Promise.all(
+          names.map(async (name) => {
+            const key = name.replace(/\.json$/, '');
+            const start = parseSlotKey(key);
+            if (!start || start < weekStart || start >= weekEnd) return null;
+            const res = await sb(
+              '/storage/v1/object/' + STORAGE_BUCKET + '/' + STORAGE_PREFIX + name
+            );
+            if (!res.ok) return null;
+            const row = await res.json().catch(() => null);
+            if (!row || row.status === 'cancelled') return null;
+            return normalizeStorageRow(row, key);
+          })
+        );
+        return rows.filter(Boolean).sort((a, b) => new Date(a.startISO) - new Date(b.startISO));
+      }
+
+      function normalizeDbRow(row) {
+        return {
+          id: row.id,
+          slotKey: row.slot_key,
+          startISO: row.starts_at,
+          endISO: row.ends_at,
+          name: row.student_name,
+          phone: row.phone,
+          email: row.email || '',
+          subject: row.subject,
+          note: row.note || '',
+          status: row.status,
+        };
+      }
+
+      function normalizeStorageRow(row, key) {
+        const start = parseSlotKey(row.slot_key || key);
+        const end = start ? new Date(start.getTime() + 3600000) : null;
+        return {
+          id: row.slot_key || key,
+          slotKey: row.slot_key || key,
+          startISO: row.starts_at || (start && start.toISOString()),
+          endISO: row.ends_at || (end && end.toISOString()),
+          name: row.student_name || row.name || '',
+          phone: row.phone || '',
+          email: row.email || '',
+          subject: row.subject || '',
+          note: row.note || '',
+          status: row.status || 'confirmed',
+        };
+      }
+
+      function renderShell() {
         const days = Array.from({ length: 7 }, (_, i) => addDays(weekStart, i));
-        const today = new Date();
         els.weekLabel.textContent =
           formatMD(days[0]) + ' — ' + formatMD(days[6]) + ' · ' + days[0].getFullYear();
-        els.weekSub.textContent = '예약 가능: 2026년 8월 1일부터 · 한국 시간(Asia/Seoul)';
+        els.weekSub.textContent = '예약 가능: 2026년 8월 1일부터 · Asia/Seoul · Supabase';
         els.prevWeek.disabled = endOfDay(addDays(addDays(weekStart, -7), 6)) < BOOKING_START;
+      }
 
+      function render() {
+        renderShell();
+        const days = Array.from({ length: 7 }, (_, i) => addDays(weekStart, i));
+        const today = new Date();
         const frag = document.createDocumentFragment();
+
         const corner = document.createElement('div');
         corner.className = 'head-cell corner';
         corner.textContent = '시간';
@@ -679,7 +757,6 @@
             const end = new Date(day.getFullYear(), day.getMonth(), day.getDate(), hour + 1, 0, 0, 0);
             const key = slotKey(start);
             const booking = bookings.find((b) => b.slotKey === key);
-            const busy = findBusy(start, end);
             const past = end <= new Date() || start < BOOKING_START;
 
             const btn = document.createElement('button');
@@ -699,15 +776,8 @@
                 '</strong><em>' +
                 escapeHtml(booking.name) +
                 '</em></span>';
-              btn.title = '예약 상세 보기';
+              btn.title = '예약 상세 / 취소';
               btn.addEventListener('click', () => showBookingDetail(booking));
-            } else if (busy) {
-              btn.classList.add('busy');
-              btn.disabled = true;
-              btn.innerHTML =
-                '<span class="slot-chip"><strong>사용 중</strong><em>' +
-                escapeHtml(busy.summary || 'Calendar') +
-                '</em></span>';
             } else {
               btn.classList.add('open');
               btn.title = formatSlotLabel(start) + ' 예약';
@@ -725,6 +795,7 @@
         selectedSlot = start;
         els.modalSlotInfo.textContent = formatSlotLabel(start) + ' · 1시간';
         els.bookingForm.reset();
+        els.submitBtn.disabled = false;
         els.modal.classList.add('open');
         els.bookingForm.elements.name.focus();
       }
@@ -734,103 +805,88 @@
         selectedSlot = null;
       }
 
-      function onSubmitBooking(e) {
+      async function onSubmitBooking(e) {
         e.preventDefault();
         if (!selectedSlot) return;
         const fd = new FormData(els.bookingForm);
         const start = selectedSlot;
         const end = new Date(start.getTime() + 60 * 60 * 1000);
-        const booking = {
-          id: 'b_' + Date.now().toString(36),
-          slotKey: slotKey(start),
-          startISO: start.toISOString(),
-          endISO: end.toISOString(),
-          name: String(fd.get('name') || '').trim(),
+        const payload = {
+          slot_key: slotKey(start),
+          starts_at: start.toISOString(),
+          ends_at: end.toISOString(),
+          student_name: String(fd.get('name') || '').trim(),
           phone: String(fd.get('phone') || '').trim(),
           email: String(fd.get('email') || '').trim(),
           subject: String(fd.get('subject') || '').trim(),
           note: String(fd.get('note') || '').trim(),
-          createdAt: new Date().toISOString(),
+          status: 'confirmed',
         };
-
-        if (bookings.some((b) => b.slotKey === booking.slotKey)) {
-          showToast('이미 예약된 시간입니다.');
+        if (!payload.student_name || !payload.phone || !payload.subject) {
+          showToast('이름, 연락처, 과목을 입력해 주세요.');
           return;
         }
 
-        bookings.push(booking);
-        saveBookings();
-        closeModal();
-        render();
-        renderBookingList();
-        openExternalBookingActions(booking);
-        showToast('예약이 저장되었습니다. Google Calendar / 메일 창을 확인하세요.');
+        els.submitBtn.disabled = true;
+        try {
+          if (backend === 'db') await saveToDb(payload);
+          else await saveToStorage(payload);
+          closeModal();
+          showToast('예약이 Supabase에 저장되었습니다.');
+          await loadWeek();
+        } catch (err) {
+          showToast(err.message);
+          els.submitBtn.disabled = false;
+        }
       }
 
-      function openExternalBookingActions(booking) {
-        const start = new Date(booking.startISO);
-        const end = new Date(booking.endISO);
-        const title = '[Stargate Edu] ' + booking.subject + ' · ' + booking.name;
-        const details = [
-          '학생/학부모: ' + booking.name,
-          '연락처: ' + booking.phone,
-          booking.email ? '이메일: ' + booking.email : '',
-          '과목: ' + booking.subject,
-          booking.note ? '메모: ' + booking.note : '',
-          '',
-          '예약 페이지: ' + location.href.split('#')[0],
-        ]
-          .filter(Boolean)
-          .join('\n');
+      async function saveToDb(payload) {
+        const res = await sb('/rest/v1/' + TABLE, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            Prefer: 'return=representation',
+          },
+          body: JSON.stringify(payload),
+        });
+        const data = await res.json().catch(() => ({}));
+        if (!res.ok) {
+          if (res.status === 409 || /duplicate|unique/i.test(JSON.stringify(data))) {
+            throw new Error('이미 예약된 시간입니다. 새로고침 후 다시 확인하세요.');
+          }
+          throw new Error(data.message || 'DB 저장 실패 (' + res.status + ')');
+        }
+      }
 
-        const gcalUrl =
-          'https://calendar.google.com/calendar/render?action=TEMPLATE' +
-          '&text=' +
-          encodeURIComponent(title) +
-          '&dates=' +
-          toGCalStamp(start) +
+      async function saveToStorage(payload) {
+        const existing = bookings.find((b) => b.slotKey === payload.slot_key);
+        if (existing) throw new Error('이미 예약된 시간입니다.');
+
+        const path =
+          '/storage/v1/object/' +
+          STORAGE_BUCKET +
           '/' +
-          toGCalStamp(end) +
-          '&details=' +
-          encodeURIComponent(details) +
-          '&location=' +
-          encodeURIComponent('서울 강남구 대치동 · Stargate Edu') +
-          '&add=' +
-          encodeURIComponent(DEFAULT_CALENDAR_ID) +
-          '&ctz=' +
-          encodeURIComponent(TZ);
-
-        const mailBody = [
-          '안녕하세요, Stargate Edu 수업 예약 요청입니다.',
-          '',
-          '일시: ' + formatSlotLabel(start),
-          '과목: ' + booking.subject,
-          '이름: ' + booking.name,
-          '연락처: ' + booking.phone,
-          booking.email ? '이메일: ' + booking.email : '',
-          booking.note ? '메모: ' + booking.note : '',
-          '',
-          'Google Calendar 추가 링크:',
-          gcalUrl,
-        ]
-          .filter((line) => line !== '')
-          .join('\n');
-
-        const mailto =
-          'mailto:' +
-          encodeURIComponent(DEFAULT_CALENDAR_ID) +
-          '?subject=' +
-          encodeURIComponent('[수업예약] ' + booking.subject + ' · ' + formatSlotLabel(start)) +
-          '&body=' +
-          encodeURIComponent(mailBody);
-
-        window.open(gcalUrl, '_blank', 'noopener');
-        setTimeout(() => {
-          window.location.href = mailto;
-        }, 400);
+          STORAGE_PREFIX +
+          payload.slot_key +
+          '.json';
+        const body = JSON.stringify(payload);
+        let res = await sb(path, {
+          method: 'POST',
+          headers: { 'Content-Type': 'text/plain', 'x-upsert': 'true' },
+          body,
+        });
+        if (!res.ok) {
+          res = await sb(path, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'text/plain', 'x-upsert': 'true' },
+            body,
+          });
+        }
+        const data = await res.json().catch(() => ({}));
+        if (!res.ok) throw new Error(data.message || 'Storage 저장 실패 (' + res.status + ')');
       }
 
-      function showBookingDetail(booking) {
+      async function showBookingDetail(booking) {
         const start = new Date(booking.startISO);
         const msg =
           formatSlotLabel(start) +
@@ -843,12 +899,55 @@
           (booking.email ? '\n' + booking.email : '') +
           (booking.note ? '\n' + booking.note : '') +
           '\n\n이 예약을 취소할까요?';
-        if (confirm(msg)) {
-          bookings = bookings.filter((b) => b.id !== booking.id);
-          saveBookings();
-          render();
-          renderBookingList();
+        if (!confirm(msg)) return;
+        await cancelBooking(booking);
+      }
+
+      async function cancelBooking(booking) {
+        try {
+          if (backend === 'db') {
+            const res = await sb(
+              '/rest/v1/' + TABLE + '?id=eq.' + encodeURIComponent(booking.id),
+              {
+                method: 'PATCH',
+                headers: {
+                  'Content-Type': 'application/json',
+                  Prefer: 'return=minimal',
+                },
+                body: JSON.stringify({ status: 'cancelled' }),
+              }
+            );
+            if (!res.ok) throw new Error((await res.text()).slice(0, 180) || '취소 실패');
+          } else {
+            const path =
+              '/storage/v1/object/' +
+              STORAGE_BUCKET +
+              '/' +
+              STORAGE_PREFIX +
+              booking.slotKey +
+              '.json';
+            const body = JSON.stringify({
+              slot_key: booking.slotKey,
+              starts_at: booking.startISO,
+              ends_at: booking.endISO,
+              student_name: booking.name,
+              phone: booking.phone,
+              email: booking.email,
+              subject: booking.subject,
+              note: booking.note,
+              status: 'cancelled',
+            });
+            const res = await sb(path, {
+              method: 'PUT',
+              headers: { 'Content-Type': 'text/plain', 'x-upsert': 'true' },
+              body,
+            });
+            if (!res.ok) throw new Error((await res.text()).slice(0, 180) || '취소 실패');
+          }
           showToast('예약을 취소했습니다.');
+          await loadWeek();
+        } catch (err) {
+          showToast('취소 실패: ' + err.message);
         }
       }
 
@@ -858,7 +957,6 @@
           .sort((a, b) => new Date(a.startISO) - new Date(b.startISO));
         els.bookingList.replaceChildren();
         els.bookingEmpty.style.display = upcoming.length ? 'none' : 'block';
-
         upcoming.forEach((b) => {
           const li = document.createElement('li');
           const left = document.createElement('div');
@@ -872,126 +970,19 @@
             ' · ' +
             escapeHtml(b.phone) +
             '</div>';
-          const actions = document.createElement('div');
-          actions.style.display = 'flex';
-          actions.style.gap = '6px';
-
-          const calBtn = document.createElement('button');
-          calBtn.type = 'button';
-          calBtn.textContent = '캘린더';
-          calBtn.addEventListener('click', () => openExternalBookingActions(b));
-
           const delBtn = document.createElement('button');
           delBtn.type = 'button';
           delBtn.textContent = '취소';
-          delBtn.addEventListener('click', () => {
-            bookings = bookings.filter((x) => x.id !== b.id);
-            saveBookings();
-            render();
-            renderBookingList();
-            showToast('예약을 취소했습니다.');
-          });
-
-          actions.appendChild(calBtn);
-          actions.appendChild(delBtn);
+          delBtn.addEventListener('click', () => cancelBooking(b));
           li.appendChild(left);
-          li.appendChild(actions);
+          li.appendChild(delBtn);
           els.bookingList.appendChild(li);
         });
       }
 
-      async function syncBusy(manual) {
-        const apiKey = (config.apiKey || '').trim();
-        const calendarId = (config.calendarId || DEFAULT_CALENDAR_ID).trim();
-        if (!apiKey) {
-          busyEvents = [];
-          els.syncStatus.className = 'status-line';
-          els.syncStatus.textContent =
-            'API Key 미설정 — 로컬 예약과 Google Calendar 템플릿/메일 연동만 사용 중입니다.';
-          if (manual) showToast('API Key를 저장하면 busy 슬롯을 불러옵니다.');
-          render();
-          return;
-        }
-
-        els.syncStatus.className = 'status-line';
-        els.syncStatus.textContent = 'Google Calendar에서 일정을 불러오는 중…';
-
-        const timeMin = weekStart.toISOString();
-        const timeMax = addDays(weekStart, 7).toISOString();
-        const url =
-          'https://www.googleapis.com/calendar/v3/calendars/' +
-          encodeURIComponent(calendarId) +
-          '/events?singleEvents=true&orderBy=startTime' +
-          '&timeMin=' +
-          encodeURIComponent(timeMin) +
-          '&timeMax=' +
-          encodeURIComponent(timeMax) +
-          '&timeZone=' +
-          encodeURIComponent(TZ) +
-          '&key=' +
-          encodeURIComponent(apiKey);
-
-        try {
-          const res = await fetch(url);
-          const data = await res.json();
-          if (!res.ok) {
-            throw new Error(data.error?.message || 'Calendar API 오류 (' + res.status + ')');
-          }
-          busyEvents = (data.items || [])
-            .map((ev) => {
-              const s = ev.start?.dateTime || (ev.start?.date ? ev.start.date + 'T00:00:00' : null);
-              const e = ev.end?.dateTime || (ev.end?.date ? ev.end.date + 'T23:59:59' : null);
-              if (!s || !e) return null;
-              return { start: new Date(s), end: new Date(e), summary: ev.summary || 'Busy' };
-            })
-            .filter(Boolean);
-          els.syncStatus.className = 'status-line ok';
-          els.syncStatus.textContent =
-            '동기화 완료 · ' + busyEvents.length + '건 (' + new Date().toLocaleTimeString('ko-KR') + ')';
-          if (manual) showToast('캘린더 일정을 동기화했습니다.');
-          render();
-        } catch (err) {
-          busyEvents = [];
-          els.syncStatus.className = 'status-line err';
-          els.syncStatus.textContent = '동기화 실패: ' + err.message;
-          if (manual) showToast('동기화 실패 — 캘린더 공개/API 설정을 확인하세요.');
-          render();
-        }
-      }
-
-      function findBusy(start, end) {
-        return busyEvents.find((ev) => ev.start < end && ev.end > start);
-      }
-
-      function updateEmbed(calendarId) {
-        const src =
-          'https://calendar.google.com/calendar/embed?src=' +
-          encodeURIComponent(calendarId || DEFAULT_CALENDAR_ID) +
-          '&ctz=Asia%2FSeoul&mode=WEEK&showTitle=0&showPrint=0&showTabs=1&showCalendars=0&hl=ko';
-        els.gcalEmbed.src = src;
-      }
-
-      function loadBookings() {
-        try {
-          return JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]');
-        } catch (_) {
-          return [];
-        }
-      }
-      function saveBookings() {
-        localStorage.setItem(STORAGE_KEY, JSON.stringify(bookings));
-      }
-      function loadConfig() {
-        try {
-          return JSON.parse(localStorage.getItem(CONFIG_KEY) || '{}');
-        } catch (_) {
-          return {};
-        }
-      }
-
       function startOfWeek(date) {
         const d = new Date(date.getFullYear(), date.getMonth(), date.getDate());
-        d.setDate(d.getDate() - d.getDay()); // Sunday
+        d.setDate(d.getDate() - d.getDay());
         d.setHours(0, 0, 0, 0);
         return d;
       }
@@ -1024,6 +1015,11 @@
           String(date.getHours()).padStart(2, '0')
         );
       }
+      function parseSlotKey(key) {
+        const m = String(key || '').match(/^(\d{4})-(\d{2})-(\d{2})T(\d{2})$/);
+        if (!m) return null;
+        return new Date(+m[1], +m[2] - 1, +m[3], +m[4], 0, 0, 0);
+      }
       function formatMD(date) {
         return date.getMonth() + 1 + '/' + date.getDate() + '(' + DAY_LABELS[date.getDay()] + ')';
       }
@@ -1041,18 +1037,6 @@
           ':00–' +
           String(date.getHours() + 1).padStart(2, '0') +
           ':00'
-        );
-      }
-      function toGCalStamp(date) {
-        const pad = (n) => String(n).padStart(2, '0');
-        return (
-          date.getFullYear() +
-          pad(date.getMonth() + 1) +
-          pad(date.getDate()) +
-          'T' +
-          pad(date.getHours()) +
-          pad(date.getMinutes()) +
-          '00'
         );
       }
       function escapeHtml(str) {

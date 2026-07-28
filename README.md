@@ -63,8 +63,11 @@ Automation:  n8n / Google Apps Script / Custom Pipelines
 
 ```
 stargate-homepage/
-├── index.html          # 홈페이지
-├── schedule.html       # 수업 주간 시간표 · 예약 (8월~)
+├── index.html                              # 홈페이지 (예약 CTA)
+├── schedule.html                           # 수업 주간 시간표 · Supabase 예약
+├── supabase/class_bookings.sql             # 예약 테이블 스키마
+├── scripts/apply-class-bookings-schema.mjs # 스키마 적용 스크립트
+├── .github/workflows/apply-class-bookings-schema.yml
 ├── STARGATE HOMEPAGE.html
 └── README.md
 ```
@@ -73,34 +76,42 @@ stargate-homepage/
 
 ## 수업 시간표 · 예약 (`schedule.html`)
 
-주간 그리드 시간표로 수업을 예약할 수 있습니다.
+주간 그리드 시간표로 수업을 예약하고 **Supabase**에 저장합니다. (Google Calendar 연동 없음)
 
 | 축 | 구성 |
 |----|------|
 | 가로 | 일요일 → 토요일 |
 | 세로 | 09:00 → 22:00 (1시간 단위) |
 | 시작일 | **2026년 8월 1일**부터 예약 가능 |
+| 저장소 | Supabase `class_bookings` |
 
 ### 동작 방식
 
 1. 빈 슬롯 클릭 → 학생/연락처/과목 입력
-2. 예약 확정 시
-   - 브라우저(localStorage)에 저장
-   - **Google Calendar** 일정 추가 창 오픈 (`ceo@stargateedu.co.kr` 초대)
-   - 예약 내용 **메일 초안** (`mailto:ceo@stargateedu.co.kr`) 오픈
-3. 페이지 하단에서 Google Calendar 주간 뷰 임베드 확인
+2. 예약 확정 시 Supabase `class_bookings`에 insert
+3. 같은 슬롯은 unique 제약으로 중복 예약 방지
+4. 취소 시 `status = cancelled`
 
-### Google Calendar API 연동 (선택)
+### Supabase 저장 방식
 
-busy 슬롯을 자동으로 막으려면 [Google Cloud Console](https://console.cloud.google.com/)에서 Calendar API를 활성화하고 API Key를 발급하세요.
+1. **DB 모드 (권장)**: `class_bookings` 테이블이 있으면 여기로 저장
+2. **Storage 모드 (즉시 사용)**: 테이블이 없으면 `public-data-csv/class-bookings/{slot_key}.json`에 슬롯 단위 저장
 
-1. Google Cloud → **Google Calendar API** 사용 설정
-2. API Key 생성 (HTTP referrer 제한 권장: `stargateedu.co.kr/*`)
-3. Google Calendar에서 `ceo@stargateedu.co.kr` 캘린더를 **공개**하거나, API Key로 읽을 수 있게 공유
-4. `schedule.html` 페이지의 **API Key / Calendar ID** 입력란에 저장 후 **캘린더 동기화**
+### DB 스키마 적용 (선택, 최초 1회)
 
-> Calendar ID 기본값: `ceo@stargateedu.co.kr`  
-> 임베드 URL: `https://calendar.google.com/calendar/embed?src=ceo%40stargateedu.co.kr&ctz=Asia%2FSeoul&mode=WEEK`
+프로젝트: `https://inftexpcnfinglwlrvsj.supabase.co`
+
+1. [Supabase SQL Editor](https://supabase.com/dashboard/project/inftexpcnfinglwlrvsj/sql/new) 열기
+2. `supabase/class_bookings.sql` 내용 실행
+3. 또는:
+
+```bash
+SUPABASE_ACCESS_TOKEN=... node scripts/apply-class-bookings-schema.mjs
+# 또는
+DATABASE_URL=postgres://... node scripts/apply-class-bookings-schema.mjs
+```
+
+테이블이 없어도 Storage 모드로 바로 예약·공유가 가능합니다.
 
 ---
 
