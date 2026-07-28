@@ -63,9 +63,11 @@ Automation:  n8n / Google Apps Script / Custom Pipelines
 
 ```
 stargate-homepage/
-├── index.html                              # 홈페이지 (예약 CTA)
+├── index.html                              # 홈페이지 (예약 · 출결 CTA)
 ├── schedule.html                           # 수업 주간 시간표 · Supabase 예약
+├── report.html                             # 출결 현황 · 당일 수업 보고서
 ├── supabase/class_bookings.sql             # 예약 테이블 스키마
+├── supabase/class_attendance.sql           # 출결 · 일일 보고서 스키마
 ├── scripts/apply-class-bookings-schema.mjs # 스키마 적용 스크립트
 ├── .github/workflows/apply-class-bookings-schema.yml
 ├── STARGATE HOMEPAGE.html
@@ -113,6 +115,30 @@ DATABASE_URL=postgres://... node scripts/apply-class-bookings-schema.mjs
 ```
 
 테이블이 없어도 Storage 모드로 바로 예약·공유가 가능합니다.
+
+---
+
+## 출결 · 당일 수업 보고서 (`report.html`)
+
+당일 예약 수업을 기준으로 **출결 현황**을 기록하고, **일일 수업 정리 보고서**를 작성·저장·인쇄합니다.
+
+| 항목 | 내용 |
+|------|------|
+| 출결 | 출석 / 지각 / 결석 / 공결 / 미처리 |
+| 수업 메모 | 진도, 숙제, 개별 피드백 |
+| 보고서 | 총평 · 하이라이트 · 이슈 · 다음 계획 |
+| KPI | 출석·지각·결석·공결·미처리·출석률 |
+| 저장 | Supabase DB 또는 Storage |
+
+### 저장 경로 (Storage 모드)
+
+- 출결: `public-data-csv/class-attendance/{slot_key}.json`
+- 보고서: `public-data-csv/class-reports/{yyyy-mm-dd}.json`
+
+### DB 스키마 (선택)
+
+`supabase/class_attendance.sql` 을 SQL Editor에서 실행하면
+`class_attendance`, `class_daily_reports` 테이블을 사용합니다.
 
 ---
 

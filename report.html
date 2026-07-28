@@ -1,0 +1,1224 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>출결 · 당일 수업 보고서 | Stargate Edu</title>
+  <meta name="description" content="스타게이트 수업 출결 현황과 당일 수업 정리 보고서. Supabase에 저장됩니다.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&amp;family=Noto+Sans+KR:wght@300;400;500;700;900&amp;family=JetBrains+Mono:wght@400;500&amp;display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg-primary: #06080d;
+      --bg-secondary: #0c1018;
+      --bg-card: #111620;
+      --bg-card-hover: #161d2a;
+      --accent: #4f8fff;
+      --accent-glow: rgba(79, 143, 255, 0.15);
+      --accent-warm: #ff6b4f;
+      --accent-good: #34d399;
+      --accent-warn: #f59e0b;
+      --text-primary: #e8ecf4;
+      --text-secondary: #8a94a6;
+      --text-muted: #545d6e;
+      --border: rgba(255, 255, 255, 0.06);
+      --border-hover: rgba(79, 143, 255, 0.3);
+      --gradient-hero: linear-gradient(135deg, #4f8fff 0%, #a855f7 50%, #ff6b4f 100%);
+    }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    html { scroll-behavior: smooth; font-size: 16px; }
+    body {
+      font-family: 'Noto Sans KR', 'Outfit', sans-serif;
+      background: var(--bg-primary);
+      color: var(--text-primary);
+      min-height: 100vh;
+      -webkit-font-smoothing: antialiased;
+    }
+    nav {
+      position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+      padding: 0 2rem; height: 64px;
+      display: flex; align-items: center; justify-content: space-between;
+      background: rgba(6, 8, 13, 0.85);
+      backdrop-filter: blur(20px);
+      border-bottom: 1px solid var(--border);
+    }
+    .nav-logo {
+      font-family: 'Outfit', sans-serif; font-weight: 800; font-size: 1.3rem;
+      letter-spacing: 3px; text-transform: uppercase;
+      background: var(--gradient-hero);
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+      text-decoration: none;
+    }
+    .nav-links { display: flex; gap: 1.5rem; list-style: none; align-items: center; }
+    .nav-links a {
+      color: var(--text-secondary); text-decoration: none; font-size: .82rem;
+      font-weight: 500; letter-spacing: 1px; text-transform: uppercase; transition: color .3s;
+    }
+    .nav-links a:hover, .nav-links a.active { color: var(--accent); }
+    .nav-toggle { display: none; background: none; border: none; cursor: pointer; padding: 4px; }
+    .nav-toggle span { display: block; width: 22px; height: 2px; background: var(--text-primary); margin: 5px 0; }
+    .page-bg {
+      position: fixed; inset: 0; z-index: 0; pointer-events: none;
+      background:
+        radial-gradient(ellipse 70% 50% at 12% 0%, rgba(79, 143, 255, 0.12), transparent 55%),
+        radial-gradient(ellipse 50% 40% at 90% 8%, rgba(52, 211, 153, 0.07), transparent 50%),
+        radial-gradient(ellipse 60% 40% at 50% 100%, rgba(255, 107, 79, 0.05), transparent 55%);
+    }
+
+    main { position: relative; z-index: 1; max-width: 1180px; margin: 0 auto; padding: 96px 1.5rem 4rem; }
+    .eyebrow {
+      display: inline-flex; align-items: center; gap: 8px;
+      font-family: 'JetBrains Mono', monospace; font-size: .75rem;
+      color: var(--accent); letter-spacing: 2px; text-transform: uppercase; margin-bottom: .75rem;
+    }
+    .eyebrow::before {
+      content: ''; width: 6px; height: 6px; border-radius: 50%; background: var(--accent);
+      animation: blink 2s infinite;
+    }
+    @keyframes blink { 0%,100%{opacity:1} 50%{opacity:.3} }
+    h1 {
+      font-family: 'Outfit', sans-serif;
+      font-size: clamp(1.9rem, 4vw, 2.8rem); font-weight: 800; letter-spacing: -1px;
+      margin-bottom: .6rem;
+    }
+    h1 .grad {
+      background: var(--gradient-hero);
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+    }
+    .lead { color: var(--text-secondary); line-height: 1.7; max-width: 680px; margin-bottom: 1.4rem; }
+
+    .toolbar {
+      display: flex; flex-wrap: wrap; gap: .75rem; align-items: center;
+      justify-content: space-between; margin-bottom: 1.25rem;
+    }
+    .date-nav { display: flex; flex-wrap: wrap; gap: .5rem; align-items: center; }
+    .date-label {
+      font-family: 'Outfit', sans-serif; font-weight: 700; font-size: 1.15rem; min-width: 180px; text-align: center;
+    }
+    .date-sub {
+      width: 100%; text-align: center; font-family: 'JetBrains Mono', monospace;
+      font-size: .72rem; color: var(--text-muted);
+    }
+    .icon-btn, .btn-primary, .btn-secondary, .btn-ghost {
+      display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+      border-radius: 10px; font-size: .9rem; font-weight: 600;
+      cursor: pointer; transition: all .25s; font-family: inherit; text-decoration: none;
+    }
+    .icon-btn {
+      width: 40px; height: 40px; background: var(--bg-card);
+      border: 1px solid var(--border); color: var(--text-primary);
+    }
+    .icon-btn:hover:not(:disabled) { border-color: var(--border-hover); background: var(--bg-card-hover); }
+    .icon-btn:disabled, .btn-primary:disabled, .btn-secondary:disabled { opacity: .45; cursor: not-allowed; }
+    .btn-primary {
+      padding: 10px 18px; background: var(--accent); color: #fff; border: none;
+      box-shadow: 0 0 24px rgba(79,143,255,.2);
+    }
+    .btn-primary:hover:not(:disabled) { transform: translateY(-1px); }
+    .btn-secondary {
+      padding: 10px 18px; background: transparent; color: var(--text-primary); border: 1px solid var(--border);
+    }
+    .btn-secondary:hover:not(:disabled) { border-color: var(--border-hover); background: var(--accent-glow); }
+    .btn-ghost {
+      padding: 8px 12px; background: transparent; color: var(--text-secondary);
+      border: 1px solid transparent; font-size: .8rem;
+    }
+    .btn-ghost:hover { color: var(--accent); }
+    .date-input {
+      background: var(--bg-card); border: 1px solid var(--border); color: var(--text-primary);
+      border-radius: 10px; padding: 8px 10px; font-family: inherit;
+    }
+    .toolbar-actions { display: flex; flex-wrap: wrap; gap: .5rem; }
+
+    .kpis {
+      display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: .75rem;
+      margin-bottom: 1.25rem;
+    }
+    .kpi {
+      background: var(--bg-card); border: 1px solid var(--border); border-radius: 14px;
+      padding: 1rem .9rem; text-align: center;
+    }
+    .kpi .n {
+      font-family: 'Outfit', sans-serif; font-size: 1.6rem; font-weight: 800; line-height: 1;
+      margin-bottom: .35rem;
+    }
+    .kpi .l { font-size: .72rem; color: var(--text-muted); letter-spacing: .5px; text-transform: uppercase; }
+    .kpi.present .n { color: var(--accent-good); }
+    .kpi.late .n { color: var(--accent-warn); }
+    .kpi.absent .n { color: var(--accent-warm); }
+    .kpi.excused .n { color: var(--accent); }
+    .kpi.pending .n { color: var(--text-secondary); }
+    .kpi.rate .n {
+      background: var(--gradient-hero);
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+    }
+
+    .layout {
+      display: grid; grid-template-columns: 1.35fr .9fr; gap: 1.25rem; align-items: start;
+    }
+    .panel {
+      background: var(--bg-card); border: 1px solid var(--border); border-radius: 16px;
+      padding: 1.2rem 1.3rem;
+    }
+    .panel h2 {
+      font-family: 'Outfit', sans-serif; font-size: 1.1rem; font-weight: 700; margin-bottom: .35rem;
+    }
+    .panel .desc { color: var(--text-secondary); font-size: .86rem; margin-bottom: 1rem; line-height: 1.55; }
+    .status-line {
+      font-family: 'JetBrains Mono', monospace; font-size: .72rem; color: var(--text-muted); margin-bottom: .85rem;
+    }
+    .status-line.ok { color: var(--accent-good); }
+    .status-line.err { color: var(--accent-warm); }
+
+    .session {
+      border: 1px solid var(--border); border-radius: 14px; padding: 1rem;
+      margin-bottom: .85rem; background: rgba(255,255,255,.02);
+    }
+    .session:last-child { margin-bottom: 0; }
+    .session-head {
+      display: flex; justify-content: space-between; gap: .75rem; align-items: flex-start;
+      margin-bottom: .75rem; flex-wrap: wrap;
+    }
+    .session-title { font-weight: 700; font-size: .98rem; }
+    .session-meta {
+      color: var(--text-muted); font-size: .78rem; margin-top: 3px;
+      font-family: 'JetBrains Mono', monospace;
+    }
+    .badge {
+      display: inline-flex; align-items: center; padding: 4px 10px; border-radius: 999px;
+      font-size: .72rem; font-weight: 600; border: 1px solid var(--border);
+    }
+    .badge.pending { color: var(--text-secondary); background: rgba(255,255,255,.04); }
+    .badge.present { color: #9af0c8; background: rgba(52,211,153,.12); border-color: rgba(52,211,153,.3); }
+    .badge.late { color: #ffd28a; background: rgba(245,158,11,.12); border-color: rgba(245,158,11,.3); }
+    .badge.absent { color: #ffb4a4; background: rgba(255,107,79,.12); border-color: rgba(255,107,79,.3); }
+    .badge.excused { color: #c9dbff; background: rgba(79,143,255,.12); border-color: rgba(79,143,255,.3); }
+
+    .att-group { display: flex; flex-wrap: wrap; gap: .4rem; margin-bottom: .75rem; }
+    .att-btn {
+      border: 1px solid var(--border); background: transparent; color: var(--text-secondary);
+      border-radius: 8px; padding: 6px 10px; font-size: .78rem; cursor: pointer; font-family: inherit;
+    }
+    .att-btn.active.present, .att-btn:hover.present { color: #9af0c8; border-color: rgba(52,211,153,.45); background: rgba(52,211,153,.1); }
+    .att-btn.active.late, .att-btn:hover.late { color: #ffd28a; border-color: rgba(245,158,11,.45); background: rgba(245,158,11,.1); }
+    .att-btn.active.absent, .att-btn:hover.absent { color: #ffb4a4; border-color: rgba(255,107,79,.45); background: rgba(255,107,79,.1); }
+    .att-btn.active.excused, .att-btn:hover.excused { color: #c9dbff; border-color: rgba(79,143,255,.45); background: rgba(79,143,255,.1); }
+    .att-btn.active.pending { color: var(--text-primary); border-color: var(--border-hover); }
+
+    .fields { display: grid; gap: .55rem; }
+    label { display: grid; gap: 5px; font-size: .78rem; color: var(--text-secondary); }
+    input, select, textarea {
+      width: 100%; background: var(--bg-secondary); border: 1px solid var(--border);
+      border-radius: 10px; padding: 10px 12px; color: var(--text-primary);
+      font-family: inherit; font-size: .9rem;
+    }
+    textarea { min-height: 68px; resize: vertical; }
+    input:focus, select:focus, textarea:focus {
+      outline: none; border-color: var(--border-hover); box-shadow: 0 0 0 3px var(--accent-glow);
+    }
+    .session-actions { display: flex; justify-content: flex-end; gap: .5rem; margin-top: .7rem; }
+
+    .empty {
+      text-align: center; padding: 2.2rem 1rem; color: var(--text-muted); font-size: .92rem;
+      border: 1px dashed var(--border); border-radius: 14px;
+    }
+    .empty a { color: var(--accent); }
+
+    .report-form { display: grid; gap: .75rem; }
+    .report-preview {
+      margin-top: 1rem; padding: 1rem; border-radius: 12px;
+      border: 1px solid var(--border); background: rgba(255,255,255,.02);
+      font-size: .88rem; color: var(--text-secondary); line-height: 1.65; white-space: pre-wrap;
+    }
+    .report-preview h3 {
+      font-family: 'Outfit', sans-serif; color: var(--text-primary);
+      font-size: 1rem; margin-bottom: .5rem;
+    }
+    .mode-pill {
+      display: inline-flex; align-items: center; gap: 6px; margin-top: .5rem;
+      padding: 5px 10px; border-radius: 999px; border: 1px solid var(--border);
+      font-family: 'JetBrains Mono', monospace; font-size: .68rem; color: var(--text-secondary);
+    }
+    .mode-pill i {
+      width: 7px; height: 7px; border-radius: 50%; background: var(--accent-good);
+      box-shadow: 0 0 8px rgba(52,211,153,.55); display: inline-block;
+    }
+
+    .toast {
+      position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%) translateY(20px);
+      background: var(--bg-card); border: 1px solid var(--border-hover);
+      color: var(--text-primary); padding: 12px 18px; border-radius: 12px;
+      font-size: .88rem; z-index: 300; opacity: 0; pointer-events: none; transition: all .3s;
+      max-width: min(90vw, 420px); text-align: center;
+    }
+    .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+    footer {
+      position: relative; z-index: 1; border-top: 1px solid var(--border);
+      padding: 2rem; text-align: center; font-size: .75rem; color: var(--text-muted); line-height: 1.8;
+    }
+    footer a { color: var(--text-secondary); text-decoration: none; }
+
+    @media print {
+      nav, .toolbar-actions, .att-group, .session-actions, .no-print, footer, .toast { display: none !important; }
+      body { background: #fff; color: #111; }
+      .panel, .session, .kpi { background: #fff; border-color: #ddd; color: #111; }
+      main { padding: 0; max-width: 100%; }
+      .layout { grid-template-columns: 1fr; }
+      .report-preview { border-color: #ccc; color: #222; }
+    }
+
+    @media (max-width: 980px) {
+      .layout { grid-template-columns: 1fr; }
+      .kpis { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+    }
+    @media (max-width: 768px) {
+      nav { padding: 0 1rem; }
+      .nav-links {
+        display: none; flex-direction: column; position: absolute; top: 64px; left: 0; right: 0;
+        background: rgba(6,8,13,.98); padding: 1.5rem; gap: 1.2rem; border-bottom: 1px solid var(--border);
+      }
+      .nav-links.active { display: flex; }
+      .nav-toggle { display: block; }
+      main { padding: 88px 1rem 3rem; }
+      .kpis { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .date-label { min-width: 0; }
+    }
+  </style>
+</head>
+<body>
+  <div class="page-bg"></div>
+  <nav>
+    <a class="nav-logo" href="index.html">STARGATE</a>
+    <ul class="nav-links" id="navLinks">
+      <li><a href="index.html">Home</a></li>
+      <li><a href="schedule.html">Schedule</a></li>
+      <li><a href="report.html" class="active">Report</a></li>
+      <li><a href="index.html#contact">Contact</a></li>
+    </ul>
+    <button class="nav-toggle" id="navToggle" aria-label="Menu"><span></span><span></span><span></span></button>
+  </nav>
+
+  <main>
+    <div class="eyebrow">Attendance · Daily Class Report · Asia/Seoul</div>
+    <h1>출결 · <span class="grad">당일 수업 보고서</span></h1>
+    <p class="lead">
+      당일 예약 수업을 불러와 출결을 기록하고, 수업 내용·숙제·이슈를 정리한 일일 보고서를 Supabase에 저장합니다.
+    </p>
+
+    <div class="toolbar">
+      <div class="date-nav">
+        <button class="icon-btn" id="prevDay" aria-label="이전 날">‹</button>
+        <div>
+          <div class="date-label" id="dateLabel">—</div>
+          <div class="date-sub" id="dateSub">Asia/Seoul</div>
+        </div>
+        <button class="icon-btn" id="nextDay" aria-label="다음 날">›</button>
+        <button class="btn-ghost" id="todayBtn" type="button">오늘</button>
+        <input class="date-input" id="datePicker" type="date" aria-label="날짜 선택">
+      </div>
+      <div class="toolbar-actions no-print">
+        <button class="btn-secondary" id="reloadBtn" type="button">새로고침</button>
+        <button class="btn-secondary" id="printBtn" type="button">인쇄</button>
+        <a class="btn-primary" href="schedule.html">시간표 예약</a>
+      </div>
+    </div>
+
+    <div class="kpis" id="kpis">
+      <div class="kpi present"><div class="n" id="kpiPresent">0</div><div class="l">출석</div></div>
+      <div class="kpi late"><div class="n" id="kpiLate">0</div><div class="l">지각</div></div>
+      <div class="kpi absent"><div class="n" id="kpiAbsent">0</div><div class="l">결석</div></div>
+      <div class="kpi excused"><div class="n" id="kpiExcused">0</div><div class="l">공결</div></div>
+      <div class="kpi pending"><div class="n" id="kpiPending">0</div><div class="l">미처리</div></div>
+      <div class="kpi rate"><div class="n" id="kpiRate">0%</div><div class="l">출석률</div></div>
+    </div>
+
+    <div class="layout">
+      <section class="panel">
+        <h2>당일 수업 · 출결</h2>
+        <p class="desc">예약된 수업을 기준으로 출결·수업 메모를 저장합니다. 저장 내용은 보고서에도 반영됩니다.</p>
+        <div class="status-line" id="syncStatus">불러오는 중…</div>
+        <div id="sessionList"></div>
+        <div class="empty" id="sessionEmpty" style="display:none">
+          이 날짜에 확정된 수업이 없습니다.<br>
+          <a href="schedule.html">시간표에서 예약하기 →</a>
+        </div>
+      </section>
+
+      <aside class="panel">
+        <h2>당일 수업 정리 보고서</h2>
+        <p class="desc">하루 수업을 한눈에 정리합니다. 저장 후 인쇄하거나 학부모/내부 공유용으로 사용할 수 있습니다.</p>
+        <div class="mode-pill"><i></i><span id="modeLabel">연결 중…</span></div>
+        <form class="report-form" id="reportForm" style="margin-top:1rem">
+          <label>총평 / 한줄 요약
+            <textarea name="summary" id="summary" placeholder="오늘 수업 전체 분위기, 진도, 핵심 성과"></textarea>
+          </label>
+          <label>하이라이트
+            <textarea name="highlights" id="highlights" placeholder="잘한 점, 눈에 띈 성장, 완료한 단원"></textarea>
+          </label>
+          <label>이슈 · 보완
+            <textarea name="issues" id="issues" placeholder="결석/지각, 이해 부족, 숙제 미제출 등"></textarea>
+          </label>
+          <label>다음 수업 계획
+            <textarea name="next_plan" id="nextPlan" placeholder="다음 시간 진도, 준비물, 개별 피드백"></textarea>
+          </label>
+          <div class="toolbar-actions">
+            <button type="button" class="btn-secondary" id="autoFillBtn">출결 기반 초안</button>
+            <button type="submit" class="btn-primary" id="saveReportBtn">보고서 저장</button>
+          </div>
+        </form>
+        <div class="report-preview" id="reportPreview">
+          <h3>미리보기</h3>
+          <div id="previewBody">보고서를 작성하거나 ‘출결 기반 초안’을 눌러 주세요.</div>
+        </div>
+      </aside>
+    </div>
+  </main>
+
+  <div class="toast" id="toast" role="status"></div>
+  <footer>
+    주식회사 별의문(Stargate Corporation) · 대표 정동수<br>
+    <a href="mailto:ceo@stargateedu.co.kr">ceo@stargateedu.co.kr</a> ·
+    <a href="tel:070-8017-8227">070-8017-8227</a>
+  </footer>
+
+  <script>
+    (function () {
+      const TZ = 'Asia/Seoul';
+      const DAY_LABELS = ['일', '월', '화', '수', '목', '금', '토'];
+      const ATT_LABELS = {
+        pending: '미처리',
+        present: '출석',
+        late: '지각',
+        absent: '결석',
+        excused: '공결',
+      };
+      const SUPABASE_URL = 'https://inftexpcnfinglwlrvsj.supabase.co';
+      const SUPABASE_ANON_KEY =
+        'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImluZnRleHBjbmZpbmdsd2xydnNqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzI5MTMyMzgsImV4cCI6MjA4ODQ4OTIzOH0.HONuULp0L3B5T0gTiwJMnowjJonJzzNHhUV_LtpDQoI';
+      const BOOKINGS_TABLE = 'class_bookings';
+      const ATT_TABLE = 'class_attendance';
+      const REPORT_TABLE = 'class_daily_reports';
+      const BUCKET = 'public-data-csv';
+      const BOOKING_PREFIX = 'class-bookings/';
+      const ATT_PREFIX = 'class-attendance/';
+      const REPORT_PREFIX = 'class-reports/';
+
+      const els = {
+        navToggle: document.getElementById('navToggle'),
+        navLinks: document.getElementById('navLinks'),
+        prevDay: document.getElementById('prevDay'),
+        nextDay: document.getElementById('nextDay'),
+        todayBtn: document.getElementById('todayBtn'),
+        datePicker: document.getElementById('datePicker'),
+        dateLabel: document.getElementById('dateLabel'),
+        dateSub: document.getElementById('dateSub'),
+        reloadBtn: document.getElementById('reloadBtn'),
+        printBtn: document.getElementById('printBtn'),
+        syncStatus: document.getElementById('syncStatus'),
+        modeLabel: document.getElementById('modeLabel'),
+        sessionList: document.getElementById('sessionList'),
+        sessionEmpty: document.getElementById('sessionEmpty'),
+        reportForm: document.getElementById('reportForm'),
+        summary: document.getElementById('summary'),
+        highlights: document.getElementById('highlights'),
+        issues: document.getElementById('issues'),
+        nextPlan: document.getElementById('nextPlan'),
+        autoFillBtn: document.getElementById('autoFillBtn'),
+        saveReportBtn: document.getElementById('saveReportBtn'),
+        previewBody: document.getElementById('previewBody'),
+        toast: document.getElementById('toast'),
+        kpiPresent: document.getElementById('kpiPresent'),
+        kpiLate: document.getElementById('kpiLate'),
+        kpiAbsent: document.getElementById('kpiAbsent'),
+        kpiExcused: document.getElementById('kpiExcused'),
+        kpiPending: document.getElementById('kpiPending'),
+        kpiRate: document.getElementById('kpiRate'),
+      };
+
+      let currentYmd = toSeoulYmd(new Date());
+      let sessions = []; // merged booking + attendance
+      let bookingBackend = 'storage';
+      let attBackend = 'storage';
+      let reportBackend = 'storage';
+      let loadId = 0;
+
+      els.navToggle.addEventListener('click', () => els.navLinks.classList.toggle('active'));
+      els.navLinks.querySelectorAll('a').forEach((a) =>
+        a.addEventListener('click', () => els.navLinks.classList.remove('active'))
+      );
+      els.prevDay.addEventListener('click', () => shiftDay(-1));
+      els.nextDay.addEventListener('click', () => shiftDay(1));
+      els.todayBtn.addEventListener('click', () => {
+        currentYmd = toSeoulYmd(new Date());
+        loadDay(true);
+      });
+      els.datePicker.addEventListener('change', () => {
+        if (!els.datePicker.value) return;
+        currentYmd = els.datePicker.value;
+        loadDay(true);
+      });
+      els.reloadBtn.addEventListener('click', () => loadDay(true));
+      els.printBtn.addEventListener('click', () => window.print());
+      els.autoFillBtn.addEventListener('click', () => {
+        autoFillReport();
+        updatePreview();
+        showToast('출결 기반 초안을 채웠습니다. 수정 후 저장하세요.');
+      });
+      els.reportForm.addEventListener('submit', onSaveReport);
+      ['summary', 'highlights', 'issues', 'nextPlan'].forEach((id) => {
+        els[id].addEventListener('input', updatePreview);
+      });
+
+      detectBackends().then(() => loadDay(true));
+
+      function shiftDay(n) {
+        const d = fromSeoulYmd(currentYmd, 12);
+        d.setTime(d.getTime() + n * 86400000);
+        currentYmd = toSeoulYmd(d);
+        loadDay(true);
+      }
+
+      async function sb(path, options = {}) {
+        return fetch(SUPABASE_URL + path, {
+          ...options,
+          headers: {
+            apikey: SUPABASE_ANON_KEY,
+            Authorization: 'Bearer ' + SUPABASE_ANON_KEY,
+            ...(options.headers || {}),
+          },
+        });
+      }
+
+      async function detectBackends() {
+        const [b, a, r] = await Promise.all([
+          probeTable(BOOKINGS_TABLE),
+          probeTable(ATT_TABLE),
+          probeTable(REPORT_TABLE),
+        ]);
+        bookingBackend = b ? 'db' : 'storage';
+        attBackend = a ? 'db' : 'storage';
+        reportBackend = r ? 'db' : 'storage';
+        els.modeLabel.textContent =
+          '예약:' +
+          bookingBackend +
+          ' · 출결:' +
+          attBackend +
+          ' · 보고서:' +
+          reportBackend;
+      }
+
+      async function probeTable(name) {
+        const res = await sb('/rest/v1/' + name + '?select=id&limit=1');
+        return res.ok;
+      }
+
+      async function loadDay(manual) {
+        const myId = ++loadId;
+        setBusy(true);
+        renderDateHeader();
+        els.syncStatus.className = 'status-line';
+        els.syncStatus.textContent = '당일 수업·출결을 불러오는 중…';
+        try {
+          const [bookings, attendanceMap, report] = await Promise.all([
+            loadBookingsForDay(currentYmd),
+            loadAttendanceForDay(currentYmd),
+            loadDailyReport(currentYmd),
+          ]);
+          if (myId !== loadId) return;
+
+          sessions = bookings
+            .map((b) => {
+              const att = attendanceMap[b.slotKey] || {};
+              return {
+                slotKey: b.slotKey,
+                startISO: b.startISO,
+                endISO: b.endISO,
+                name: b.name,
+                phone: b.phone,
+                email: b.email || '',
+                subject: b.subject,
+                note: b.note || '',
+                attendance: att.attendance || 'pending',
+                homework: att.homework || '',
+                progress: att.progress || '',
+                memo: att.memo || '',
+                attId: att.id || null,
+              };
+            })
+            .sort((a, b) => new Date(a.startISO) - new Date(b.startISO));
+
+          fillReportForm(report);
+          renderSessions();
+          renderKpis();
+          updatePreview();
+
+          els.syncStatus.className = 'status-line ok';
+          els.syncStatus.textContent =
+            '동기화 완료 · 수업 ' +
+            sessions.length +
+            '건 · ' +
+            new Date().toLocaleTimeString('ko-KR', { timeZone: TZ });
+          if (manual) showToast('당일 데이터를 불러왔습니다.');
+        } catch (err) {
+          if (myId !== loadId) return;
+          sessions = [];
+          renderSessions();
+          renderKpis();
+          els.syncStatus.className = 'status-line err';
+          els.syncStatus.textContent = '불러오기 실패: ' + err.message;
+          if (manual) showToast(err.message);
+        } finally {
+          if (myId === loadId) setBusy(false);
+        }
+      }
+
+      function setBusy(on) {
+        [els.prevDay, els.nextDay, els.todayBtn, els.reloadBtn, els.datePicker, els.saveReportBtn].forEach(
+          (el) => (el.disabled = on)
+        );
+      }
+
+      function renderDateHeader() {
+        const d = fromSeoulYmd(currentYmd, 12);
+        const p = seoulParts(d);
+        els.dateLabel.textContent =
+          p.year + '년 ' + p.month + '월 ' + p.dayOfMonth + '일 (' + DAY_LABELS[p.day] + ')';
+        els.dateSub.textContent = 'Asia/Seoul · ' + currentYmd;
+        els.datePicker.value = currentYmd;
+      }
+
+      async function loadBookingsForDay(ymd) {
+        if (bookingBackend === 'db') {
+          const start = fromSeoulYmd(ymd, 0).toISOString();
+          const end = fromSeoulYmd(ymd, 23);
+          end.setMinutes(59, 59, 999);
+          const res = await sb(
+            '/rest/v1/' +
+              BOOKINGS_TABLE +
+              '?select=*&status=eq.confirmed&starts_at=gte.' +
+              encodeURIComponent(start) +
+              '&starts_at=lte.' +
+              encodeURIComponent(end.toISOString()) +
+              '&order=starts_at.asc'
+          );
+          const data = await res.json();
+          if (!res.ok) {
+            if (data.code === 'PGRST205') {
+              bookingBackend = 'storage';
+              return loadBookingsForDay(ymd);
+            }
+            throw new Error(data.message || '예약 조회 실패');
+          }
+          return (data || []).map((row) => ({
+            slotKey: row.slot_key,
+            startISO: row.starts_at,
+            endISO: row.ends_at,
+            name: row.student_name,
+            phone: row.phone,
+            email: row.email || '',
+            subject: row.subject,
+            note: row.note || '',
+          }));
+        }
+
+        const listRes = await sb('/storage/v1/object/list/' + BUCKET, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ prefix: BOOKING_PREFIX, limit: 1000 }),
+        });
+        const files = await listRes.json();
+        if (!listRes.ok) throw new Error(files.message || '예약 Storage 목록 실패');
+        const names = (Array.isArray(files) ? files : [])
+          .map((f) => f.name)
+          .filter((n) => n && n.endsWith('.json') && n.startsWith(ymd + 'T'));
+
+        const rows = await Promise.all(
+          names.map(async (name) => {
+            const res = await sb('/storage/v1/object/' + BUCKET + '/' + BOOKING_PREFIX + name);
+            if (!res.ok) return null;
+            const row = await res.json().catch(() => null);
+            if (!row || row.status === 'cancelled') return null;
+            const key = name.replace(/\.json$/, '');
+            return {
+              slotKey: row.slot_key || key,
+              startISO: row.starts_at || parseSlotKey(key)?.toISOString(),
+              endISO: row.ends_at || '',
+              name: row.student_name || row.name || '',
+              phone: row.phone || '',
+              email: row.email || '',
+              subject: row.subject || '',
+              note: row.note || '',
+            };
+          })
+        );
+        return rows.filter(Boolean);
+      }
+
+      async function loadAttendanceForDay(ymd) {
+        const map = {};
+        if (attBackend === 'db') {
+          const res = await sb(
+            '/rest/v1/' +
+              ATT_TABLE +
+              '?select=*&report_date=eq.' +
+              encodeURIComponent(ymd) +
+              '&order=starts_at.asc'
+          );
+          const data = await res.json();
+          if (!res.ok) {
+            if (data.code === 'PGRST205') {
+              attBackend = 'storage';
+              return loadAttendanceForDay(ymd);
+            }
+            throw new Error(data.message || '출결 조회 실패');
+          }
+          (data || []).forEach((row) => {
+            map[row.slot_key] = {
+              id: row.id,
+              attendance: row.attendance,
+              homework: row.homework,
+              progress: row.progress,
+              memo: row.memo,
+            };
+          });
+          return map;
+        }
+
+        const listRes = await sb('/storage/v1/object/list/' + BUCKET, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ prefix: ATT_PREFIX, limit: 1000 }),
+        });
+        const files = await listRes.json();
+        if (!listRes.ok) return map;
+        const names = (Array.isArray(files) ? files : [])
+          .map((f) => f.name)
+          .filter((n) => n && n.endsWith('.json') && n.startsWith(ymd + 'T'));
+        await Promise.all(
+          names.map(async (name) => {
+            const res = await sb('/storage/v1/object/' + BUCKET + '/' + ATT_PREFIX + name);
+            if (!res.ok) return;
+            const row = await res.json().catch(() => null);
+            if (!row) return;
+            const key = row.slot_key || name.replace(/\.json$/, '');
+            map[key] = {
+              id: key,
+              attendance: row.attendance || 'pending',
+              homework: row.homework || '',
+              progress: row.progress || '',
+              memo: row.memo || '',
+            };
+          })
+        );
+        return map;
+      }
+
+      async function loadDailyReport(ymd) {
+        if (reportBackend === 'db') {
+          const res = await sb(
+            '/rest/v1/' + REPORT_TABLE + '?select=*&report_date=eq.' + encodeURIComponent(ymd) + '&limit=1'
+          );
+          const data = await res.json();
+          if (!res.ok) {
+            if (data.code === 'PGRST205') {
+              reportBackend = 'storage';
+              return loadDailyReport(ymd);
+            }
+            return emptyReport();
+          }
+          return data && data[0]
+            ? {
+                summary: data[0].summary || '',
+                highlights: data[0].highlights || '',
+                issues: data[0].issues || '',
+                next_plan: data[0].next_plan || '',
+              }
+            : emptyReport();
+        }
+
+        const res = await sb('/storage/v1/object/' + BUCKET + '/' + REPORT_PREFIX + ymd + '.json');
+        if (!res.ok) return emptyReport();
+        const row = await res.json().catch(() => null);
+        if (!row) return emptyReport();
+        return {
+          summary: row.summary || '',
+          highlights: row.highlights || '',
+          issues: row.issues || '',
+          next_plan: row.next_plan || '',
+        };
+      }
+
+      function emptyReport() {
+        return { summary: '', highlights: '', issues: '', next_plan: '' };
+      }
+
+      function fillReportForm(report) {
+        els.summary.value = report.summary || '';
+        els.highlights.value = report.highlights || '';
+        els.issues.value = report.issues || '';
+        els.nextPlan.value = report.next_plan || '';
+      }
+
+      function renderSessions() {
+        els.sessionList.replaceChildren();
+        els.sessionEmpty.style.display = sessions.length ? 'none' : 'block';
+        sessions.forEach((s, idx) => {
+          const card = document.createElement('article');
+          card.className = 'session';
+          card.dataset.index = String(idx);
+          const start = new Date(s.startISO);
+          card.innerHTML =
+            '<div class="session-head">' +
+            '<div><div class="session-title">' +
+            escapeHtml(s.subject) +
+            ' · ' +
+            escapeHtml(s.name) +
+            '</div><div class="session-meta">' +
+            escapeHtml(formatTimeRange(start)) +
+            (s.phone ? ' · ' + escapeHtml(s.phone) : '') +
+            '</div></div>' +
+            '<span class="badge ' +
+            s.attendance +
+            '" data-badge>' +
+            ATT_LABELS[s.attendance] +
+            '</span></div>' +
+            '<div class="att-group" data-att-group>' +
+            attButton('present', s.attendance) +
+            attButton('late', s.attendance) +
+            attButton('absent', s.attendance) +
+            attButton('excused', s.attendance) +
+            attButton('pending', s.attendance) +
+            '</div>' +
+            '<div class="fields">' +
+            '<label>수업 진도 / 내용<textarea data-field="progress" placeholder="다룬 단원, 문제, 개념">' +
+            escapeHtml(s.progress) +
+            '</textarea></label>' +
+            '<label>숙제<textarea data-field="homework" placeholder="숙제·보충 과제">' +
+            escapeHtml(s.homework) +
+            '</textarea></label>' +
+            '<label>개별 메모<textarea data-field="memo" placeholder="태도, 피드백, 특이사항">' +
+            escapeHtml(s.memo) +
+            '</textarea></label>' +
+            '</div>' +
+            '<div class="session-actions no-print">' +
+            '<button type="button" class="btn-primary" data-save>출결 저장</button></div>';
+
+          card.querySelectorAll('[data-att]').forEach((btn) => {
+            btn.addEventListener('click', () => {
+              const val = btn.getAttribute('data-att');
+              sessions[idx].attendance = val;
+              card.querySelectorAll('[data-att]').forEach((b) => {
+                b.classList.toggle('active', b.getAttribute('data-att') === val);
+              });
+              const badge = card.querySelector('[data-badge]');
+              badge.className = 'badge ' + val;
+              badge.textContent = ATT_LABELS[val];
+              renderKpis();
+              updatePreview();
+            });
+          });
+          card.querySelectorAll('[data-field]').forEach((input) => {
+            input.addEventListener('input', () => {
+              sessions[idx][input.getAttribute('data-field')] = input.value;
+              updatePreview();
+            });
+          });
+          card.querySelector('[data-save]').addEventListener('click', () => saveAttendance(idx));
+          els.sessionList.appendChild(card);
+        });
+      }
+
+      function attButton(type, current) {
+        return (
+          '<button type="button" class="att-btn ' +
+          type +
+          (current === type ? ' active' : '') +
+          '" data-att="' +
+          type +
+          '">' +
+          ATT_LABELS[type] +
+          '</button>'
+        );
+      }
+
+      function renderKpis() {
+        const stats = calcStats(sessions);
+        els.kpiPresent.textContent = stats.present;
+        els.kpiLate.textContent = stats.late;
+        els.kpiAbsent.textContent = stats.absent;
+        els.kpiExcused.textContent = stats.excused;
+        els.kpiPending.textContent = stats.pending;
+        els.kpiRate.textContent = stats.rate + '%';
+      }
+
+      function calcStats(list) {
+        const stats = { present: 0, late: 0, absent: 0, excused: 0, pending: 0, total: list.length };
+        list.forEach((s) => {
+          stats[s.attendance] = (stats[s.attendance] || 0) + 1;
+        });
+        const attended = stats.present + stats.late;
+        const denom = stats.present + stats.late + stats.absent + stats.excused;
+        stats.rate = denom ? Math.round((attended / denom) * 100) : 0;
+        return stats;
+      }
+
+      async function saveAttendance(idx) {
+        const s = sessions[idx];
+        const payload = {
+          slot_key: s.slotKey,
+          starts_at: s.startISO,
+          student_name: s.name,
+          phone: s.phone,
+          subject: s.subject,
+          attendance: s.attendance,
+          homework: s.homework,
+          progress: s.progress,
+          memo: s.memo,
+          report_date: currentYmd,
+          updated_at: new Date().toISOString(),
+        };
+        try {
+          if (attBackend === 'db') await upsertAttendanceDb(payload);
+          else await upsertAttendanceStorage(payload);
+          showToast(s.name + ' 출결을 저장했습니다.');
+          updatePreview();
+        } catch (err) {
+          showToast('출결 저장 실패: ' + err.message);
+        }
+      }
+
+      async function upsertAttendanceDb(payload) {
+        const res = await sb('/rest/v1/' + ATT_TABLE + '?on_conflict=slot_key', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            Prefer: 'resolution=merge-duplicates,return=minimal',
+          },
+          body: JSON.stringify(payload),
+        });
+        if (res.ok) return;
+        // fallback patch
+        const patch = await sb(
+          '/rest/v1/' + ATT_TABLE + '?slot_key=eq.' + encodeURIComponent(payload.slot_key),
+          {
+            method: 'PATCH',
+            headers: { 'Content-Type': 'application/json', Prefer: 'return=minimal' },
+            body: JSON.stringify(payload),
+          }
+        );
+        if (!patch.ok) {
+          const insert = await sb('/rest/v1/' + ATT_TABLE, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', Prefer: 'return=minimal' },
+            body: JSON.stringify(payload),
+          });
+          if (!insert.ok) throw new Error((await insert.text()).slice(0, 160));
+        }
+      }
+
+      async function upsertAttendanceStorage(payload) {
+        const path = '/storage/v1/object/' + BUCKET + '/' + ATT_PREFIX + payload.slot_key + '.json';
+        const body = JSON.stringify(payload);
+        let res = await sb(path, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'text/plain', 'x-upsert': 'true' },
+          body,
+        });
+        if (res.ok) return;
+        res = await sb(path, {
+          method: 'POST',
+          headers: { 'Content-Type': 'text/plain', 'x-upsert': 'true' },
+          body,
+        });
+        if (!res.ok) {
+          const err = await res.json().catch(() => ({}));
+          throw new Error(err.message || 'Storage 저장 실패');
+        }
+      }
+
+      function autoFillReport() {
+        const stats = calcStats(sessions);
+        const presentNames = sessions
+          .filter((s) => s.attendance === 'present' || s.attendance === 'late')
+          .map((s) => s.name + '(' + s.subject + ')');
+        const absentNames = sessions
+          .filter((s) => s.attendance === 'absent')
+          .map((s) => s.name);
+        const lateNames = sessions.filter((s) => s.attendance === 'late').map((s) => s.name);
+        const progresses = sessions
+          .filter((s) => s.progress.trim())
+          .map((s) => '- ' + s.name + ': ' + s.progress.trim());
+        const homeworks = sessions
+          .filter((s) => s.homework.trim())
+          .map((s) => '- ' + s.name + ': ' + s.homework.trim());
+
+        if (!els.summary.value.trim()) {
+          els.summary.value =
+            '총 ' +
+            stats.total +
+            '수업 · 출석 ' +
+            stats.present +
+            ' · 지각 ' +
+            stats.late +
+            ' · 결석 ' +
+            stats.absent +
+            ' · 출석률 ' +
+            stats.rate +
+            '%';
+        }
+        if (!els.highlights.value.trim()) {
+          els.highlights.value = [
+            presentNames.length ? '참여: ' + presentNames.join(', ') : '',
+            progresses.length ? '진도 메모:\n' + progresses.join('\n') : '',
+            homeworks.length ? '숙제:\n' + homeworks.join('\n') : '',
+          ]
+            .filter(Boolean)
+            .join('\n\n');
+        }
+        if (!els.issues.value.trim()) {
+          els.issues.value = [
+            absentNames.length ? '결석: ' + absentNames.join(', ') : '',
+            lateNames.length ? '지각: ' + lateNames.join(', ') : '',
+            stats.pending ? '미처리 출결 ' + stats.pending + '건' : '',
+          ]
+            .filter(Boolean)
+            .join('\n');
+        }
+        if (!els.nextPlan.value.trim()) {
+          els.nextPlan.value = homeworks.length
+            ? '다음 시간 숙제 점검 및 개별 피드백 진행'
+            : '다음 수업 진도 계획 수립';
+        }
+      }
+
+      function updatePreview() {
+        const stats = calcStats(sessions);
+        const p = seoulParts(fromSeoulYmd(currentYmd, 12));
+        const lines = [];
+        lines.push(
+          'STARGATE EDU 당일 수업 보고서',
+          p.year + '년 ' + p.month + '월 ' + p.dayOfMonth + '일 (' + DAY_LABELS[p.day] + ')',
+          '',
+          '[출결 요약]',
+          '총 ' +
+            stats.total +
+            ' · 출석 ' +
+            stats.present +
+            ' · 지각 ' +
+            stats.late +
+            ' · 결석 ' +
+            stats.absent +
+            ' · 공결 ' +
+            stats.excused +
+            ' · 미처리 ' +
+            stats.pending +
+            ' · 출석률 ' +
+            stats.rate +
+            '%',
+          ''
+        );
+        if (sessions.length) {
+          lines.push('[수업별 출결]');
+          sessions.forEach((s) => {
+            lines.push(
+              '· ' +
+                formatTimeRange(new Date(s.startISO)) +
+                ' | ' +
+                s.subject +
+                ' | ' +
+                s.name +
+                ' | ' +
+                ATT_LABELS[s.attendance]
+            );
+            if (s.progress) lines.push('  진도: ' + s.progress);
+            if (s.homework) lines.push('  숙제: ' + s.homework);
+            if (s.memo) lines.push('  메모: ' + s.memo);
+          });
+          lines.push('');
+        }
+        lines.push('[총평]', els.summary.value.trim() || '(미작성)', '');
+        lines.push('[하이라이트]', els.highlights.value.trim() || '(미작성)', '');
+        lines.push('[이슈·보완]', els.issues.value.trim() || '(미작성)', '');
+        lines.push('[다음 계획]', els.nextPlan.value.trim() || '(미작성)');
+        els.previewBody.textContent = lines.join('\n');
+      }
+
+      async function onSaveReport(e) {
+        e.preventDefault();
+        const stats = calcStats(sessions);
+        const payload = {
+          report_date: currentYmd,
+          summary: els.summary.value.trim(),
+          highlights: els.highlights.value.trim(),
+          issues: els.issues.value.trim(),
+          next_plan: els.nextPlan.value.trim(),
+          stats: stats,
+          updated_at: new Date().toISOString(),
+        };
+        els.saveReportBtn.disabled = true;
+        els.saveReportBtn.textContent = '저장 중…';
+        try {
+          // save any unsaved attendance texts already in memory first (optional quick sync)
+          await Promise.all(sessions.map((_, i) => saveAttendanceSilent(i)));
+          if (reportBackend === 'db') await upsertReportDb(payload);
+          else await upsertReportStorage(payload);
+          updatePreview();
+          showToast('당일 보고서를 저장했습니다.');
+        } catch (err) {
+          showToast('보고서 저장 실패: ' + err.message);
+        } finally {
+          els.saveReportBtn.disabled = false;
+          els.saveReportBtn.textContent = '보고서 저장';
+        }
+      }
+
+      async function saveAttendanceSilent(idx) {
+        const s = sessions[idx];
+        const payload = {
+          slot_key: s.slotKey,
+          starts_at: s.startISO,
+          student_name: s.name,
+          phone: s.phone,
+          subject: s.subject,
+          attendance: s.attendance,
+          homework: s.homework,
+          progress: s.progress,
+          memo: s.memo,
+          report_date: currentYmd,
+          updated_at: new Date().toISOString(),
+        };
+        try {
+          if (attBackend === 'db') await upsertAttendanceDb(payload);
+          else await upsertAttendanceStorage(payload);
+        } catch (_) {
+          /* ignore silent */
+        }
+      }
+
+      async function upsertReportDb(payload) {
+        const res = await sb('/rest/v1/' + REPORT_TABLE + '?on_conflict=report_date', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            Prefer: 'resolution=merge-duplicates,return=minimal',
+          },
+          body: JSON.stringify(payload),
+        });
+        if (res.ok) return;
+        const patch = await sb(
+          '/rest/v1/' + REPORT_TABLE + '?report_date=eq.' + encodeURIComponent(payload.report_date),
+          {
+            method: 'PATCH',
+            headers: { 'Content-Type': 'application/json', Prefer: 'return=minimal' },
+            body: JSON.stringify(payload),
+          }
+        );
+        if (patch.ok) return;
+        const insert = await sb('/rest/v1/' + REPORT_TABLE, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', Prefer: 'return=minimal' },
+          body: JSON.stringify(payload),
+        });
+        if (!insert.ok) throw new Error((await insert.text()).slice(0, 160));
+      }
+
+      async function upsertReportStorage(payload) {
+        const path = '/storage/v1/object/' + BUCKET + '/' + REPORT_PREFIX + payload.report_date + '.json';
+        const body = JSON.stringify(payload);
+        let res = await sb(path, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'text/plain', 'x-upsert': 'true' },
+          body,
+        });
+        if (res.ok) return;
+        res = await sb(path, {
+          method: 'POST',
+          headers: { 'Content-Type': 'text/plain', 'x-upsert': 'true' },
+          body,
+        });
+        if (!res.ok) {
+          const err = await res.json().catch(() => ({}));
+          throw new Error(err.message || '보고서 Storage 저장 실패');
+        }
+      }
+
+      /* Seoul helpers */
+      function seoulParts(date) {
+        const fmt = new Intl.DateTimeFormat('en-CA', {
+          timeZone: TZ,
+          year: 'numeric',
+          month: '2-digit',
+          day: '2-digit',
+          hour: '2-digit',
+          minute: '2-digit',
+          hour12: false,
+          weekday: 'short',
+        });
+        const parts = Object.fromEntries(
+          fmt.formatToParts(date).filter((p) => p.type !== 'literal').map((p) => [p.type, p.value])
+        );
+        const weekdayMap = { Sun: 0, Mon: 1, Tue: 2, Wed: 3, Thu: 4, Fri: 5, Sat: 6 };
+        return {
+          year: +parts.year,
+          month: +parts.month,
+          dayOfMonth: +parts.day,
+          hour: +parts.hour % 24,
+          day: weekdayMap[parts.weekday] ?? 0,
+        };
+      }
+      function fromSeoulYmd(ymd, hour) {
+        const [y, m, d] = ymd.split('-').map(Number);
+        const guess = new Date(Date.UTC(y, m - 1, d, hour, 0, 0));
+        for (let i = 0; i < 4; i++) {
+          const p = seoulParts(guess);
+          const target = Date.UTC(y, m - 1, d, hour);
+          const actual = Date.UTC(p.year, p.month - 1, p.dayOfMonth, p.hour);
+          const delta = target - actual;
+          if (!delta) break;
+          guess.setTime(guess.getTime() + delta);
+        }
+        return guess;
+      }
+      function toSeoulYmd(date) {
+        const p = seoulParts(date);
+        return (
+          p.year +
+          '-' +
+          String(p.month).padStart(2, '0') +
+          '-' +
+          String(p.dayOfMonth).padStart(2, '0')
+        );
+      }
+      function parseSlotKey(key) {
+        const m = String(key || '').match(/^(\d{4})-(\d{2})-(\d{2})T(\d{2})$/);
+        if (!m) return null;
+        return fromSeoulYmd(m[1] + '-' + m[2] + '-' + m[3], +m[4]);
+      }
+      function formatTimeRange(date) {
+        const p = seoulParts(date);
+        return (
+          String(p.hour).padStart(2, '0') +
+          ':00–' +
+          String(p.hour + 1).padStart(2, '0') +
+          ':00'
+        );
+      }
+      function escapeHtml(str) {
+        return String(str)
+          .replace(/&/g, '&amp;')
+          .replace(/</g, '&lt;')
+          .replace(/>/g, '&gt;')
+          .replace(/"/g, '&quot;');
+      }
+      function showToast(msg) {
+        els.toast.textContent = msg;
+        els.toast.classList.add('show');
+        clearTimeout(showToast._t);
+        showToast._t = setTimeout(() => els.toast.classList.remove('show'), 3000);
+      }
+    })();
+  </script>
+</body>
+</html>
