@@ -5,12 +5,14 @@
  * - GitHub Pages에서는 stargate-bid-api.vercel.app 프록시 사용
  */
 (function () {
-  const REMOTE_PROXY_URL = 'https://stargate-bid-api.vercel.app/api/kstartup';
+  const REMOTE_PROXY_URLS = [
+    'https://stargate-bid-api.vercel.app/api/kstartup',
+    'https://stargate-kstartup-api.vercel.app/api/kstartup',
+  ];
   const SAME_ORIGIN_PROXY_URL = '/api/kstartup';
   const IS_STATIC_HOST =
     /(^|\.)github\.io$/i.test(location.hostname) ||
     /(^|\.)stargateedu\.co\.kr$/i.test(location.hostname);
-  const PROXY_URL = IS_STATIC_HOST ? REMOTE_PROXY_URL : SAME_ORIGIN_PROXY_URL;
 
   const OFFICIAL_BASE = 'https://apis.data.go.kr/B552735/kisedKstartupService01';
   const NIDAPI_BASE = 'https://nidapi.k-startup.go.kr/api/kisedKstartupService/v1';
@@ -635,27 +637,39 @@
   }
 
   async function fetchViaProxy(filters, save) {
-    const response = await fetch(PROXY_URL, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        ...filters,
-        pageNo: state.pageNo,
-        pageSize: PAGE_SIZE,
-        saveToSupabase: save,
-        apiKey: STORED_SERVICE_KEY,
-      }),
-    });
-    const data = await response.json().catch(() => ({}));
-    if (!response.ok || data.ok === false) {
-      throw new Error(data.error || `proxy_http_${response.status}`);
+    const urls = IS_STATIC_HOST
+      ? REMOTE_PROXY_URLS
+      : [SAME_ORIGIN_PROXY_URL, ...REMOTE_PROXY_URLS];
+    let lastError = null;
+    for (const url of urls) {
+      try {
+        const response = await fetch(url, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            ...filters,
+            pageNo: state.pageNo,
+            pageSize: PAGE_SIZE,
+            saveToSupabase: save,
+            apiKey: STORED_SERVICE_KEY,
+          }),
+        });
+        const data = await response.json().catch(() => ({}));
+        if (!response.ok || data.ok === false) {
+          lastError = new Error(data.error || `proxy_http_${response.status}`);
+          continue;
+        }
+        return {
+          items: (data.items || []).map((row) => normalizeItem(row, state.pageNo)).filter(Boolean),
+          totalCount: data.totalCount || 0,
+          saved: data.saved || 0,
+          source: `proxy:${data.source || 'unknown'}`,
+        };
+      } catch (error) {
+        lastError = error instanceof Error ? error : new Error(String(error));
+      }
     }
-    return {
-      items: (data.items || []).map((row) => normalizeItem(row, state.pageNo)).filter(Boolean),
-      totalCount: data.totalCount || 0,
-      saved: data.saved || 0,
-      source: `proxy:${data.source || 'unknown'}`,
-    };
+    throw lastError || new Error('proxy_unavailable');
   }
 
   function buildDirectUrl(base, path, filters) {
@@ -737,10 +751,8 @@
     const filters = currentFilters();
     try {
       let result;
+      // 1) nidapi 직접 호출 (CORS * 허용) → 2) Vercel 프록시 → 3) 공식 API
       try {
-        result = await fetchViaProxy(filters, save);
-        if (save) state.lastSaved = result.saved || result.items.length;
-      } catch (proxyError) {
         result = await fetchDirect(filters);
         if (save) {
           try {
@@ -749,6 +761,13 @@
             state.lastSaved = 0;
             setNotice(`조회는 성공했지만 Supabase 저장 실패: ${saveError.message}`, 'warn');
           }
+        }
+      } catch (directError) {
+        try {
+          result = await fetchViaProxy(filters, save);
+          if (save) state.lastSaved = result.saved || result.items.length;
+        } catch (proxyError) {
+          throw directError;
         }
       }
       state.items = result.items;
