@@ -66,13 +66,39 @@ stargate-homepage/
 ├── index.html                              # 홈페이지 (예약 · 출결 CTA)
 ├── schedule.html                           # 수업 주간 시간표 · Supabase 예약
 ├── report.html                             # 출결 현황 · 당일 수업 보고서
+├── kstartup/                               # K-Startup 지원사업 관측소 (100건/페이지)
+├── api/kstartup.js                         # K-Startup → Supabase 프록시
 ├── supabase/class_bookings.sql             # 예약 테이블 스키마
 ├── supabase/class_attendance.sql           # 출결 · 일일 보고서 스키마
+├── supabase/kstartup.sql                   # K-Startup 테이블 스키마
 ├── scripts/apply-class-bookings-schema.mjs # 스키마 적용 스크립트
+├── scripts/apply-kstartup-schema.mjs       # K-Startup 스키마 적용
+├── portal-sync/                            # www.stargateedu.co.kr 이식 패키지
 ├── .github/workflows/apply-class-bookings-schema.yml
+├── .github/workflows/apply-kstartup-schema.yml
 ├── STARGATE HOMEPAGE.html
 └── README.md
 ```
+
+## K-Startup 지원사업 관측소 (`kstartup/`)
+
+창업진흥원 K-Startup 조회서비스(`15125364`)로 사업공고·사업소개·콘텐츠·통계를
+**100건씩** 조회하고 Supabase에 upsert합니다.
+
+| 항목 | 내용 |
+|------|------|
+| 페이지 | `kstartup/index.html` |
+| API 프록시 | `api/kstartup.js` → Vercel (`stargate-bid-api`) |
+| 저장 | `kstartup_announcements` 등 + `kstartup_fetch_logs` |
+| 폴백 | `apis.data.go.kr` 403 시 `nidapi.k-startup.go.kr` |
+
+스키마: Supabase SQL Editor에서 `supabase/kstartup.sql` 실행, 또는
+
+```bash
+SUPABASE_ACCESS_TOKEN=... node scripts/apply-kstartup-schema.mjs
+```
+
+www.stargateedu.co.kr 전략 대시보드 이식은 `portal-sync/` 참고.
 
 ---
 

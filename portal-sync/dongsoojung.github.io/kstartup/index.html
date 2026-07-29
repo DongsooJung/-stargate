@@ -1,0 +1,471 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>K-Startup 지원사업 관측소 | STARGATE Strategy</title>
+  <meta name="description" content="창업진흥원 K-Startup 사업공고·사업소개·콘텐츠·통계를 100건씩 조회하고 Supabase에 저장하는 전략 대시보드.">
+  <meta name="theme-color" content="#07131f">
+  <meta property="og:title" content="K-Startup 지원사업 관측소 · STARGATE">
+  <meta property="og:description" content="getAnnouncementInformation01 · 100건 단위 조회 · Supabase upsert">
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://www.stargateedu.co.kr/kstartup/">
+  <link rel="canonical" href="https://www.stargateedu.co.kr/kstartup/">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@500;600;700;800&family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=IBM+Plex+Mono:wght@500&display=swap" rel="stylesheet">
+  <style>
+    :root{
+      --bg:#07131f;
+      --panel:#0d1c2b;
+      --panel2:#122537;
+      --ink:#e7f2f7;
+      --sub:#92a9b8;
+      --muted:#6d8494;
+      --line:rgba(231,242,247,.1);
+      --line2:rgba(231,242,247,.16);
+      --signal:#14b8a6;
+      --signal-deep:#0f766e;
+      --sky:#38bdf8;
+      --warn:#f59e0b;
+      --danger:#fb7185;
+      --ok:#34d399;
+      --shadow:0 28px 70px rgba(0,0,0,.38);
+      --grad:linear-gradient(135deg,#14b8a6 0%,#0ea5e9 55%,#38bdf8 100%);
+    }
+    *{box-sizing:border-box}
+    html{scroll-behavior:smooth}
+    body{
+      margin:0; color:var(--ink); font-family:"IBM Plex Sans KR",sans-serif;
+      background:
+        radial-gradient(980px 520px at 8% -12%, rgba(20,184,166,.18), transparent 58%),
+        radial-gradient(760px 420px at 96% 0%, rgba(56,189,248,.12), transparent 55%),
+        linear-gradient(180deg, #07131f 0%, #0a1826 48%, #061018 100%);
+      min-height:100vh; -webkit-font-smoothing:antialiased;
+    }
+    button,input,select{font:inherit}
+    a{color:inherit}
+    .wrap{width:min(1180px, calc(100% - 40px)); margin:0 auto}
+
+    .topbar{
+      height:72px; display:flex; align-items:center; justify-content:space-between;
+      border-bottom:1px solid var(--line);
+    }
+    .brand{
+      display:inline-flex; align-items:center; gap:12px; text-decoration:none;
+      font-family:"Syne",sans-serif; font-weight:700; letter-spacing:.04em; font-size:13px;
+    }
+    .brand-mark{
+      width:34px; height:34px; border-radius:10px; display:grid; place-items:center;
+      background:var(--grad); color:#041018; font-family:"Syne",sans-serif; font-size:16px; font-weight:800;
+    }
+    .top-links{display:flex; gap:14px; align-items:center; color:var(--muted); font-size:13px}
+    .top-links a{text-decoration:none}
+    .top-links a:hover{color:var(--signal)}
+
+    .hero{
+      min-height:calc(100vh - 72px);
+      display:grid; grid-template-columns:1.05fr .95fr; gap:48px; align-items:center;
+      padding:48px 0 56px; position:relative;
+    }
+    .brand-hero{
+      margin:0 0 14px; font-family:"Syne",sans-serif;
+      font-size:clamp(46px,7.5vw,82px); line-height:.92; letter-spacing:-.04em;
+      animation:rise .85s ease both;
+    }
+    .brand-hero em{font-style:normal; color:var(--signal)}
+    h1{
+      margin:0; font-size:clamp(24px,3.4vw,36px); line-height:1.2; letter-spacing:-.03em;
+      font-weight:700; max-width:18ch; animation:rise .85s ease .08s both;
+    }
+    .lead{
+      margin:16px 0 28px; max-width:42ch; color:var(--sub); font-size:15.5px; line-height:1.7;
+      animation:rise .85s ease .16s both;
+    }
+    .cta-row{display:flex; flex-wrap:wrap; gap:12px; animation:rise .85s ease .24s both}
+    .btn{
+      min-height:50px; border:1px solid var(--line2); border-radius:999px; padding:0 22px;
+      cursor:pointer; display:inline-flex; align-items:center; justify-content:center; gap:8px;
+      transition:transform .18s ease, box-shadow .18s ease, background .18s ease;
+      background:transparent; color:var(--ink);
+    }
+    .btn:hover:not(:disabled){transform:translateY(-2px); box-shadow:0 10px 0 rgba(0,0,0,.18)}
+    .btn:disabled{opacity:.55; cursor:wait}
+    .btn-primary{background:var(--grad); color:#041018; border-color:transparent; font-weight:700}
+    .btn-ghost{background:rgba(255,255,255,.03)}
+
+    .hero-visual{
+      position:relative; min-height:440px; overflow:hidden;
+      background:
+        linear-gradient(155deg, rgba(13,28,43,.96), rgba(18,37,55,.9)),
+        repeating-linear-gradient(90deg, rgba(20,184,166,.07) 0 1px, transparent 1px 28px),
+        repeating-linear-gradient(0deg, rgba(56,189,248,.05) 0 1px, transparent 1px 28px);
+      box-shadow:var(--shadow); animation:fadein 1s ease .2s both;
+      clip-path: polygon(0 0, 100% 0, 100% 88%, 0 100%);
+    }
+    .hero-visual::after{
+      content:""; position:absolute; inset:auto -12% -18% 34%; height:68%;
+      background:radial-gradient(circle, rgba(20,184,166,.42), transparent 66%);
+      filter:blur(10px);
+    }
+    .ticker{
+      position:absolute; inset:28px; display:grid; gap:10px; z-index:1; color:var(--ink);
+    }
+    .ticker .row{
+      display:flex; justify-content:space-between; gap:12px; padding:14px 16px;
+      border:1px solid rgba(231,242,247,.12); background:rgba(231,242,247,.04);
+      backdrop-filter:blur(6px); transform:translateY(8px); opacity:0;
+      animation:slideup .7s ease forwards;
+    }
+    .ticker .row:nth-child(1){animation-delay:.35s}
+    .ticker .row:nth-child(2){animation-delay:.5s}
+    .ticker .row:nth-child(3){animation-delay:.65s}
+    .ticker .row:nth-child(4){animation-delay:.8s}
+    .ticker .muted{color:rgba(231,242,247,.68); font-size:13px; font-family:"IBM Plex Mono",monospace}
+    .ticker strong{font-size:15px; letter-spacing:.01em}
+
+    .section{padding:12px 0 72px}
+    .section h2{
+      margin:0 0 8px; font-family:"Syne",sans-serif; font-size:34px; letter-spacing:-.03em; font-weight:700;
+    }
+    .section-lead{margin:0 0 22px; color:var(--sub); max-width:58ch; line-height:1.65}
+
+    .panel{
+      border:1px solid var(--line); background:rgba(13,28,43,.78);
+      backdrop-filter:blur(10px); padding:22px; box-shadow:0 10px 30px rgba(0,0,0,.18);
+    }
+    .controls{
+      display:grid; grid-template-columns:1fr .7fr .7fr .9fr; gap:12px; margin-bottom:12px;
+    }
+    .controls-2{display:grid; grid-template-columns:1.2fr auto auto; gap:12px; align-items:end}
+    label.field{display:grid; gap:6px; font-size:12.5px; color:var(--muted)}
+    select,input[type="text"]{
+      min-height:46px; border:1px solid var(--line); border-radius:12px;
+      padding:0 12px; background:var(--panel2); color:var(--ink);
+    }
+    .actions{display:flex; gap:8px; flex-wrap:wrap}
+    .pager{
+      display:flex; align-items:center; justify-content:space-between; gap:12px;
+      flex-wrap:wrap; margin-top:14px;
+    }
+    .pager .info{font-size:13px; color:var(--muted)}
+    .pager .info b{color:var(--ink)}
+    #liveStatus,#notice{font-size:13px; margin-top:10px; min-height:1.2em; color:var(--muted)}
+    #liveStatus[data-kind="ok"],#notice[data-kind="ok"]{color:var(--ok)}
+    #liveStatus[data-kind="err"],#notice[data-kind="err"]{color:var(--danger)}
+    #notice[data-kind="warn"]{color:var(--warn)}
+
+    .kpis{display:grid; grid-template-columns:repeat(4,1fr); gap:12px; margin:22px 0}
+    .tile{
+      border:1px solid var(--line); padding:16px; background:rgba(13,28,43,.9);
+      animation:rise .7s ease both;
+    }
+    .tile:nth-child(2){animation-delay:.05s}
+    .tile:nth-child(3){animation-delay:.1s}
+    .tile:nth-child(4){animation-delay:.15s}
+    .tile .lb{font-size:12px; color:var(--muted)}
+    .tile .val{font-size:28px; font-weight:700; letter-spacing:-.04em; margin-top:6px; font-family:"Syne",sans-serif}
+    .tile .hint{font-size:12px; color:var(--muted); margin-top:4px}
+    .tile.feature{border-color:rgba(20,184,166,.45); box-shadow:inset 0 0 0 1px rgba(20,184,166,.18)}
+
+    .charts{
+      display:grid; grid-template-columns:1fr 1fr; gap:14px; margin-bottom:18px;
+    }
+    .chart-box{
+      border:1px solid var(--line); background:rgba(13,28,43,.86); padding:14px 14px 8px; min-height:250px;
+    }
+    .chart-box h3{margin:0 0 8px; font-size:13px; color:var(--muted); font-weight:600}
+    .chart-box canvas{max-height:210px}
+
+    #viz{opacity:.5; transform:translateY(10px); transition:opacity .45s ease, transform .45s ease}
+    #viz.ready{opacity:1; transform:none}
+
+    .meta-line{display:flex; gap:8px; flex-wrap:wrap; margin:12px 0 0; font-size:12px; color:var(--muted)}
+    .pill{
+      border:1px solid var(--line); border-radius:999px; padding:4px 11px; background:rgba(13,28,43,.7)
+    }
+    .pill b{color:var(--ink); font-weight:600}
+
+    .tbl-wrap{overflow-x:auto; border:1px solid var(--line); background:rgba(13,28,43,.88)}
+    table{width:100%; border-collapse:collapse; font-size:13px; min-width:980px}
+    th,td{padding:12px 12px; border-bottom:1px solid var(--line); vertical-align:top}
+    th{text-align:left; font-size:12px; color:var(--muted); font-weight:600; background:rgba(18,37,55,.7)}
+    td strong{display:block; font-size:13.5px}
+    td .sub{margin-top:3px; color:var(--muted); font-size:11.5px; font-family:"IBM Plex Mono",monospace}
+    td a{color:var(--sky); text-decoration:none; font-weight:600}
+    td a:hover{text-decoration:underline}
+    .tag{
+      display:inline-flex; align-items:center; min-height:24px; padding:0 8px;
+      border:1px solid var(--line); font-size:12px; background:var(--panel2);
+    }
+    .tag.open{border-color:rgba(52,211,153,.35); color:var(--ok); background:rgba(52,211,153,.08)}
+    .tag.closed{color:var(--muted)}
+    .empty{padding:48px 16px; text-align:center; color:var(--muted)}
+
+    .logs{
+      margin-top:18px; border:1px solid var(--line); background:rgba(13,28,43,.75); padding:18px;
+    }
+    .logs h3{margin:0 0 10px; font-size:15px}
+    .logs ul{list-style:none; margin:0; padding:0; display:grid; gap:8px}
+    .logs li{display:grid; grid-template-columns:10px 1fr; gap:10px; align-items:start; font-size:13px}
+    .logs .dot{width:10px; height:10px; border-radius:50%; margin-top:5px; background:var(--muted)}
+    .logs .dot.ok{background:var(--ok)}
+    .logs .dot.err{background:var(--danger)}
+    .logs small{display:block; color:var(--muted); margin-top:2px}
+    .logs .muted{color:var(--muted)}
+
+    .note{
+      margin-top:18px; border:1px solid var(--line); padding:14px 16px;
+      font-size:13px; color:var(--muted); line-height:1.7; background:rgba(13,28,43,.7);
+    }
+    .note b{color:var(--ink)}
+    .note code{background:var(--panel2); border:1px solid var(--line); border-radius:5px; padding:1px 5px; font-size:12px}
+
+    footer{
+      margin-top:28px; padding:18px 0 40px; border-top:1px solid var(--line);
+      color:var(--muted); font-size:12px; display:flex; justify-content:space-between; flex-wrap:wrap; gap:10px;
+    }
+
+    @keyframes rise{
+      from{opacity:0; transform:translateY(16px)}
+      to{opacity:1; transform:none}
+    }
+    @keyframes fadein{
+      from{opacity:0; transform:scale(.98)}
+      to{opacity:1; transform:none}
+    }
+    @keyframes slideup{
+      to{opacity:1; transform:none}
+    }
+
+    @media (max-width:960px){
+      .hero{grid-template-columns:1fr; gap:28px; min-height:auto; padding:36px 0 40px}
+      .hero-visual{min-height:320px; clip-path:none}
+      .controls,.controls-2,.charts{grid-template-columns:1fr 1fr}
+      .kpis{grid-template-columns:1fr 1fr}
+    }
+    @media (max-width:560px){
+      .wrap{width:min(100% - 28px, 1180px)}
+      .controls,.controls-2,.kpis,.charts{grid-template-columns:1fr}
+      .top-links a:nth-child(2){display:none}
+    }
+    @media (prefers-reduced-motion:reduce){
+      *,*::before,*::after{animation-duration:.01ms!important; transition-duration:.01ms!important}
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <nav class="topbar" aria-label="주요 메뉴">
+      <a class="brand" href="./">
+        <span class="brand-mark" aria-hidden="true">K</span>
+        <span>STARGATE · K-STARTUP</span>
+      </a>
+      <div class="top-links">
+        <a href="/strategy/">전략 인사이트</a>
+        <a href="https://www.stargateedu.co.kr/strategy/innoforest/">혁신의 숲</a>
+        <a href="/">홈</a>
+      </div>
+    </nav>
+
+    <header class="hero">
+      <div>
+        <p class="brand-hero">STARGATE<br><em>K-Startup</em></p>
+        <h1>창업지원 공고를 100건씩 모아 전략 신호로 읽습니다.</h1>
+        <p class="lead">
+          창업진흥원 K-Startup 조회서비스에서 사업공고·사업소개·콘텐츠·통계를
+          페이지 단위로 가져와 Supabase에 저장하는 전략 관측소입니다.
+        </p>
+        <div class="cta-row">
+          <a class="btn btn-primary" href="#collector">100건 불러오기 →</a>
+          <a class="btn btn-ghost" href="/strategy/">전략 허브</a>
+        </div>
+        <div class="meta-line">
+          <span class="pill"><b>API</b> 15125364</span>
+          <span class="pill"><b>배치</b> perPage=100</span>
+          <span class="pill"><b>모드</b> <span id="sourceMode">대기</span></span>
+        </div>
+      </div>
+      <div class="hero-visual" aria-hidden="true">
+        <div class="ticker">
+          <div class="row"><span class="muted">SOURCE</span><strong>data.go.kr · K-Startup</strong></div>
+          <div class="row"><span class="muted">FOCUS</span><strong>사업공고 · 모집중</strong></div>
+          <div class="row"><span class="muted">BATCH</span><strong>100 rows / page</strong></div>
+          <div class="row"><span class="muted">STORE</span><strong>Supabase upsert</strong></div>
+        </div>
+      </div>
+    </header>
+
+    <main class="section" id="collector">
+      <h2>지원사업 수집</h2>
+      <p class="section-lead">
+        서버에 저장된 공공데이터포털 키로 인증합니다. 한 페이지에 최대 100건을 조회하고
+        지역·지원분야·모집상태로 탐색한 뒤 Supabase에 upsert합니다.
+      </p>
+
+      <section class="panel" aria-label="조회 설정">
+        <div class="controls">
+          <label class="field" for="resource">
+            데이터 유형
+            <select id="resource">
+              <option value="announcements" selected>사업공고 (announcements)</option>
+              <option value="business">사업소개 (business)</option>
+              <option value="contents">콘텐츠 (contents)</option>
+              <option value="statistics">통계 (statistics)</option>
+            </select>
+          </label>
+          <label class="field" for="rcrtPrgsYn">
+            모집진행
+            <select id="rcrtPrgsYn">
+              <option value="">전체</option>
+              <option value="Y" selected>모집중 (Y)</option>
+              <option value="N">모집마감 (N)</option>
+            </select>
+          </label>
+          <label class="field" for="suptRegin">
+            지역
+            <select id="suptRegin">
+              <option value="">전국</option>
+              <option value="서울">서울</option>
+              <option value="경기">경기</option>
+              <option value="인천">인천</option>
+              <option value="부산">부산</option>
+              <option value="대구">대구</option>
+              <option value="광주">광주</option>
+              <option value="대전">대전</option>
+              <option value="울산">울산</option>
+              <option value="세종">세종</option>
+              <option value="강원">강원</option>
+              <option value="충북">충북</option>
+              <option value="충남">충남</option>
+              <option value="전북">전북</option>
+              <option value="전남">전남</option>
+              <option value="경북">경북</option>
+              <option value="경남">경남</option>
+              <option value="제주">제주</option>
+            </select>
+          </label>
+          <label class="field" for="suptBizClsfc">
+            지원분야 키워드
+            <input id="suptBizClsfc" type="text" placeholder="예: 사업화, 시설, R&amp;D">
+          </label>
+        </div>
+        <div class="controls-2">
+          <label class="field" for="keyword">
+            제목 키워드
+            <input id="keyword" type="text" placeholder="공고명·사업명 검색">
+          </label>
+          <div class="actions">
+            <button class="btn btn-primary" id="loadBtn" type="button">100건 불러오기·저장</button>
+          </div>
+          <div class="actions">
+            <button class="btn btn-ghost" id="saveBtn" type="button">다시 저장</button>
+            <button class="btn btn-ghost" id="csvBtn" type="button">CSV</button>
+          </div>
+        </div>
+        <div class="pager">
+          <div class="info">
+            <b id="pageLabel">1 / —</b>
+            <span id="totalLabel">페이지당 100건</span>
+          </div>
+          <div class="actions">
+            <button class="btn btn-ghost" id="prevBtn" type="button" disabled>← 이전 100건</button>
+            <button class="btn btn-ghost" id="nextBtn" type="button" disabled>다음 100건 →</button>
+          </div>
+        </div>
+        <div id="liveStatus" aria-live="polite"></div>
+        <div id="notice" aria-live="polite"></div>
+      </section>
+
+      <div id="viz">
+        <div class="kpis" aria-label="요약">
+          <article class="tile feature">
+            <div class="lb">현재 페이지</div>
+            <div class="val" id="kpiCount">—</div>
+            <div class="hint">최대 100건</div>
+          </article>
+          <article class="tile">
+            <div class="lb">전체 건수</div>
+            <div class="val" id="kpiTotal">—</div>
+            <div class="hint">API totalCount</div>
+          </article>
+          <article class="tile">
+            <div class="lb" id="kpiOpenLabel">모집중</div>
+            <div class="val" id="kpiOpen">—</div>
+            <div class="hint" id="kpiOpenHint">현재 페이지</div>
+          </article>
+          <article class="tile">
+            <div class="lb">Supabase 저장</div>
+            <div class="val" id="kpiSaved">0</div>
+            <div class="hint">최근 upsert</div>
+          </article>
+        </div>
+
+        <div class="charts" aria-label="차트">
+          <div class="chart-box">
+            <h3>분포 A</h3>
+            <canvas id="chartRegion"></canvas>
+          </div>
+          <div class="chart-box">
+            <h3>분포 B</h3>
+            <canvas id="chartClsfc"></canvas>
+          </div>
+          <div class="chart-box">
+            <h3>모집 상태</h3>
+            <canvas id="chartStatus"></canvas>
+          </div>
+          <div class="chart-box">
+            <h3>접수 시작 추이</h3>
+            <canvas id="chartDaily"></canvas>
+          </div>
+        </div>
+
+        <div class="tbl-wrap" role="region" aria-label="K-Startup 표">
+          <table>
+            <thead id="thead">
+              <tr>
+                <th>#</th>
+                <th>공고명</th>
+                <th>지원분야</th>
+                <th>지역</th>
+                <th>모집</th>
+                <th>접수기간</th>
+                <th>기관</th>
+                <th>상세</th>
+              </tr>
+            </thead>
+            <tbody id="tbody"></tbody>
+          </table>
+          <div class="empty" id="empty">아직 불러온 데이터가 없습니다. 위에서 100건을 조회하세요.</div>
+        </div>
+
+        <section class="logs" aria-label="수집 로그">
+          <h3>최근 Supabase 수집 로그</h3>
+          <ul id="logList">
+            <li class="muted">로그를 불러오는 중…</li>
+          </ul>
+        </section>
+      </div>
+
+      <div class="note">
+        <b>스키마 적용:</b> Supabase SQL Editor에서 <code>supabase/kstartup.sql</code>을 실행하세요.
+        테이블 <code>kstartup_announcements</code>, <code>kstartup_business</code>,
+        <code>kstartup_contents</code>, <code>kstartup_statistics</code>,
+        <code>kstartup_fetch_logs</code>가 생성됩니다.
+        공식 엔드포인트가 403이면 <code>nidapi.k-startup.go.kr</code> 폴백을 사용합니다.
+        GitHub Pages에서는 <code>stargate-bid-api.vercel.app</code> 프록시를 통해 조회합니다.
+      </div>
+    </main>
+
+    <footer>
+      <span>© 2026 Dongsoo Jung · Stargate Corporation</span>
+      <span>
+        <a href="/strategy/">Strategy</a> ·
+        <a href="https://www.data.go.kr/data/15125364/openapi.do" target="_blank" rel="noopener">OpenAPI</a>
+      </span>
+    </footer>
+  </div>
+  <script src="./chart.umd.min.js"></script>
+  <script src="./app.js" defer></script>
+</body>
+</html>
