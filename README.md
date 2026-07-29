@@ -63,11 +63,13 @@ Automation:  n8n / Google Apps Script / Custom Pipelines
 
 ```
 stargate-homepage/
-├── index.html                              # 홈페이지 (예약 · 출결 CTA)
+├── index.html                              # 홈페이지 (예약 · D-Day · 출결 CTA)
 ├── schedule.html                           # 수업 주간 시간표 · Supabase 예약
 ├── report.html                             # 출결 현황 · 당일 수업 보고서
+├── dday.html                               # D-Day 카운트다운 캘린더 대시보드
 ├── supabase/class_bookings.sql             # 예약 테이블 스키마
 ├── supabase/class_attendance.sql           # 출결 · 일일 보고서 스키마
+├── supabase/dday_events.sql                # D-Day 이벤트 스키마
 ├── scripts/apply-class-bookings-schema.mjs # 스키마 적용 스크립트
 ├── .github/workflows/apply-class-bookings-schema.yml
 ├── STARGATE HOMEPAGE.html
@@ -121,6 +123,23 @@ DATABASE_URL=postgres://... node scripts/apply-class-bookings-schema.mjs
 - 상세에서 **출결 보고서**(`report.html?date=`)·메일 알림 연동
 - 45초 자동 새로고침(탭 활성 시, 로딩 깜빡임 없음)
 - `?week=` / `?slot=` URL로 특정 주·슬롯 바로가기
+
+---
+
+## D-Day 캘린더 대시보드 (`dday.html`)
+
+The day before 스타일의 **D-Day 카운트다운 대시보드**입니다. Google Calendar 없이 Supabase에 저장합니다.
+
+| 기능 | 설명 |
+|------|------|
+| 대표 D-Day | 가장 가까운(또는 고정) 일정 대형 카운트다운 |
+| 월간 캘린더 | 날짜별 색상 점 · 클릭으로 추가/필터 |
+| 목록 | D-N / D-Day / D+N, 카테고리·상태 필터 |
+| 카테고리 | 시험 · 학교/수업 · 개인 · 업무 · 기념일 · 기타 |
+| 저장 | DB `dday_events` 또는 Storage `dday-events/{id}.json` |
+
+### DB 스키마 (선택)
+`supabase/dday_events.sql` 을 Supabase SQL Editor에서 실행하면 DB 모드로 전환됩니다.
 
 ---
 
