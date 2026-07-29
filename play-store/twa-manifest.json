@@ -1,0 +1,57 @@
+{
+  "packageId": "kr.co.stargateedu.app",
+  "host": "stargateedu.co.kr",
+  "name": "Stargate",
+  "launcherName": "Stargate",
+  "display": "standalone",
+  "themeColor": "#0B1020",
+  "themeColorDark": "#0B1020",
+  "navigationColor": "#0B1020",
+  "navigationColorDark": "#0B1020",
+  "navigationDividerColor": "#0B1020",
+  "navigationDividerColorDark": "#0B1020",
+  "backgroundColor": "#0B1020",
+  "enableNotifications": false,
+  "startUrl": "/",
+  "iconUrl": "https://stargateedu.co.kr/assets/icons/icon-512.png",
+  "maskableIconUrl": "https://stargateedu.co.kr/assets/icons/icon-maskable-512.png",
+  "splashScreenFadeOutDuration": 300,
+  "signingKey": {
+    "path": "./stargate-upload.keystore",
+    "alias": "stargate"
+  },
+  "appVersionName": "1.0.0",
+  "appVersionCode": 2,
+  "shortcuts": [
+    {
+      "name": "수업 예약",
+      "shortName": "예약",
+      "url": "/-stargate/schedule.html",
+      "chosenIconUrl": "https://stargateedu.co.kr/assets/icons/icon-192.png"
+    },
+    {
+      "name": "출결 보고서",
+      "shortName": "출결",
+      "url": "/-stargate/report.html",
+      "chosenIconUrl": "https://stargateedu.co.kr/assets/icons/icon-192.png"
+    }
+  ],
+  "generatorApp": "bubblewrap-cli",
+  "webManifestUrl": "https://stargateedu.co.kr/manifest.webmanifest",
+  "fallbackType": "customtabs",
+  "features": {},
+  "alphaDependencies": {
+    "enabled": false
+  },
+  "enableSiteSettingsShortcut": true,
+  "isChromeOSOnly": false,
+  "isMetaQuest": false,
+  "fullScopeUrl": "https://stargateedu.co.kr/",
+  "minSdkVersion": 21,
+  "orientation": "portrait",
+  "fingerprints": [],
+  "additionalTrustedOrigins": [],
+  "retainedBundles": [],
+  "displayOverride": [],
+  "appVersion": "1.0.0"
+}

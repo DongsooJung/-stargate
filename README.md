@@ -70,9 +70,16 @@ stargate-homepage/
 ├── supabase/class_attendance.sql           # 출결 · 일일 보고서 스키마
 ├── scripts/apply-class-bookings-schema.mjs # 스키마 적용 스크립트
 ├── .github/workflows/apply-class-bookings-schema.yml
+├── play-store/                             # Google Play TWA 배포 준비
+├── PLAY_STORE.md                           # Play 배포 현황 요약
 ├── STARGATE HOMEPAGE.html
 └── README.md
 ```
+
+## Google Play 배포
+
+수업 예약·출결 웹앱을 포함한 **Stargate TWA** 앱(`kr.co.stargateedu.app`) 배포 준비 파일은 `play-store/` · `PLAY_STORE.md`를 참고하세요.
+AAB/APK·업로드 키는 비공개 아티팩트로 보관합니다(저장소에 커밋하지 않음).
 
 ---
 
