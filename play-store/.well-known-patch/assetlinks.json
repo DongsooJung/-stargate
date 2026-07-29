@@ -1,0 +1,12 @@
+[
+  {
+    "relation": ["delegate_permission/common.handle_all_urls"],
+    "target": {
+      "namespace": "android_app",
+      "package_name": "kr.co.stargateedu.app",
+      "sha256_cert_fingerprints": [
+        "C0:0C:07:6D:B7:E6:46:D8:EE:12:EB:00:7A:B9:4C:31:47:B3:4C:05:5A:86:BA:5B:24:45:5B:8D:86:AF:79:B3"
+      ]
+    }
+  }
+]
