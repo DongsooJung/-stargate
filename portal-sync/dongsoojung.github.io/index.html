@@ -1,0 +1,821 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>정동수 · Dongsoo Jung — Stargate Corp / AI Lab</title>
+<meta name="description" content="정동수(Dongsoo Jung) 개인 포털 · Stargate Corporation CEO · 대치동 KOI 강사. AI·공간계량·교육 프로젝트 아카이브.">
+<meta name="author" content="Dongsoo Jung">
+<meta property="og:title" content="정동수 · Dongsoo Jung — Stargate Corp">
+<meta property="og:description" content="AI 기업 CEO · KOI 강사 · 프로젝트 포털">
+<meta property="og:url" content="https://stargateedu.co.kr/">
+<meta property="og:type" content="website">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="canonical" href="https://stargateedu.co.kr/">
+<link rel="alternate" hreflang="ko" href="https://stargateedu.co.kr/">
+<link rel="alternate" hreflang="en" href="https://stargateedu.co.kr/en/">
+<link rel="alternate" hreflang="zh-Hans" href="https://stargateedu.co.kr/zh/">
+<link rel="alternate" hreflang="ja" href="https://stargateedu.co.kr/ja/">
+<link rel="alternate" hreflang="x-default" href="https://stargateedu.co.kr/">
+<meta name="theme-color" content="#0b1020">
+<link rel="manifest" href="/manifest.webmanifest">
+<link rel="icon" href="/assets/icons/favicon.ico" sizes="48x48">
+<link rel="icon" href="/assets/icons/icon-192.png" type="image/png" sizes="192x192">
+<link rel="apple-touch-icon" href="/assets/icons/apple-touch-icon.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Hahmlet:wght@500;600;700&family=IBM+Plex+Mono:wght@500;600&family=IBM+Plex+Sans+KR:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/assets/portal-fonts.css">
+<script>
+(() => {
+  const key = 'stargate-theme';
+  try {
+    const saved = localStorage.getItem(key);
+    const theme = saved === 'light' || saved === 'dark'
+      ? saved
+      : (matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark');
+    document.documentElement.dataset.theme = theme;
+  } catch (_) {
+    document.documentElement.dataset.theme = 'dark';
+  }
+})();
+</script>
+<style>
+:root{
+  color-scheme:dark;
+  --bg:#0a0d14; --bg2:#111827; --panel:#0f172a; --panel2:#111c33;
+  --line:#1f2a44; --line2:#263452;
+  --ink:#e6edf3; --sub:#9aa7b8; --muted:#6b7a90;
+  --acc:#7aa2ff; --acc2:#4f7fff; --warm:#ffb86b; --good:#63d6a0;
+  --grad1:linear-gradient(135deg,#4f7fff 0%,#7aa2ff 55%,#b388ff 100%);
+  --grad2:linear-gradient(135deg,#0b1220 0%,#101a33 100%);
+  --font-sans:"IBM Plex Sans KR","IBM Plex Sans","Apple SD Gothic Neo",sans-serif;
+  --font-display:"Hahmlet","IBM Plex Sans KR",serif;
+  --font-mono:"IBM Plex Mono",ui-monospace,Menlo,Consolas,monospace;
+}
+:root[data-theme="light"]{
+  color-scheme:light;
+  --bg:#f6f8fc; --bg2:#eaf0f8; --panel:#ffffff; --panel2:#f0f4fa;
+  --line:#d9e1ec; --line2:#c7d1df;
+  --ink:#172033; --sub:#506079; --muted:#718096;
+  --acc:#3f67d8; --acc2:#3156bd; --warm:#b85f12; --good:#207d59;
+  --grad1:linear-gradient(135deg,#3156bd 0%,#5478df 55%,#8a63d2 100%);
+  --grad2:linear-gradient(135deg,#edf2fa 0%,#dfe8f6 100%);
+}
+*{box-sizing:border-box}
+html,body{margin:0;padding:0}
+html{background:var(--bg)}
+body{
+  font-family:var(--font-sans);
+  color:var(--ink); background:var(--bg); line-height:1.6;
+  letter-spacing:-.01em;
+  font-feature-settings:"kern" 1,"liga" 1;
+  text-rendering:optimizeLegibility;
+  -webkit-font-smoothing:antialiased;
+  background-image:
+    radial-gradient(1000px 600px at 10% -10%, rgba(79,127,255,.18), transparent 60%),
+    radial-gradient(800px 500px at 100% 0%, rgba(179,136,255,.12), transparent 60%),
+    radial-gradient(700px 500px at 50% 120%, rgba(99,214,160,.08), transparent 60%);
+  background-attachment:fixed;zoom:1.4;
+  transition:color .2s ease,background-color .2s ease;
+}
+:root[data-theme="light"] body{
+  background-image:
+    radial-gradient(1000px 600px at 10% -10%,rgba(79,127,255,.12),transparent 60%),
+    radial-gradient(800px 500px at 100% 0%,rgba(138,99,210,.09),transparent 60%),
+    radial-gradient(700px 500px at 50% 120%,rgba(32,125,89,.07),transparent 60%);
+}
+a{color:var(--acc); text-decoration:none} a:hover{text-decoration:underline}
+.wrap{max-width:1180px;margin:0 auto;padding:28px 22px 120px}
+
+/* Top nav */
+.nav{display:flex;align-items:center;gap:18px;padding:8px 4px 0}
+.brand{display:flex;align-items:center;gap:10px;font-weight:600;letter-spacing:.01em}
+.brand .logo{width:34px;height:34px;border-radius:9px;background:var(--grad1);
+  display:inline-flex;align-items:center;justify-content:center;color:#0b1020;
+  font-family:var(--font-display);font-weight:700;font-size:17px}
+.brand .name{font-family:var(--font-display);font-size:15px;font-weight:600;letter-spacing:.01em}
+.brand .tag{font-family:var(--font-mono);font-size:10.5px;color:var(--muted);margin-left:6px;font-weight:500;letter-spacing:.04em}
+.nav .links{display:flex;gap:14px;margin-left:auto;font-size:13px;color:var(--sub);align-items:center}
+.nav .links a{color:var(--sub)} .nav .links a:hover,.nav .links a[aria-current="page"]{color:var(--ink)}
+.lang-select{display:inline-flex;align-items:center;position:relative;flex:0 0 auto}
+.lang-select select{
+  appearance:none;-webkit-appearance:none;min-height:32px;padding:6px 28px 6px 11px;
+  border:1px solid var(--line2);border-radius:999px;background:var(--panel);color:var(--ink);
+  font:600 12px/1 inherit;cursor:pointer;max-width:7.5rem;
+  box-shadow:0 8px 24px rgba(0,0,0,.12);transition:.18s border-color,.18s transform
+}
+.lang-select select:hover,.lang-select select:focus-visible{border-color:var(--acc);transform:translateY(-1px);outline:none}
+.lang-select::after{
+  content:"";position:absolute;right:11px;top:50%;width:6px;height:6px;
+  border-right:1.5px solid var(--muted);border-bottom:1.5px solid var(--muted);
+  transform:translateY(-65%) rotate(45deg);pointer-events:none
+}
+.visually-hidden{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;
+  clip:rect(0,0,0,0);white-space:nowrap;border:0}
+.theme-toggle{flex:0 0 auto;display:inline-flex;align-items:center;justify-content:center;gap:7px;
+  min-height:36px;padding:7px 11px;border:1px solid var(--line2);border-radius:999px;
+  background:var(--panel);color:var(--ink);font:700 11px/1 inherit;cursor:pointer;
+  box-shadow:0 8px 24px rgba(0,0,0,.12);transition:.18s transform,.18s border-color,.18s background}
+.theme-toggle:hover,.theme-toggle:focus-visible{border-color:var(--acc);transform:translateY(-1px);outline:none}
+.theme-toggle .icon{font-size:14px;line-height:1}
+.quick-links{display:flex;gap:8px;flex-wrap:wrap;margin-top:14px}
+.quick-links .chip,.chip.mono{
+  font-family:var(--font-mono);font-weight:500;letter-spacing:.01em;font-variant-numeric:tabular-nums
+}
+:root[data-theme="light"] .quick-links .chip{background:#fff!important;color:var(--ink)!important}
+
+/* Hero */
+.hero{padding:62px 0 36px;display:grid;grid-template-columns:1.25fr .9fr;gap:40px;align-items:center}
+.hero h1{margin:0;font-family:var(--font-display);font-weight:600;
+  font-size:clamp(2.05rem,3.6vw,2.85rem);line-height:1.18;letter-spacing:-.035em;color:var(--ink)}
+.hero h1 .accent{color:var(--acc)}
+.hero p.lead{color:var(--sub);font-size:1.05rem;line-height:1.7;letter-spacing:-.005em;margin:14px 0 18px;max-width:60ch}
+.hero .chips{display:flex;gap:8px;flex-wrap:wrap;margin:12px 0 22px}
+.chip{border:1px solid var(--line2);background:var(--panel);
+  color:var(--sub);padding:6px 10px;border-radius:999px;font-size:12px;text-decoration:none;
+  font-family:var(--font-sans);font-weight:500;
+  transition:border-color .18s ease,color .18s ease,transform .18s ease}
+.chip:hover,.chip:focus-visible{border-color:var(--acc);color:var(--ink);transform:translateY(-1px);text-decoration:none}
+.hero .cta{display:flex;gap:10px;flex-wrap:wrap}
+.btn{display:inline-flex;align-items:center;gap:8px;padding:11px 16px;border-radius:12px;
+  font-weight:600;border:1px solid transparent;font-size:14px;transition:.15s transform,.15s box-shadow}
+.btn.primary{background:var(--grad1);color:#0b1020;box-shadow:0 6px 24px rgba(79,127,255,.35)}
+.btn.primary:hover{transform:translateY(-1px);text-decoration:none}
+.btn.ghost{background:var(--panel);color:var(--ink);border-color:var(--line2)}
+.btn.ghost:hover{border-color:var(--acc);text-decoration:none}
+
+/* ID card */
+.card{border:1px solid var(--line);background:linear-gradient(180deg,var(--panel2),var(--panel));
+  border-radius:18px;padding:22px;box-shadow:0 20px 60px rgba(0,0,0,.35)}
+:root[data-theme="light"] .card{box-shadow:0 18px 50px rgba(41,61,92,.12)}
+.id{display:flex;gap:16px;align-items:center;margin-bottom:14px}
+.id .avatar{width:62px;height:62px;border-radius:50%;background:var(--grad1);
+  display:flex;align-items:center;justify-content:center;color:#0b1020;
+  font-family:var(--font-display);font-weight:700;font-size:22px}
+.id .meta .nm{font-family:var(--font-display);font-size:1.15rem;font-weight:600;letter-spacing:-.02em}
+.id .meta .ro{font-size:12px;color:var(--sub);font-weight:500}
+.kv{display:grid;grid-template-columns:90px 1fr;row-gap:8px;column-gap:10px;font-size:13px}
+.kv dt{color:var(--muted);font-family:var(--font-mono);font-size:11px;letter-spacing:.04em;text-transform:uppercase}
+.kv dd{margin:0;color:var(--ink)}
+
+/* Section */
+.sec{margin-top:56px}
+.sec h2{font-family:var(--font-display);font-size:clamp(1.35rem,2vw,1.65rem);font-weight:600;letter-spacing:-.03em;margin:0 0 4px;line-height:1.25}
+.sec .desc{color:var(--sub);font-size:13.5px;margin-bottom:18px;line-height:1.65}
+
+/* Intelligence hubs */
+.hub-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.hub-card{position:relative;overflow:hidden;border:1px solid var(--line2);border-radius:20px;padding:25px;
+  background:linear-gradient(145deg,var(--panel2),var(--panel));min-height:225px;display:flex;flex-direction:column;
+  transition:.18s transform,.18s border-color,.18s box-shadow}
+.hub-card::after{content:"";position:absolute;width:210px;height:210px;border-radius:50%;right:-75px;top:-95px;background:var(--glow);opacity:.6}
+.hub-card.strategy{--hub:#ff9f5a;--glow:rgba(255,111,15,.18)}
+.hub-card.research{--hub:#73b7ff;--glow:rgba(52,120,246,.2)}
+.hub-card:hover{transform:translateY(-2px);border-color:var(--hub);box-shadow:0 18px 48px var(--glow);text-decoration:none}
+.hub-kicker{position:relative;z-index:1;color:var(--hub);font-family:var(--font-mono);font-size:10px;font-weight:500;letter-spacing:.12em;text-transform:uppercase}
+.hub-card h3{position:relative;z-index:1;font-family:var(--font-display);font-size:clamp(1.35rem,1.8vw,1.55rem);font-weight:600;letter-spacing:-.03em;margin:10px 0 7px;line-height:1.25}
+.hub-card p{position:relative;z-index:1;color:var(--sub);font-size:12.5px;max-width:48ch;margin:0}
+.hub-meta{position:relative;z-index:1;margin-top:auto;padding-top:25px;display:flex;align-items:center;justify-content:space-between;gap:12px}
+.hub-meta span{color:var(--muted);font-size:10.5px}
+.hub-meta b{color:var(--hub);font-size:12px}
+
+/* Project grid */
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(290px,1fr));gap:16px}
+.proj{position:relative;border:1px solid var(--line);border-radius:16px;overflow:hidden;
+  background:linear-gradient(180deg,var(--panel2),var(--panel));transition:.18s all;display:flex;flex-direction:column}
+.proj:hover{border-color:var(--acc);transform:translateY(-2px);box-shadow:0 14px 40px rgba(79,127,255,.18)}
+.proj .thumb{aspect-ratio:16/10;background:var(--grad2) center/cover;display:flex;align-items:center;justify-content:center;position:relative;overflow:hidden}
+.proj .thumb .emo{font-size:44px;filter:drop-shadow(0 6px 18px rgba(79,127,255,.45))}
+.proj .thumb.hero-shot{background:
+  radial-gradient(400px 180px at 20% 20%, rgba(79,127,255,.55), transparent 60%),
+  radial-gradient(300px 180px at 80% 80%, rgba(179,136,255,.45), transparent 60%),
+  linear-gradient(135deg,#0d1426,#121b33)}
+.proj .body{padding:14px 16px 16px;display:flex;flex-direction:column;gap:6px;flex:1}
+.proj .ttl{font-weight:600;font-size:15px;letter-spacing:-.02em;line-height:1.35}
+.proj .sub{color:var(--sub);font-size:12.5px;line-height:1.55}
+.proj .row{display:flex;justify-content:space-between;align-items:center;margin-top:10px}
+.proj .tag{font-size:11px;color:var(--muted);border:1px solid var(--line2);
+  padding:3px 8px;border-radius:999px}
+.proj .go{color:var(--acc);font-size:12.5px;font-weight:600}
+.proj .row a{text-decoration:none}
+.proj .row a:hover,.proj .row a:focus-visible{color:var(--ink);border-color:var(--acc);outline:none}
+.proj .badge{position:absolute;top:10px;left:10px;background:var(--grad1);color:#0b1020;
+  font-size:10.5px;font-weight:800;padding:4px 8px;border-radius:999px;letter-spacing:.3px}
+.proj.disabled{opacity:.55;cursor:not-allowed}
+.proj.disabled:hover{transform:none;border-color:var(--line);box-shadow:none}
+
+/* Project visibility toggle */
+.project-toggle-row{display:flex;justify-content:flex-end;margin:-4px 0 16px}
+.project-toggle{display:inline-flex;align-items:center;gap:8px;padding:9px 13px;border:1px solid var(--line2);border-radius:999px;background:var(--panel);color:var(--ink);font:600 12px inherit;cursor:pointer;transition:.18s border-color,.18s transform,.18s background}
+.project-toggle:hover,.project-toggle:focus-visible{border-color:var(--acc);transform:translateY(-1px);outline:none}
+.project-toggle[aria-expanded="false"]{background:rgba(79,127,255,.12);border-color:var(--acc)}
+.proj.is-project-hidden{display:none}
+
+/* About */
+.about{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.box{border:1px solid var(--line);background:var(--panel);border-radius:14px;padding:18px}
+.box h3{margin:0 0 8px;font-family:var(--font-display);font-size:1.05rem;font-weight:600;letter-spacing:-.02em}
+.box ul{margin:0;padding-left:18px;color:var(--sub);font-size:13px;line-height:1.7}
+
+/* Footer */
+footer{margin-top:72px;padding-top:22px;border-top:1px solid var(--line);color:var(--muted);font-size:12px;display:flex;justify-content:space-between;flex-wrap:wrap;gap:10px}
+footer .business-info{flex-basis:100%;padding-top:10px;border-top:1px solid var(--line);text-align:center}
+
+@media (max-width: 980px){
+  .nav{flex-wrap:wrap}
+  .brand{order:1}
+  .theme-toggle{order:2;margin-left:auto}
+  .nav .links{order:3;width:100%;margin-left:0;padding:10px 0 4px;overflow-x:auto;white-space:nowrap}
+}
+@media (max-width: 820px){
+  .hero{grid-template-columns:1fr;padding:32px 0 10px}
+  .hero h1{font-size:clamp(1.85rem,7vw,2.2rem)}
+  .about{grid-template-columns:1fr}
+  .hub-grid{grid-template-columns:1fr}
+}
+@media (prefers-reduced-motion:reduce){
+  body,.theme-toggle{transition:none}
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <nav class="nav">
+    <div class="brand">
+      <span class="logo">D</span>
+      <span class="name">DONGSOO.<span style="color:var(--acc)">PORTAL</span></span>
+      <span class="tag">v1 · 2026</span>
+    </div>
+    <div class="links">
+      <a href="/cybersecurity/">AI 사이버 보안</a>
+      <a href="/strategy/">전략</a>
+      <a href="/research/">연구</a>
+      <a href="#projects">전체 프로젝트</a>
+      <a href="/schedule/">주요일정</a>
+      <a href="/faq/">FAQ</a>
+      <a href="#about">About</a>
+      <label class="lang-select">
+        <span class="visually-hidden">언어 선택</span>
+        <select id="lang-select" aria-label="언어 선택">
+          <option value="/" lang="ko" selected>한국어</option>
+          <option value="/en/" lang="en">English</option>
+          <option value="/zh/" lang="zh-Hans">中文</option>
+          <option value="/ja/" lang="ja">日本語</option>
+        </select>
+      </label>
+      <a href="https://github.com/DongsooJung" target="_blank" rel="noopener">GitHub ↗</a>
+    </div>
+    <button class="theme-toggle" id="theme-toggle" type="button" aria-label="화이트 모드로 전환" aria-pressed="false">
+      <span class="icon" id="theme-toggle-icon" aria-hidden="true">☀️</span>
+      <span id="theme-toggle-label">화이트</span>
+    </button>
+  </nav>
+
+  <div class="quick-links">
+    <a class="chip mono" style="border-color:#63d6a0;color:#b8e7d0;background:rgba(99,214,160,.08)" href="https://git.stargateedu.co.kr/" target="_blank" rel="noopener">GitHub</a>
+    <a class="chip mono" style="border-color:#c4a265;color:#e7cf9a;background:rgba(196,162,101,.08)" href="https://blog.stargateedu.co.kr/" target="_blank" rel="noopener">Blog</a>
+    <a class="chip mono" style="border-color:#ffb86b;color:#ffd9a8;background:rgba(255,184,107,.08)" href="https://shop.stargateedu.co.kr/" target="_blank" rel="noopener">Shop</a>
+    <a id="visitor-summary-link" class="chip mono" style="border-color:#7aa2ff;color:#dbe6ff;background:rgba(79,127,255,.14);font-weight:600" href="/admin/visitors/" rel="nofollow" aria-label="방문자 통계 대시보드">오늘 <strong id="visitor-today-count" style="color:#fff">-</strong> · 누적 <strong id="visitor-total-count" style="color:#fff">-</strong></a>
+  </div>
+
+  <section class="hero">
+    <div>
+      <h1>AI · 연구 · 교육을<br>한 곳에서.</h1>
+      <p class="lead">
+        Stargate Corporation CEO, 대치동 KOI 수학정보올림피아드 강사.
+        연구·사업·교육 작업물을 공개 아카이브로 연결합니다.
+      </p>
+      <div class="chips">
+        <a class="chip" href="https://dongsoojung.github.io/stargate-ai-gallery/files/arch-002.html">AI Engineering</a>
+        <a class="chip" href="https://dongsoojung.github.io/stargate-ai-gallery/files/land-003.html">Urban Analytics</a>
+        <a class="chip" href="https://dongsoojung.github.io/stargate-ai-gallery/files/land-001.html">KOI · PS</a>
+        <a class="chip" href="/cybersecurity/">AI 사이버 보안</a>
+        <a class="chip" href="https://dongsoojung.github.io/stargate-ai-gallery/files/arch-001.html#card-mcp">Docker · MCP</a>
+      </div>
+      <div class="cta">
+        <a class="btn primary" href="/strategy/">
+          ↗ 전략 인사이트
+        </a>
+        <a class="btn ghost" href="/research/">
+          ◉ 연구 대시보드
+        </a>
+        <a class="btn ghost" href="/schedule/">
+          📅 주요일정
+        </a>
+      </div>
+    </div>
+
+    <aside class="card">
+      <div class="id">
+        <div class="avatar">정</div>
+        <div class="meta">
+          <div class="nm">정동수 · Dongsoo Jung</div>
+          <div class="ro">Stargate Corp CEO · AI Engineer</div>
+        </div>
+      </div>
+      <dl class="kv">
+        <dt>경력</dt><dd>공군 시설장교(서울공항 PM) · 공군참모총장상 · 토목기사</dd>
+        <dt>강의</dt><dd>대치동 KOI 수학정보올림피아드</dd>
+        <dt>관심</dt><dd>AI Agents · 공간계량 · MCP · 사이버보안</dd>
+      </dl>
+    </aside>
+  </section>
+
+
+  <section class="sec" id="intelligence">
+    <h2>STARGATE Intelligence</h2>
+    <div class="desc">기업·산업 분석과 도시·공간·경제 데이터 연구를 목적별 허브에서 탐색합니다.</div>
+    <div class="hub-grid">
+      <a class="hub-card strategy" href="/strategy/">
+        <div class="hub-kicker">Strategy Intelligence</div>
+        <h3>전략 인사이트</h3>
+        <p>당근·숨고·크몽 등 플랫폼 기업의 매출·영업이익과 산업·시장 데이터를 의사결정 관점으로 분석합니다.</p>
+        <div class="hub-meta"><span>기업·플랫폼·산업·AI · 10개 프로젝트</span><b>전략 허브 →</b></div>
+      </a>
+      <a class="hub-card research" href="/research/">
+        <div class="hub-kicker">Research Observatory</div>
+        <h3>연구 대시보드</h3>
+        <p>서울 도시데이터, 환율·무역·관광 등 공공데이터를 인터랙티브 대시보드로 탐색합니다.</p>
+        <div class="hub-meta"><span>도시·공간·경제·도구 · 18개 프로젝트</span><b>연구 허브 →</b></div>
+      </a>
+    </div>
+  </section>
+
+
+  <section class="sec" id="projects">
+    <h2>프로젝트 · Projects</h2>
+    <div class="desc">공개 가능한 산출물 모음. 클릭하면 각 프로젝트 페이지로 이동합니다.</div>
+    <div class="project-toggle-row">
+      <button class="project-toggle" id="project-visibility-toggle" type="button" aria-expanded="false" aria-controls="projects-grid">
+        <span aria-hidden="true">▾</span><span>숨긴 프로젝트 보기</span>
+      </button>
+    </div>
+    <div class="grid" id="projects-grid">
+
+
+      
+
+      <a class="proj" href="/cybersecurity/">
+        <div class="badge">PRODUCT · NEW</div>
+        <div class="thumb" style="background:
+          radial-gradient(340px 170px at 18% 20%, rgba(45,212,191,.5), transparent 60%),
+          radial-gradient(280px 150px at 86% 82%, rgba(232,93,93,.28), transparent 60%),
+          linear-gradient(135deg,#061018,#0a2430)"><span class="emo">🛡</span></div>
+        <div class="body">
+          <div class="ttl">3AI Cybersecurity Suite · AI 사이버 보안</div>
+          <div class="sub">LLM 기반 위협 탐지·시맨틱 로그 분석·IR 자동화. 아마존 KDP 출간 도서 방법론을 SOC 소프트웨어로 구현한 제품 랜딩.</div>
+          <div class="row"><span class="tag">LLM · RAG · SOC Automation</span><span class="go">열기 →</span></div>
+        </div>
+      </a>
+
+      <a class="proj" href="/stargate-main/">
+        <div class="badge">CORP</div>
+        <div class="thumb" style="background:linear-gradient(135deg,#0B1A3A,#C9A24E)"><span class="emo">⭐</span></div>
+        <div class="body">
+          <div class="ttl">STARGATE 본사 · 주식회사 별의문</div>
+          <div class="sub">AI · 공간계량 · 도시공학 컴퍼니 본사. 헤더로 본사·블로그·쇼핑몰 3사이트 통합 네비게이션.</div>
+          <div class="row"><span class="tag">Corp Site · 3-Site Nav</span><span class="go">열기 →</span></div>
+        </div>
+      </a>
+
+      <a class="proj" href="https://blog.stargateedu.co.kr/">
+        <div class="badge">BLOG</div>
+        <div class="thumb" style="background:radial-gradient(320px 170px at 20% 25%, rgba(196,162,101,.45), transparent 60%),linear-gradient(135deg,#17130d,#352816)"><span class="emo">✍️</span></div>
+        <div class="body">
+          <div class="ttl">STARGATE 본사 블로그</div>
+          <div class="sub">AI·교육·공간 데이터 연구와 프로젝트 소식, 수업 및 교재 콘텐츠를 모아 소개합니다.</div>
+          <div class="row"><span class="tag">Blog · blog.stargateedu.co.kr</span><span class="go">읽기 →</span></div>
+        </div>
+      </a>
+
+      <a class="proj" href="https://shop.stargateedu.co.kr/">
+        <div class="badge">SHOP · NEW</div>
+        <div class="thumb" style="background:url('/assets/shop-card.svg') center/cover"></div>
+        <div class="body">
+          <div class="ttl">Stargate Edu Shop · 온라인 스쿨 스토어</div>
+          <div class="sub">KOI·KMO 정보/수학 올림피아드 강의·교재·모의고사·1:1 코칭 스토어. shop.stargateedu.co.kr 신규 오픈.</div>
+          <div class="row"><span class="tag">Store · shop.stargateedu.co.kr</span><span class="go">쇼핑하기 →</span></div>
+        </div>
+      </a>
+
+      <a class="proj" href="/stay/">
+        <div class="badge">STAY</div>
+        <div class="thumb" style="background:linear-gradient(135deg,#3b2a1c,#8B5A3C 60%,#C9A77B)"><span class="emo">🏠</span></div>
+        <div class="body">
+          <div class="ttl">Stay with Dongsoo · 대치동 스테이</div>
+          <div class="sub">박사 호스트가 직접 운영하는 대치동 프리미엄 단기 숙소. Airbnb(외국인)·위홈(내국인) 이중 채널 예약 페이지.</div>
+          <div class="row"><span class="tag">Airbnb · WeHome</span><span class="go">열기 →</span></div>
+        </div>
+      </a>
+
+      <a class="proj" href="./drive-blog/">
+        <div class="badge">NEW · DRIVE API</div>
+        <div class="thumb" style="background:radial-gradient(360px 170px at 22% 22%,rgba(122,162,255,.5),transparent 60%),radial-gradient(280px 160px at 82% 82%,rgba(179,136,255,.42),transparent 60%),linear-gradient(135deg,#0d1426,#121b33)"><span class="emo">📖</span></div>
+        <div class="body">
+          <div class="ttl">Google Drive 공개 지식 아카이브</div>
+          <div class="sub">AI 교육·수학·알고리즘·데이터 분석·스마트시티 연구를 블로그 형식으로 열람하고, OAuth로 지정 Drive 폴더의 최신 문서를 동기화합니다.</div>
+          <div class="row"><span class="tag">Google Drive API · Knowledge</span><span class="go">읽기 →</span></div>
+        </div>
+      </a>
+
+      <a class="proj" href="./kstartup/">
+        <div class="badge">NEW · K-STARTUP</div>
+        <div class="thumb" style="background:radial-gradient(320px 170px at 18% 22%,rgba(20,184,166,.45),transparent 60%),radial-gradient(280px 150px at 84% 80%,rgba(56,189,248,.28),transparent 60%),linear-gradient(135deg,#07131f,#0d1c2b)"><span class="emo">🚀</span></div>
+        <div class="body">
+          <div class="ttl">K-Startup 지원사업 관측소 · 100건씩 Supabase</div>
+          <div class="sub">창업진흥원 K-Startup 사업공고·사업소개·콘텐츠·통계를 100건씩 조회·저장하고 지역·지원분야를 차트로 탐색합니다. 서버 저장 키 사용.</div>
+          <div class="row"><span class="tag">K-Startup · Supabase</span><span class="go">열기 →</span></div>
+        </div>
+      </a>
+
+      <a class="proj" href="./bid-pblanc-cnstwk/">
+        <div class="badge">NEW · 조달 API</div>
+        <div class="thumb" style="background:radial-gradient(320px 170px at 18% 22%,rgba(226,162,74,.45),transparent 60%),radial-gradient(280px 150px at 84% 80%,rgba(61,184,154,.28),transparent 60%),linear-gradient(135deg,#0b1218,#16222d)"><span class="emo">▣</span></div>
+        <div class="body">
+          <div class="ttl">나라장터 공사 입찰공고 · 100건씩 Supabase</div>
+          <div class="sub">조달청 getBidPblancListInfoCnstwk로 공사 입찰공고를 100건씩 조회·저장하고 발주기관·계약방법을 차트로 탐색합니다. 서버 저장 키 사용.</div>
+          <div class="row"><span class="tag">나라장터 · Supabase</span><span class="go">열기 →</span></div>
+        </div>
+      </a>
+      <a class="proj" href="./bid-pblanc-servc/">
+        <div class="badge">NEW · 용역</div>
+        <div class="thumb" style="background:radial-gradient(320px 170px at 20% 22%,rgba(61,184,154,.45),transparent 60%),radial-gradient(280px 150px at 84% 80%,rgba(226,162,74,.28),transparent 60%),linear-gradient(135deg,#0b1218,#123230)"><span class="emo">◇</span></div>
+        <div class="body">
+          <div class="ttl">나라장터 용역 입찰공고 · 100건씩 Supabase</div>
+          <div class="sub">getBidPblancListInfoServc로 용역 입찰공고를 100건씩 조회·저장합니다. 키 입력 없이 서버 저장 키로 인증합니다.</div>
+          <div class="row"><span class="tag">나라장터 · 용역</span><span class="go">열기 →</span></div>
+        </div>
+      </a>
+      <a class="proj" href="./lh-sale-info/">
+        <div class="badge">NEW · LH SALE</div>
+        <div class="thumb" style="background:radial-gradient(320px 170px at 18% 22%,rgba(181,106,58,.45),transparent 60%),radial-gradient(280px 150px at 84% 80%,rgba(61,74,92,.35),transparent 60%),linear-gradient(135deg,#171b22,#3d4a5c)"><span class="emo">⌂</span></div>
+        <div class="body">
+          <div class="ttl">LH 분양정보 관측소 · 30건씩 Supabase</div>
+          <div class="sub">공지사항이 아닌 한국토지주택공사 분양임대공고문 API에서 분양주택 정보를 30건씩 조회하고 Supabase에 저장합니다.</div>
+          <div class="row"><span class="tag">LH OpenAPI · Supabase</span><span class="go">열기 →</span></div>
+        </div>
+      </a>
+      <a class="proj" href="./hwaseong-real-estate/">
+        <div class="badge">NEW · PUBLIC DATA</div>
+        <div class="thumb" style="background:radial-gradient(320px 170px at 82% 24%,rgba(217,255,67,.35),transparent 60%),linear-gradient(135deg,#193c29,#0e2418)"><span class="emo">🏙️</span></div>
+        <div class="body">
+          <div class="ttl">화성 실거래 데이터 허브</div>
+          <div class="sub">2026년 6월 만세·효행·병점·동탄구 아파트 실거래 2,672건을 100건씩 탐색하고 CSV로 저장합니다.</div>
+          <div class="row"><span class="tag">국토교통부 API · Supabase</span><span class="go">열기 →</span></div>
+        </div>
+      </a>
+
+      <a class="proj" href="./reading/">
+        <div class="badge">NEW · READING</div>
+        <div class="thumb" style="background:radial-gradient(320px 170px at 18% 22%,rgba(91,140,255,.55),transparent 60%),radial-gradient(280px 160px at 82% 78%,rgba(139,91,255,.45),transparent 60%),linear-gradient(135deg,#101826,#1b2233)"><span class="emo">📘</span></div>
+        <div class="body">
+          <div class="ttl">밀리의 서재 독서기록 · 독후감 블로그</div>
+          <div class="sub">완독한 책을 별점·밑줄·서평으로 정리하고, 제목·저자·장르별로 탐색하는 개인 독서 아카이브입니다.</div>
+          <div class="row"><span class="tag">Reading Journal · Book Review</span><span class="go">읽기 →</span></div>
+        </div>
+      </a>
+
+      <a class="proj" href="./math-library/">
+        <div class="thumb" style="background:linear-gradient(135deg,#0f1a2e,#1f3054)"><span class="emo">📚</span></div>
+        <div class="body">
+          <div class="ttl">수학 교재 라이브러리 · Tree Viz</div>
+          <div class="sub">대치동 KOI 강사 자산 — 수학 교재 25GB · 437권 · 20개 카테고리를 트리맵·선버스트·접히는 트리·막대차트 4종으로 인터랙티브 탐색.</div>
+          <div class="row"><span class="tag">D3.js · Interactive</span><span class="go">열기 →</span></div>
+        </div>
+      </a>
+
+      <article class="proj" aria-labelledby="ai-gallery-title">
+        <div class="badge">FEATURED · SEARCH</div>
+        <div class="thumb hero-shot"><span class="emo">🛰️</span></div>
+        <div class="body">
+          <div class="ttl" id="ai-gallery-title">Stargate AI Gallery · 검색 인덱스</div>
+          <div class="sub">AI로 생성한 랜딩·대시보드·인포그래픽 공개 아카이브를 카테고리별로 탐색하거나 파일명·카테고리·원본 경로로 검색·정렬할 수 있습니다.</div>
+          <div class="row">
+            <a class="tag" href="https://dongsoojung.github.io/stargate-ai-gallery/hub.html">카테고리 허브 →</a>
+            <a class="go" href="https://dongsoojung.github.io/stargate-ai-gallery/">검색 인덱스 →</a>
+          </div>
+        </div>
+      </article>
+
+      <a class="proj" href="/quote-maker/">
+        <div class="badge">NEW · EXPO GO</div>
+        <div class="thumb" style="background:radial-gradient(340px 180px at 18% 20%,rgba(255,184,107,.45),transparent 58%),radial-gradient(260px 150px at 84% 80%,rgba(79,127,255,.4),transparent 60%),linear-gradient(135deg,#12181f,#1a2438)"><span class="emo">🧾</span></div>
+        <div class="body">
+          <div class="ttl">하루 견적서 · Quote Maker</div>
+          <div class="sub">웹 PDF 견적서 + Expo Go 앱. 무료 하루 3회, Pro로 워터마크·로고·무제한. 폰에서는 Snack 링크로 바로 실행.</div>
+          <div class="row"><span class="tag">Web · Expo Go · Freemium</span><span class="go">열기 →</span></div>
+        </div>
+      </a>
+
+      <a class="proj" href="https://damooaai-6vqmrysf.manus.space/" target="_blank" rel="noopener">
+        <div class="badge">AI OPS · NEW</div>
+        <div class="thumb" style="background:radial-gradient(340px 180px at 20% 20%,rgba(169,139,255,.5),transparent 60%),radial-gradient(260px 150px at 82% 82%,rgba(77,166,255,.38),transparent 60%),linear-gradient(135deg,#10152a,#1d2447)"><span class="emo">🧠</span></div>
+        <div class="body">
+          <div class="ttl">다모아 AI · AI 툴 대시보드</div>
+          <div class="sub">흩어진 AI 도구의 활용 현황, 월 구독 비용, 절감 후보와 결제 일정을 한 화면에서 관리합니다.</div>
+          <div class="row"><span class="tag">Manus · AI Tool Operations</span><span class="go">열기 ↗</span></div>
+        </div>
+      </a>
+
+      <a class="proj" href="https://www.stargateedu.co.kr/ds-research-urban-analytics/">
+        <div class="badge">LIVE</div>
+        <div class="thumb" style="background:linear-gradient(135deg,#0a0e27,#1baf7a)"><span class="emo">🏙️</span></div>
+        <div class="body">
+          <div class="ttl">서울 실시간 도시데이터 대시보드</div>
+          <div class="sub">서울시 주요 핫스팟의 실시간 인구·혼잡·날씨·상권을 수집·분석. 혼잡 순위·연령 분포·혼잡–환경 상관을 한 화면에. (서울 열린데이터광장 실시간 도시데이터 API)</div>
+          <div class="row"><span class="tag">Real-time · Python · Chart.js</span><span class="go">열기 →</span></div>
+        </div>
+      </a>
+
+      <a class="proj" href="/court-auction/">
+        <div class="badge">NEW</div>
+        <div class="thumb" style="background:
+          radial-gradient(360px 160px at 20% 20%, rgba(79,127,255,.5), transparent 60%),
+          radial-gradient(280px 160px at 80% 80%, rgba(255,184,107,.4), transparent 60%),
+          linear-gradient(135deg,#0d1426,#1a2540)"><span class="emo">🏛️</span></div>
+        <div class="body">
+          <div class="ttl">법원경매 부동산 대시보드 · 2026</div>
+          <div class="sub">대한민국법원 법원경매정보의 주택·상업용 건물 경매 물건을 공고일 기준 월별 수집 → 엑셀 저장 + 인터랙티브 대시보드. 주택/상업용 토글·시도/용도 필터·감정가 분포.</div>
+          <div class="row"><span class="tag">Data · SVG Dashboard</span><span class="go">열기 →</span></div>
+        </div>
+      </a>
+
+      <a class="proj" href="./kmong-research/">
+        <div class="thumb" style="background:linear-gradient(135deg,#1a2f5c,#2563EB)"><span class="emo">📊</span></div>
+        <div class="body">
+          <div class="ttl">Kmong 거래액 &amp; 재무 리서치 2025</div>
+          <div class="sub">크몽(Kmong) 2022~2025 거래액·매출·영업이익 등 B2B 시장 분석 리포트.</div>
+          <div class="row"><span class="tag">Market Research · Chart.js</span><span class="go">열기 →</span></div>
+        </div>
+      </a>
+
+      <a class="proj" href="./soomgo-research/">
+        <div class="thumb" style="background:linear-gradient(135deg,#134E4A,#0EA5A4)"><span class="emo">📈</span></div>
+        <div class="body">
+          <div class="ttl">Soomgo 매출액 &amp; 재무 리서치 2025</div>
+          <div class="sub">숨고(브레이브모바일) 2022~2025 매출·영업이익 분석 — OpenDART 감사보고서 기반 리포트.</div>
+          <div class="row"><span class="tag">Market Research · OpenDART</span><span class="go">열기 →</span></div>
+        </div>
+      </a>
+
+      <a class="proj" href="./daangn-dashboard/?v=20260720-finance">
+        <div class="badge">NEW · FINANCE</div>
+        <div class="thumb" style="background:radial-gradient(320px 170px at 20% 25%,rgba(255,111,15,.5),transparent 60%),radial-gradient(280px 150px at 85% 80%,rgba(255,184,107,.32),transparent 60%),linear-gradient(135deg,#251108,#47200c)"><span class="emo">🥕</span></div>
+        <div class="body">
+          <div class="ttl">당근 최근 3개년 재무분석</div>
+          <div class="sub">당근의 2023~2025 연결·별도 매출과 영업이익을 비교 분석한 리포트. 매출 CAGR, 흑자 전환, 영업이익률과 그룹 투자 부담을 공식 자료로 정리했습니다.</div>
+          <div class="row"><span class="tag">Revenue · Margin · IR</span><span class="go">보고서 →</span></div>
+        </div>
+      </a>
+
+
+
+
+
+      <a class="proj" href="https://github.com/DongsooJung/smart-city-gis">
+        <div class="thumb" style="background:linear-gradient(135deg,#1b2640,#223054)"><span class="emo">🗺️</span></div>
+        <div class="body">
+          <div class="ttl">Spatial Econometrics Lab · Urban Spatial Analysis</div>
+          <div class="sub">공간계량 연구 코드 저장소 — 접근성 지수·보행성 점수·토지이용 혼합 엔트로피, DID·공간 자기상관·choropleth 시각화. GeoPandas·PostGIS 기반 GIS 파이프라인.</div>
+          <div class="row"><span class="tag">Research · GitHub</span><span class="go">열기 →</span></div>
+        </div>
+      </a>
+
+
+
+      <a class="proj" href="./public-data-collector/">
+        <div class="badge">NEW · API</div>
+        <div class="thumb" style="background:
+          radial-gradient(360px 160px at 22% 24%, rgba(15,122,104,.5), transparent 60%),
+          radial-gradient(280px 160px at 80% 80%, rgba(226,164,75,.28), transparent 60%),
+          linear-gradient(135deg,#0d1b1a,#16302d)"><span class="emo">📥</span></div>
+        <div class="body">
+          <div class="ttl">공공데이터 수집 기록소 · CSV → Supabase</div>
+          <div class="sub">부동산·상권·기상 공공데이터 API를 선택해 버튼(또는 주기 반복)으로 수집하고, CSV로 변환해 Supabase Storage에 저장합니다. serviceKey 이중 인코딩을 차단한 수집 프록시 포함.</div>
+          <div class="row"><span class="tag">data.go.kr · Supabase · CSV</span><span class="go">열기 →</span></div>
+        </div>
+      </a>
+
+      <a class="proj" href="./onenote-notion-status/">
+        <div class="badge">NEW · LIVE</div>
+        <div class="thumb" style="background:
+          radial-gradient(360px 160px at 22% 24%, rgba(11,110,153,.48), transparent 60%),
+          radial-gradient(280px 160px at 80% 80%, rgba(15,92,76,.34), transparent 60%),
+          linear-gradient(135deg,#0d1f24,#14302c)"><span class="emo">◎</span></div>
+        <div class="body">
+          <div class="ttl">OneNote · Notion 상태판</div>
+          <div class="sub">웹 OneNote와 Notion의 공식 상태·도달성·응답 지연을 실시간으로 점검. 60초 자동 갱신과 최근 점검 기록 포함.</div>
+          <div class="row"><span class="tag">Status · OneNote · Notion</span><span class="go">열기 →</span></div>
+        </div>
+      </a>
+
+      <a class="proj" href="./exchange-rate/">
+        <div class="badge">NEW · API</div>
+        <div class="thumb" style="background:
+          radial-gradient(360px 160px at 24% 24%, rgba(57,135,229,.45), transparent 60%),
+          radial-gradient(280px 160px at 80% 80%, rgba(176,109,224,.32), transparent 60%),
+          linear-gradient(135deg,#0c1730,#12224a)"><span class="emo">💱</span></div>
+        <div class="body">
+          <div class="ttl">월간 거시경제 대시보드 · 환율 금리 물가 · BTC</div>
+          <div class="sub">주요 통화 환율·한국은행 기준금리·소비자물가와 비트코인 월별 시세를 한 화면에서 비교. 변동밴드·상대강도·전월비·금리 vs 물가. 영업일 자동 갱신.</div>
+          <div class="row"><span class="tag">Chart.js · ECB · 한국은행 · Binance</span><span class="go">열기 →</span></div>
+        </div>
+      </a>
+
+      <a class="proj" href="./trade/">
+        <div class="badge">NEW · API</div>
+        <div class="thumb" style="background:
+          radial-gradient(360px 160px at 24% 24%, rgba(92,136,236,.45), transparent 60%),
+          radial-gradient(280px 160px at 80% 80%, rgba(34,163,133,.32), transparent 60%),
+          linear-gradient(135deg,#0c1730,#12224a)"><span class="emo">🚢</span></div>
+        <div class="body">
+          <div class="ttl">무역 월별 대시보드 · 국가별 수출입실적</div>
+          <div class="sub">관세청 국가별 수출입실적(GW) API로 월별 수출(FOB)·수입(CIF)·무역수지 시계열과 국가별 TOP 10 순위·국가 상세 추이를 인터랙티브로 탐색. 매월 자동 갱신.</div>
+          <div class="row"><span class="tag">Chart.js · 관세청 · 공공데이터 API</span><span class="go">열기 →</span></div>
+        </div>
+      </a>
+
+      <a class="proj" href="./fsc-financial/">
+        <div class="badge">NEW · API</div>
+        <div class="thumb" style="background:
+          radial-gradient(360px 160px at 22% 24%, rgba(62,201,167,.48), transparent 60%),
+          radial-gradient(280px 160px at 80% 80%, rgba(58,123,213,.30), transparent 60%),
+          linear-gradient(135deg,#081820,#123246)"><span class="emo">◎</span></div>
+        <div class="body">
+          <div class="ttl">금융위원회 기업재무 대시보드 · 100건씩 탐색</div>
+          <div class="sub">요약재무제표 API로 매출·당기순이익·총자산·부채비율을 100건 단위로 불러와 막대·분포·산점도 차트와 정렬 표로 인터랙티브 탐색합니다.</div>
+          <div class="row"><span class="tag">Chart.js · 금융위원회 · data.go.kr</span><span class="go">열기 →</span></div>
+        </div>
+      </a>
+
+      <a class="proj" href="./korea-tourism/">
+        <div class="badge">LIVE · API</div>
+        <div class="thumb" style="background:
+          radial-gradient(360px 160px at 25% 25%, rgba(57,135,229,.45), transparent 60%),
+          radial-gradient(280px 160px at 78% 78%, rgba(201,133,0,.30), transparent 60%),
+          linear-gradient(135deg,#0c1730,#12224a)"><span class="emo">🧳</span></div>
+        <div class="body">
+          <div class="ttl">방한 관광객 대시보드 · 중국 대만 베트남</div>
+          <div class="sub">2024년 이후 국적별 월별 방한 외래관광객 시계열. 한국관광공사 데이터랩 통계 · 공공데이터포털 출입국관광통계 API로 매월 자동 갱신.</div>
+          <div class="row"><span class="tag">Chart.js · 공공데이터 API</span><span class="go">열기 →</span></div>
+        </div>
+      </a>
+
+      <a class="proj" href="./cities/">
+        <div class="badge">NEW</div>
+        <div class="thumb" style="background:radial-gradient(340px 170px at 22% 22%, rgba(79,127,255,.5), transparent 60%),radial-gradient(280px 160px at 82% 82%, rgba(46,196,182,.4), transparent 60%),linear-gradient(135deg,#0d1426,#121b33)"><span class="emo">🌏</span></div>
+        <div class="body">
+          <div class="ttl">밟은 도시 · 발자취 인터랙티브 지도</div>
+          <div class="sub">전 세계 84개 도시(국내 36 · 해외 25개국)를 지역별 색상 마커로 표시한 Leaflet 지도. 마커 호버 시 도시명, 권역 토글, 도시명 클릭 이동.</div>
+          <div class="row"><span class="tag">Leaflet · Interactive Map</span><span class="go">열기 →</span></div>
+        </div>
+      </a>
+
+      <a class="proj" href="./cover_designs.html">
+        <div class="thumb" style="background:linear-gradient(135deg,#2a2015,#5c4223)"><span class="emo">📖</span></div>
+        <div class="body">
+          <div class="ttl">Cover Designs — Storyboard</div>
+          <div class="sub">스토리북·미니멀 커버 레이아웃 6종 디자인 프로토타입.</div>
+          <div class="row"><span class="tag">Design · Typography</span><span class="go">열기 →</span></div>
+        </div>
+      </a>
+
+      <a class="proj" href="/koi-coach/" style="text-decoration:none;color:inherit">
+        <div class="thumb" style="background:linear-gradient(135deg,#1a2340,#243560)"><span class="emo">🧠</span></div>
+        <div class="body">
+          <div class="ttl">KOI Coach</div>
+          <div class="sub">수학정보올림피아드 대비 문제 큐레이션·풀이 아카이브. 학생별 진도 관리.</div>
+          <div class="row"><span class="tag">Education</span><span class="go">열기 →</span></div>
+        </div>
+      </a>
+
+    </div>
+  </section>
+
+  <section class="sec" id="about">
+    <h2>About</h2>
+    <div class="desc">역할과 관심사 요약. 협업·강의·컨설팅 문의는 아래 메일로 부탁드립니다.</div>
+    <div class="about">
+      <div class="box">
+        <h3>현재 하는 일</h3>
+        <ul>
+          <li>Stargate Corporation CEO — AI/공간 데이터 기반 프로덕트 기획·개발</li>
+          <li>대치동 KOI 수학정보올림피아드 강사 — 알고리즘·수학 교육</li>
+          <li>Claude Desktop / Cowork / Claude Code 환경에서 멀티 MCP 워크플로우 구축</li>
+        </ul>
+      </div>
+      <div class="box">
+        <h3>연락 / 링크</h3>
+        <ul>
+          <li>Email: <a href="mailto:jds068888@gmail.com">jds068888@gmail.com</a></li>
+          <li>GitHub: <a href="https://github.com/DongsooJung" target="_blank" rel="noopener">github.com/DongsooJung</a></li>
+          <li>Gallery: <a href="https://dongsoojung.github.io/stargate-ai-gallery/">stargate-ai-gallery</a></li>
+          <li>포털 소스: <a href="https://github.com/DongsooJung/dongsoojung.github.io" target="_blank" rel="noopener">github.com/DongsooJung/dongsoojung.github.io</a></li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <footer>
+    <span>© 2026 Dongsoo Jung · Stargate Corporation</span>
+    <span>
+      <a href="https://stargateedu.co.kr/" target="_blank" rel="noopener">stargateedu.co.kr</a> ·
+      <a href="https://github.com/DongsooJung" target="_blank" rel="noopener">GitHub</a> ·
+      <a href="mailto:jds068888@gmail.com">jds068888@gmail.com</a>
+    </span>
+    <span class="business-info">상호 : 주식회사 별의문 · 대표자명 : 정동수 · 사업자번호 : 848-86-03835 · 통신판매업신고번호 : 2025-서울강남-05246호 · 주소 : 서울특별시 강남구 삼성로63길 8-15, 204호 (대치동) · 전화 : 070-8018-8227 · 개인정보보호책임자 : 정동수 · 이메일 : ceo@stargateedu.co.kr</span>
+  </footer>
+
+</div>
+<script>
+
+(() => {
+  const langSelect = document.getElementById('lang-select');
+  if (!langSelect) return;
+  langSelect.addEventListener('change', () => {
+    if (langSelect.value) location.href = langSelect.value;
+  });
+})();
+
+(() => {
+  const key = 'stargate-theme';
+  const root = document.documentElement;
+  const toggle = document.getElementById('theme-toggle');
+  const icon = document.getElementById('theme-toggle-icon');
+  const label = document.getElementById('theme-toggle-label');
+  const themeColor = document.querySelector('meta[name="theme-color"]');
+  if (!toggle || !icon || !label) return;
+
+  function applyTheme(theme, persist = false) {
+    const current = theme === 'light' ? 'light' : 'dark';
+    const nextIsLight = current === 'dark';
+    root.dataset.theme = current;
+    icon.textContent = nextIsLight ? '☀️' : '🌙';
+    label.textContent = nextIsLight ? '화이트' : '다크';
+    toggle.setAttribute('aria-label', `${nextIsLight ? '화이트' : '다크'} 모드로 전환`);
+    toggle.setAttribute('aria-pressed', String(current === 'light'));
+    toggle.title = `${nextIsLight ? '화이트' : '다크'} 모드로 전환`;
+    if (themeColor) themeColor.content = current === 'light' ? '#f6f8fc' : '#0b1020';
+    if (persist) {
+      try { localStorage.setItem(key, current); } catch (_) {}
+    }
+  }
+
+  applyTheme(root.dataset.theme);
+  toggle.addEventListener('click', () => {
+    applyTheme(root.dataset.theme === 'light' ? 'dark' : 'light', true);
+  });
+
+  const systemTheme = matchMedia('(prefers-color-scheme: light)');
+  systemTheme.addEventListener?.('change', (event) => {
+    try {
+      if (!localStorage.getItem(key)) applyTheme(event.matches ? 'light' : 'dark');
+    } catch (_) {}
+  });
+})();
+
+(() => {
+  const toggle = document.getElementById('project-visibility-toggle');
+  const grid = document.getElementById('projects-grid');
+  if (!toggle || !grid) return;
+
+  const cards = [...grid.querySelectorAll(':scope > .proj')];
+  const firstHiddenIndex = cards.findIndex((card) =>
+    card.querySelector('.ttl')?.textContent.includes('하루 견적서 · Quote Maker')
+  );
+  if (firstHiddenIndex < 0) {
+    toggle.hidden = true;
+    return;
+  }
+
+  const targetCards = cards.filter((card, index) =>
+    index >= firstHiddenIndex
+      || card.querySelector('.ttl')?.textContent.includes('화성 실거래 데이터 허브')
+  );
+  const label = toggle.querySelector('span:last-child');
+  const icon = toggle.querySelector('span:first-child');
+
+  function setExpanded(expanded) {
+    targetCards.forEach((card) => card.classList.toggle('is-project-hidden', !expanded));
+    toggle.setAttribute('aria-expanded', String(expanded));
+    label.textContent = expanded
+      ? '숨긴 프로젝트 다시 접기'
+      : '숨긴 프로젝트 보기';
+    icon.textContent = expanded ? '▴' : '▾';
+  }
+
+  setExpanded(false);
+  toggle.addEventListener('click', () => {
+    setExpanded(toggle.getAttribute('aria-expanded') !== 'true');
+  });
+})();
+
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => navigator.serviceWorker.register('/sw.js'));
+}
+</script>
+<script src="/assets/visitor-counter.js?v=20260725" defer></script>
+</body>
+</html>

@@ -1,0 +1,42 @@
+name: Deploy K-Startup API to Vercel
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - 'api/kstartup.js'
+      - 'vercel.json'
+      - '.github/workflows/deploy-kstartup-vercel.yml'
+      - 'scripts/deploy-kstartup-vercel.sh'
+
+permissions:
+  contents: read
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Install Vercel CLI
+        run: npm install -g vercel@58
+
+      - name: Deploy K-Startup API
+        env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+          VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
+          DATA_GO_KR_API_KEY: ${{ secrets.DATA_GO_KR_API_KEY }}
+        run: |
+          if [ -z "$VERCEL_TOKEN" ]; then
+            echo "::warning::VERCEL_TOKEN secret이 없어 Vercel 배포를 건너뜁니다."
+            echo "GitHub Pages의 kstartup/ 정적 대시보드는 nidapi 직접 호출로 동작합니다."
+            exit 0
+          fi
+          bash scripts/deploy-kstartup-vercel.sh
