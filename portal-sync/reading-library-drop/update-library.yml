@@ -1,0 +1,46 @@
+name: Update library catalog from Notion
+
+on:
+  schedule:
+    - cron: '20 21 * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: library-notion-update
+  cancel-in-progress: false
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      NOTION_API_KEY: ${{ secrets.NOTION_API_KEY }}
+      NOTION_DATA_SOURCE_ID: ${{ vars.NOTION_DATA_SOURCE_ID }}
+      NOTION_LIBRARY_DATA_SOURCE_ID: ${{ vars.NOTION_LIBRARY_DATA_SOURCE_ID }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Fetch full library from Notion
+        run: |
+          if [ -z "$NOTION_API_KEY" ]; then
+            echo "::warning::NOTION_API_KEY secret is not configured; keeping the current snapshot."
+            exit 0
+          fi
+          node scripts/update-library-from-notion.mjs
+      - name: Commit changed dataset
+        run: |
+          if git diff --quiet -- reading/data/notion-library.json; then
+            echo "No data changes"
+            exit 0
+          fi
+          git config user.name "stargate-data-bot"
+          git config user.email "actions@users.noreply.github.com"
+          git add reading/data/notion-library.json
+          COUNT=$(node -e "const d=require('./reading/data/notion-library.json'); console.log(d.meta?.count || (d.books||d.posts||[]).length)")
+          git commit -m "data: sync Notion library catalog (${COUNT} books)"
+          git push
