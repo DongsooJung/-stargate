@@ -1,7 +1,27 @@
 # portal-sync · dongsoojung.github.io
 
 www.stargateedu.co.kr 포털(`DongsooJung/dongsoojung.github.io`)에
-K-Startup 대시보드 + Vercel API를 이식하는 패키지입니다.
+기능을 이식하는 패키지입니다. Cloud Agent는 포털에 push 권한이 없어
+여기 두고 로컬에서 적용합니다.
+
+## 패키지
+
+| 경로 | 내용 |
+|------|------|
+| `apply-to-portal.sh` | K-Startup 대시보드 이식 |
+| `apply-reading-library.sh` | Notion 서재(~598권) 카탈로그 + 자동 갱신 |
+| `READING_LIBRARY.md` | 서재 연동 상세 가이드 |
+| `dongsoojung.github.io/` | 포털에 복사할 파일 트리 |
+
+## 서재 연동 (권장)
+
+```bash
+./portal-sync/apply-reading-library.sh /path/to/dongsoojung.github.io
+```
+
+자세한 절차: [READING_LIBRARY.md](./READING_LIBRARY.md)
+
+## K-Startup 한 줄 적용
 
 포털 저장소는 **vercel[bot]** 이 연결되어 있어, `api/kstartup.js` 가
 main(또는 연결된 브랜치)에 들어가면 `stargate-bid-api.vercel.app` 로
