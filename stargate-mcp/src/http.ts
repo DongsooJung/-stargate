@@ -26,12 +26,13 @@ export async function safeFetch(
   const timer = setTimeout(() => controller.abort(), timeoutMs);
   try {
     const response = await fetcher(url, { ...init, signal: controller.signal });
+    if (init.method?.toUpperCase() === 'HEAD') return { response, text: '' };
     const declared = Number(response.headers.get('content-length') ?? 0);
     if (declared > maxBytes) {
       throw new UpstreamError(`Upstream response exceeded the ${maxBytes}-byte safety limit.`, response.status);
     }
 
-    if (init.method === 'HEAD' || response.body === null) return { response, text: '' };
+    if (response.body === null) return { response, text: '' };
     const reader = response.body.getReader();
     const chunks: Uint8Array[] = [];
     let total = 0;
