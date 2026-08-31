@@ -60,7 +60,103 @@ function mockFetch(input: RequestInfo | URL): Promise<Response> {
   return Promise.resolve(Response.json({}));
 }
 
-test('rejects missing authentication with HTTP 401', async () => {
+test('browser GET provides public Korean help without secrets or upstream calls', async () => {
+  const handler = createStargateHandler({ env, fetcher: async () => { throw new Error('Public help must not call upstreams'); } });
+  try {
+    for (const path of ['/', '/api/mcp']) {
+      const response = await handler.fetch(new Request(`https://mcp.example${path}`, { headers: { accept: 'text/html' } }));
+      assert.equal(response.status, 200);
+      assert.match(response.headers.get('content-type') ?? '', /^text\/html/);
+      const text = await response.text();
+      assert.match(text, /연결 안내/);
+      assert.match(text, /Streamable HTTP/);
+      assert.match(text, /POST/);
+      assert.match(text, /MCP_AUTH_TOKEN/);
+      assert.match(text, /VERCEL_TOKEN/);
+      for (const value of Object.values(env)) assert.ok(!text.includes(value), `Help exposed ${value}`);
+    }
+    const root = await handler.fetch(new Request('https://mcp.example/'));
+    assert.match(root.headers.get('content-type') ?? '', /^text\/html/);
+    const api = await handler.fetch(new Request('https://mcp.example/api/mcp', { headers: { accept: 'application/json' } }));
+    assert.equal(api.status, 200);
+    assert.equal((await api.json() as { method: string }).method, 'POST');
+  } finally {
+    await handler.close();
+  }
+});
+
+test('explicit SSE GET retains 405 even when HTML or JSON are also accepted', async () => {
+  const handler = createStargateHandler({ env });
+  try {
+    for (const path of ['/', '/api/mcp']) {
+      for (const accept of ['text/event-stream', 'application/json, text/event-stream', 'text/html, Text/Event-Stream; charset=utf-8']) {
+        const response = await handler.fetch(new Request(`https://mcp.example${path}`, { headers: { accept } }));
+        assert.equal(response.status, 405);
+        assert.equal(response.headers.get('allow'), 'POST');
+        assert.doesNotMatch(response.headers.get('content-type') ?? '', /html|json/);
+      }
+    }
+  } finally {
+    await handler.close();
+  }
+});
+
+test('HEAD returns the help headers with no body', async () => {
+  const handler = createStargateHandler({ env });
+  try {
+    for (const path of ['/', '/api/mcp']) {
+      const response = await handler.fetch(new Request(`https://mcp.example${path}`, { method: 'HEAD', headers: { accept: 'text/html' } }));
+      assert.equal(response.status, 200);
+      assert.match(response.headers.get('content-type') ?? '', /^text\/html/);
+      assert.equal(await response.text(), '');
+    }
+  } finally {
+    await handler.close();
+  }
+});
+
+test('public help still rejects untrusted origins and mismatched hosts', async () => {
+  const handler = createStargateHandler({ env });
+  try {
+    for (const path of ['/', '/api/mcp']) {
+      for (const headers of [{ origin: 'https://evil.example' }, { host: 'evil.example' }]) {
+        const response = await handler.fetch(new Request(`https://mcp.example${path}`, { headers }));
+        assert.equal(response.status, 403);
+      }
+    }
+    const allowed = await handler.fetch(new Request('https://mcp.example/api/mcp', { headers: { origin: env.SITE_BASE_URL } }));
+    assert.equal(allowed.status, 200);
+  } finally {
+    await handler.close();
+  }
+});
+
+test('unknown paths and unsupported methods do not receive public help', async () => {
+  const handler = createStargateHandler({ env });
+  try {
+    const missing = await handler.fetch(new Request('https://mcp.example/missing'));
+    assert.equal(missing.status, 404);
+    const unsupported = await handler.fetch(new Request('https://mcp.example/api/mcp', { method: 'DELETE' }));
+    assert.equal(unsupported.status, 405);
+  } finally {
+    await handler.close();
+  }
+});
+
+test('public help does not allow unauthenticated POST', async () => {
+  const handler = createStargateHandler({ env });
+  try {
+    const request = rpcRequest({ jsonrpc: '2.0', id: 1, method: 'tools/list' });
+    request.headers.delete('authorization');
+    const response = await handler.fetch(request);
+    assert.equal(response.status, 401);
+    assert.match(response.headers.get('www-authenticate') ?? '', /^Bearer/);
+  } finally {
+    await handler.close();
+  }
+});
+
+test('rejects invalid authentication with HTTP 401', async () => {
   const handler = createStargateHandler({ env, fetcher: mockFetch });
   const request = rpcRequest({ jsonrpc: '2.0', id: 1, method: 'tools/list' }, 'wrong-token');
   const response = await handler.fetch(request);

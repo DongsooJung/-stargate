@@ -33,6 +33,8 @@ Recommended token scopes are read-only where the provider supports them: GitHub 
 
 ## Local verification
 
+Opening `/api/mcp` in a browser now shows a public Korean connection guide; `/` also shows the guide. These GET/HEAD responses expose no environment values or tool data and do not indicate upstream health. Actual MCP calls still require POST with `Authorization: Bearer <MCP_AUTH_TOKEN>` using Streamable HTTP. `VERCEL_TOKEN` is only for the server's Vercel API calls, not client authentication. Explicit GET requests accepting `text/event-stream` return 405 because the server does not provide a separate SSE stream.
+
 ```powershell
 npm install
 npm run build

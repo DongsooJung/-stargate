@@ -209,18 +209,55 @@ export function buildServer(options: ServerOptions = {}): McpServer {
   return server;
 }
 
+const connectionHelp = {
+  name: 'stargate-mcp',
+  endpoint: '/api/mcp',
+  transport: 'Streamable HTTP',
+  method: 'POST',
+  authentication: 'Authorization: Bearer <MCP_AUTH_TOKEN>',
+  message: '이 주소는 MCP 연결용입니다. MCP 클라이언트에서 POST로 연결하세요. VERCEL_TOKEN은 서버의 Vercel 조회용이며 MCP 접속 토큰이 아닙니다.',
+  note: '이 안내는 외부 서비스의 정상 작동 여부를 확인하지 않습니다. 별도의 GET SSE 스트림은 지원하지 않습니다.',
+};
+
+function helpResponse(request: Request, root: boolean): Response {
+  const acceptedTypes = (request.headers.get('accept') ?? '').toLowerCase().split(',').map((value) => value.split(';', 1)[0]?.trim());
+  // MCP GET requests must receive an SSE stream or 405, never a help document.
+  if (acceptedTypes.includes('text/event-stream')) {
+    return new Response(request.method === 'HEAD' ? null : 'GET SSE is not supported. Use POST for MCP requests.', {
+      status: 405, headers: { allow: 'POST', 'cache-control': 'no-store' },
+    });
+  }
+  const html = acceptedTypes.includes('text/html') || (root && !acceptedTypes.includes('application/json'));
+  const body = html ? `<!doctype html>
+<html lang="ko"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Stargate MCP 연결 안내</title></head>
+<body><main><h1>Stargate MCP 연결 안내</h1>
+<p>이 주소는 MCP 연결용입니다. 브라우저에서는 연결 안내가 표시됩니다.</p>
+<ol><li>MCP 클라이언트에 이 서버의 <code>/api/mcp</code> 주소를 입력하세요.</li>
+<li>전송 방식은 <strong>Streamable HTTP</strong>, 요청 메서드는 <strong>POST</strong>입니다.</li>
+<li>인증 헤더는 <code>Authorization: Bearer &lt;MCP_AUTH_TOKEN&gt;</code>입니다. 꺾쇠 부분을 발급받은 MCP 접속 토큰으로 바꾸세요.</li></ol>
+<p><code>VERCEL_TOKEN</code>은 서버의 Vercel 조회용이며 MCP 접속 토큰이 아닙니다. 토큰을 주소창이나 공유 문서에 넣지 마세요.</p>
+<p>이 안내는 외부 서비스의 정상 작동 여부를 확인하지 않습니다. 별도의 GET SSE 스트림은 지원하지 않습니다.</p>
+</main></body></html>` : JSON.stringify(connectionHelp);
+  return new Response(request.method === 'HEAD' ? null : body, {
+    headers: {
+      'content-type': html ? 'text/html; charset=utf-8' : 'application/json; charset=utf-8',
+      'cache-control': 'no-store',
+      'content-security-policy': "default-src 'none'; base-uri 'none'; frame-ancestors 'none'; form-action 'none'",
+      'x-content-type-options': 'nosniff',
+      vary: 'Accept',
+    },
+  });
+}
+
 export function createStargateHandler(options: ServerOptions = {}) {
   const env = options.env ?? process.env;
   const mcp = createMcpHandler(() => buildServer({ env, ...(options.fetcher ? { fetcher: options.fetcher } : {}) }));
   return {
     async fetch(request: Request): Promise<Response> {
       const url = new URL(request.url);
-      if (url.pathname !== '/api/mcp') return new Response('Not found', { status: 404 });
-      if (request.method !== 'POST') return new Response('Method not allowed', { status: 405, headers: { allow: 'POST' } });
-      const contentType = request.headers.get('content-type')?.split(';', 1)[0]?.trim().toLowerCase();
-      if (contentType !== 'application/json') return Response.json({ error: 'Content-Type must be application/json' }, { status: 415 });
-      const declaredLength = Number(request.headers.get('content-length') ?? 0);
-      if (declaredLength > 128 * 1024) return Response.json({ error: 'Request body exceeds 128 KiB' }, { status: 413 });
+      const isHelpRequest = request.method === 'GET' || request.method === 'HEAD';
+      if (url.pathname !== '/api/mcp' && !(url.pathname === '/' && isHelpRequest)) return new Response('Not found', { status: 404 });
+      if (request.method !== 'POST' && !isHelpRequest) return new Response('Method not allowed', { status: 405, headers: { allow: 'GET, HEAD, POST' } });
       const host = request.headers.get('host');
       if (host && host.toLowerCase() !== url.host.toLowerCase()) return Response.json({ error: 'Host header mismatch' }, { status: 403 });
       const origin = request.headers.get('origin');
@@ -233,6 +270,11 @@ export function createStargateHandler(options: ServerOptions = {}) {
         }
         if (origin !== url.origin && origin !== siteOrigin) return Response.json({ error: 'Origin not allowed' }, { status: 403 });
       }
+      if (isHelpRequest) return helpResponse(request, url.pathname === '/');
+      const contentType = request.headers.get('content-type')?.split(';', 1)[0]?.trim().toLowerCase();
+      if (contentType !== 'application/json') return Response.json({ error: 'Content-Type must be application/json' }, { status: 415 });
+      const declaredLength = Number(request.headers.get('content-length') ?? 0);
+      if (declaredLength > 128 * 1024) return Response.json({ error: 'Request body exceeds 128 KiB' }, { status: 413 });
       if (!(await hasValidBearer(request, env.MCP_AUTH_TOKEN))) {
         return Response.json({ error: 'Unauthorized' }, { status: 401, headers: { 'www-authenticate': 'Bearer realm="stargate-mcp"', 'cache-control': 'no-store' } });
       }
