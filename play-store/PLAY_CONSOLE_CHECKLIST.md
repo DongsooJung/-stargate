@@ -4,8 +4,8 @@
 
 ## A. 개발자 계정
 
-- [ ] [Play Console](https://play.google.com/console) 가입 ($25 1회)
-- [ ] 신원 확인(개인/조직) 완료
+- [x] [Play Console](https://play.google.com/console) 가입 ($25 1회)
+- [x] 신원 확인(개인/조직) 완료
 - [ ] 개인 계정이면 프로덕션 전 **비공개 테스트 12명 × 14일** 계획
 
 ## B. 앱 생성
@@ -20,7 +20,7 @@
 
 | 항목 | 입력값 |
 |------|--------|
-| 개인정보처리방침 | https://stargateedu.co.kr/privacy.html |
+| 개인정보처리방침 | https://stargateedu.co.kr/-stargate/privacy.html |
 | 광고 포함 | 아니요 |
 | 타겟 연령 | 만 18세 이상(또는 교육 앱에 맞게 선택) |
 | 뉴스 앱 | 아니요 |

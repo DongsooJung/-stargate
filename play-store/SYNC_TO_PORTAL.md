@@ -1,27 +1,9 @@
-# 포털 저장소 동기화 (필수)
+# 포털 assetlinks 동기화
 
-Digital Asset Links와 TWA 설정은 **도메인 루트**를 서빙하는
-`DongsooJung/dongsoojung.github.io`에 반영되어야 합니다.
+라이브 `https://stargateedu.co.kr/.well-known/assetlinks.json` 은 아직 placeholder입니다.
+이 파일의 내용을 포털 저장소 `dongsoojung.github.io`의 `.well-known/assetlinks.json`에 복사하세요.
 
-이 Cloud Agent 토큰으로는 해당 레포에 push할 수 없어, 아래 파일을 수동 반영하세요.
+업로드 키 SHA-256 (이미 포함됨):
+`B2:30:C1:2C:19:3D:2E:E7:7F:E8:FD:23:FD:74:C6:B3:AF:C4:F6:EA:1D:F2:03:57:09:C3:CD:10:43:9D:89:92`
 
-## 복사할 파일
-
-| 이 폴더 | 포털 경로 |
-|---------|-----------|
-| `.well-known-patch/assetlinks.json` | `.well-known/assetlinks.json` |
-| `twa-manifest.json` | `app/twa-manifest.json` |
-| `README.md` | `app/README.md` |
-| `PLAY_CONSOLE_CHECKLIST.md` | `app/PLAY_CONSOLE_CHECKLIST.md` |
-| `store-listing/feature-graphic.png` | `app/store-listing/feature-graphic.png` |
-
-```bash
-# 로컬에서 예시
-git clone https://github.com/DongsooJung/dongsoojung.github.io.git
-cp play-store/.well-known-patch/assetlinks.json dongsoojung.github.io/.well-known/
-cp play-store/twa-manifest.json dongsoojung.github.io/app/
-# …나머지 동일
-```
-
-반영 후 `https://stargateedu.co.kr/.well-known/assetlinks.json` 에
-업로드 키 SHA-256이 보이면 TWA 주소창 제거가 가능합니다.
+Play Console 첫 AAB 업로드 후 **앱 서명 키 SHA-256**을 배열에 한 줄 더 넣습니다.

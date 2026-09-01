@@ -1,0 +1,11 @@
+{
+  "name": "stargate-homepage",
+  "private": true,
+  "scripts": {
+    "deploy:kstartup-api": "bash scripts/deploy-kstartup-vercel.sh",
+    "test:kstartup": "node kstartup/test-parser.mjs"
+  },
+  "devDependencies": {
+    "vercel": "^58.1.0"
+  }
+}

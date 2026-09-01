@@ -1,0 +1,6 @@
+*.keystore
+*.jks
+*.aab
+*.apk
+UPLOAD_KEY_SECRET.txt
+kspass.txt

@@ -3,10 +3,11 @@
 ## 앱 정보
 - 이름: Stargate
 - 패키지: kr.co.stargateedu.app
-- 카테고리 추천: 교육 또는 비즈니스
+- 버전: 1.0.0 (versionCode 3)
+- 카테고리 추천: 교육
 - 이메일: ceo@stargateedu.co.kr
 - 웹사이트: https://stargateedu.co.kr/
-- 개인정보처리방침: https://stargateedu.co.kr/privacy.html
+- 개인정보처리방침: https://stargateedu.co.kr/-stargate/privacy.html
 
 ## 짧은 설명 (80자)
 AI·교육·공간계량 포털. 수업 예약과 출결, Stargate 프로젝트를 한 앱에서.
@@ -29,6 +30,6 @@ Stargate는 Stargate Corporation의 공식 포털 앱입니다.
 ## Digital Asset Links (업로드 키)
 패키지: kr.co.stargateedu.app
 SHA-256:
-C0:0C:07:6D:B7:E6:46:D8:EE:12:EB:00:7A:B9:4C:31:47:B3:4C:05:5A:86:BA:5B:24:45:5B:8D:86:AF:79:B3
+B2:30:C1:2C:19:3D:2E:E7:7F:E8:FD:23:FD:74:C6:B3:AF:C4:F6:EA:1D:F2:03:57:09:C3:CD:10:43:9D:89:92
 
 Play App Signing 키 지문은 첫 AAB 업로드 후 Console → 앱 서명에서 추가.

@@ -63,13 +63,21 @@ Automation:  n8n / Google Apps Script / Custom Pipelines
 
 ```
 stargate-homepage/
-├── index.html                              # 홈페이지 (예약 · 출결 CTA)
+├── index.html                              # 홈페이지 (예약 · D-Day · 출결 CTA)
 ├── schedule.html                           # 수업 주간 시간표 · Supabase 예약
 ├── report.html                             # 출결 현황 · 당일 수업 보고서
+├── dday.html                               # D-Day 카운트다운 캘린더 대시보드
+├── kstartup/                               # K-Startup 지원사업 관측소 (100건/페이지)
+├── api/kstartup.js                         # K-Startup → Supabase 프록시
 ├── supabase/class_bookings.sql             # 예약 테이블 스키마
 ├── supabase/class_attendance.sql           # 출결 · 일일 보고서 스키마
+├── supabase/dday_events.sql                # D-Day 이벤트 스키마
+├── supabase/kstartup.sql                   # K-Startup 테이블 스키마
 ├── scripts/apply-class-bookings-schema.mjs # 스키마 적용 스크립트
+├── scripts/apply-kstartup-schema.mjs       # K-Startup 스키마 적용
+├── portal-sync/                            # www.stargateedu.co.kr 이식 패키지
 ├── .github/workflows/apply-class-bookings-schema.yml
+├── .github/workflows/apply-kstartup-schema.yml
 ├── play-store/                             # Google Play TWA 배포 준비
 ├── PLAY_STORE.md                           # Play 배포 현황 요약
 ├── STARGATE HOMEPAGE.html
@@ -80,6 +88,27 @@ stargate-homepage/
 
 수업 예약·출결 웹앱을 포함한 **Stargate TWA** 앱(`kr.co.stargateedu.app`) 배포 준비 파일은 `play-store/` · `PLAY_STORE.md`를 참고하세요.
 AAB/APK·업로드 키는 비공개 아티팩트로 보관합니다(저장소에 커밋하지 않음).
+순차 제출: [`play-store/CONSOLE_STEPS.md`](play-store/CONSOLE_STEPS.md)
+
+## K-Startup 지원사업 관측소 (`kstartup/`)
+
+창업진흥원 K-Startup 조회서비스(`15125364`)로 사업공고·사업소개·콘텐츠·통계를
+**100건씩** 조회하고 Supabase에 upsert합니다.
+
+| 항목 | 내용 |
+|------|------|
+| 페이지 | `kstartup/index.html` |
+| API 프록시 | `api/kstartup.js` → Vercel (`stargate-bid-api`) |
+| 저장 | `kstartup_announcements` 등 + `kstartup_fetch_logs` |
+| 폴백 | `apis.data.go.kr` 403 시 `nidapi.k-startup.go.kr` |
+
+스키마: Supabase SQL Editor에서 `supabase/kstartup.sql` 실행, 또는
+
+```bash
+SUPABASE_ACCESS_TOKEN=... node scripts/apply-kstartup-schema.mjs
+```
+
+www.stargateedu.co.kr 전략 대시보드 이식은 `portal-sync/` 참고.
 
 ---
 
@@ -128,6 +157,23 @@ DATABASE_URL=postgres://... node scripts/apply-class-bookings-schema.mjs
 - 상세에서 **출결 보고서**(`report.html?date=`)·메일 알림 연동
 - 45초 자동 새로고침(탭 활성 시, 로딩 깜빡임 없음)
 - `?week=` / `?slot=` URL로 특정 주·슬롯 바로가기
+
+---
+
+## D-Day 캘린더 대시보드 (`dday.html`)
+
+The day before 스타일의 **D-Day 카운트다운 대시보드**입니다. Google Calendar 없이 Supabase에 저장합니다.
+
+| 기능 | 설명 |
+|------|------|
+| 대표 D-Day | 가장 가까운(또는 고정) 일정 대형 카운트다운 |
+| 월간 캘린더 | 날짜별 색상 점 · 클릭으로 추가/필터 |
+| 목록 | D-N / D-Day / D+N, 카테고리·상태 필터 |
+| 카테고리 | 시험 · 학교/수업 · 개인 · 업무 · 기념일 · 기타 |
+| 저장 | DB `dday_events` 또는 Storage `dday-events/{id}.json` |
+
+### DB 스키마 (선택)
+`supabase/dday_events.sql` 을 Supabase SQL Editor에서 실행하면 DB 모드로 전환됩니다.
 
 ---
 

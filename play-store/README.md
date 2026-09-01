@@ -9,8 +9,8 @@ Gradle 프로젝트·APK/AAB·서명키는 로컬에서 생성합니다(`.gitign
 | 패키지명 | `kr.co.stargateedu.app` |
 | 앱 이름 | Stargate |
 | 시작 URL | `https://stargateedu.co.kr/` |
-| 개인정보처리방침 | `https://stargateedu.co.kr/privacy.html` |
-| 현재 버전 | `1.0.0` (versionCode 1+) |
+| 개인정보처리방침 | `https://stargateedu.co.kr/-stargate/privacy.html` |
+| 현재 버전 | `1.0.0` (versionCode 3) |
 
 ## 0. 사전 준비
 
@@ -82,8 +82,8 @@ Play 앱 서명 키 지문은 **첫 AAB 업로드 후** 콘솔에서 받아 추�
      **비공개 테스트: 테스터 12명 × 14일 연속** 요건이 있습니다.
 2. 앱 만들기: 이름 `Stargate`, 기본 언어 한국어, 유형 앱, 무료
 3. 대시보드 설문 작성:
-   - 개인정보처리방침 URL: `https://stargateedu.co.kr/privacy.html`
-   - 데이터 보안: 수집·공유하는 데이터 없음
+   - 개인정보처리방침 URL: `https://stargateedu.co.kr/-stargate/privacy.html`
+   - 데이터 보안: `DATA_SAFETY.md` (예약 시 이름·전화)
    - 콘텐츠 등급 설문, 타겟층, 광고 없음
 4. 스토어 등록정보:
    - 앱 아이콘 512×512: `../assets/icons/icon-512.png`
