@@ -78,9 +78,17 @@ stargate-homepage/
 ├── portal-sync/                            # www.stargateedu.co.kr 이식 패키지
 ├── .github/workflows/apply-class-bookings-schema.yml
 ├── .github/workflows/apply-kstartup-schema.yml
+├── play-store/                             # Google Play TWA 배포 준비
+├── PLAY_STORE.md                           # Play 배포 현황 요약
 ├── STARGATE HOMEPAGE.html
 └── README.md
 ```
+
+## Google Play 배포
+
+수업 예약·출결 웹앱을 포함한 **Stargate TWA** 앱(`kr.co.stargateedu.app`) 배포 준비 파일은 `play-store/` · `PLAY_STORE.md`를 참고하세요.
+AAB/APK·업로드 키는 비공개 아티팩트로 보관합니다(저장소에 커밋하지 않음).
+순차 제출: [`play-store/CONSOLE_STEPS.md`](play-store/CONSOLE_STEPS.md)
 
 ## K-Startup 지원사업 관측소 (`kstartup/`)
 
