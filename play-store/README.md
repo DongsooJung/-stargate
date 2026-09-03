@@ -77,9 +77,8 @@ Play 앱 서명 키 지문은 **첫 AAB 업로드 후** 콘솔에서 받아 추�
 상세 체크리스트·문구·에셋 경로는 [`PLAY_CONSOLE_CHECKLIST.md`](./PLAY_CONSOLE_CHECKLIST.md) 참고.
 
 요약:
-1. [Play Console](https://play.google.com/console) 개발자 계정 등록 ($25, 1회) + 본인 인증
-   - ⚠️ 2023-11 이후 생성한 **개인 계정**은 프로덕션 공개 전
-     **비공개 테스트: 테스터 12명 × 14일 연속** 요건이 있습니다.
+1. [Play Console](https://play.google.com/console) 개발자 계정 — **법인(조직)** 인증·결제 완료
+   - 개인 계정용 비공개 테스트(12명×14일)는 해당 없음. 프로덕션 바로 제출.
 2. 앱 만들기: 이름 `Stargate`, 기본 언어 한국어, 유형 앱, 무료
 3. 대시보드 설문 작성:
    - 개인정보처리방침 URL: `https://stargateedu.co.kr/-stargate/privacy.html`
@@ -89,7 +88,7 @@ Play 앱 서명 키 지문은 **첫 AAB 업로드 후** 콘솔에서 받아 추�
    - 앱 아이콘 512×512: `../assets/icons/icon-512.png`
    - 피처 그래픽 1024×500: `store-listing/feature-graphic.png`
    - 휴대전화 스크린샷 2장 이상 (실기기 또는 에뮬레이터 캡처)
-5. 테스트 트랙에 `app-release-bundle.aab` 업로드 → 내부 테스트 → (개인 계정: 비공개 테스트 14일) → 프로덕션 심사 제출
+5. 프로덕션 트랙에 AAB 업로드 → 심사 제출 (법인 계정은 비공개 테스트 생략)
 
 ## 5. 기기 테스트 체크리스트
 
