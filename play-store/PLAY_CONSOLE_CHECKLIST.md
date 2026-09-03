@@ -4,9 +4,9 @@
 
 ## A. 개발자 계정
 
-- [x] [Play Console](https://play.google.com/console) 가입 ($25 1회)
-- [x] 신원 확인(개인/조직) 완료
-- [ ] 개인 계정이면 프로덕션 전 **비공개 테스트 12명 × 14일** 계획
+- [x] [Play Console](https://play.google.com/console) 가입 (법인 계정)
+- [x] 신원 확인(조직) 완료
+- [x] 법인 계정 — 비공개 테스트 12명×14일 **해당 없음**
 
 ## B. 앱 생성
 
@@ -25,10 +25,10 @@
 | 타겟 연령 | 만 18세 이상(또는 교육 앱에 맞게 선택) |
 | 뉴스 앱 | 아니요 |
 | COVID 관련 | 아니요 |
-| 데이터 보안 | **수집·공유하는 데이터 없음** (앱은 웹뷰/TWA이며, 예약 폼은 웹에서 Supabase로 처리 — 정책에 맞게 재검토) |
+| 데이터 보안 | 예약 시 이름·전화·이메일 수집 (`DATA_SAFETY.md`) |
 | 콘텐츠 등급 | IARC 설문 완료 |
 
-> 예약·출결 페이지가 연락처를 받을 수 있으므로, 실제 출시 전 데이터 보안 설문을 **수집하는 데이터(이름·전화번호)** 기준으로 다시 확인하세요. 필요 시 `privacy.html`도 업데이트합니다.
+> 방침 URL은 `https://stargateedu.co.kr/-stargate/privacy.html` (예약 연락처 수집을 명시).
 
 ## D. 스토어 등록정보 (한국어)
 
@@ -62,17 +62,15 @@ Stargate는 Stargate Corporation의 공식 포털 앱입니다.
 |------|------|------|
 | 앱 아이콘 | 512×512 | `../assets/icons/icon-512.png` |
 | 피처 그래픽 | 1024×500 | `store-listing/feature-graphic.png` |
-| 휴대전화 스크린샷 | 최소 2장 | 실기기/에뮬레이터에서 홈·예약 화면 캡처 |
+| 휴대전화 스크린샷 | 1080×1920 × 5 | `store-listing/screenshots/01`~`05` |
 
 ## E. 출시 (AAB)
 
-1. [ ] 내부 테스트 트랙에 `Stargate-*.aab` 업로드
-2. [ ] Play App Signing 활성화(기본) → **앱 서명 키 SHA-256** 복사
-3. [ ] `.well-known/assetlinks.json`에 Play 서명 키 지문 **추가** 후 배포
+1. [ ] 프로덕션 트랙에 `Stargate-1.0.0.aab` 업로드 (법인 계정 — 비공개 테스트 생략)
+2. [ ] Play App Signing → **앱 서명 키 SHA-256** 복사
+3. [ ] `.well-known/assetlinks.json`에 Play 서명 키 지문 추가 후 포털 배포
 4. [ ] Digital Asset Links [테스터](https://developers.google.com/digital-asset-links/tools/generator) 통과
-5. [ ] 실기기에서 주소창 없이 실행 확인
-6. [ ] (개인 계정) 비공개 테스트 14일 충족
-7. [ ] 프로덕션 심사 제출
+5. [ ] 프로덕션 심사 제출
 
 ## F. 빌드 산출물 (로컬/아티팩트)
 
