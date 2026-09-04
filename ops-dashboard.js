@@ -263,36 +263,33 @@
     const today = toYmd(now);
 
     const jobs = [
-      sb(`/rest/v1/class_bookings?status=eq.confirmed&starts_at=gte.${weekStart.toISOString()}&starts_at=lt.${weekEnd.toISOString()}&order=starts_at.asc&select=starts_at,ends_at,student_name,subject`)
-        .then((rows) => {
-          state.bookings = (rows || []).map(normalizeBooking);
-          state.source.bookings = 'live';
-        })
-        .catch(() => {}),
-      sb(`/rest/v1/class_attendance?report_date=eq.${today}&select=attendance,subject,starts_at,student_name`)
-        .then((rows) => {
-          state.attendance = rows || [];
-          state.source.attendance = 'live';
-        })
-        .catch(() => {}),
-      sb(`/rest/v1/class_daily_reports?report_date=eq.${today}&select=summary,highlights,issues,next_plan,stats`)
-        .then((rows) => {
-          state.report = rows?.[0] || null;
-          state.source.report = rows?.[0] ? 'live' : 'demo';
-        })
-        .catch(() => {}),
-      sb(`/rest/v1/dday_events?status=eq.active&order=target_date.asc&select=title,target_date,category,color,pinned,memo&limit=12`)
-        .then((rows) => {
-          state.ddays = rows || [];
-          state.source.dday = 'live';
-        })
-        .catch(() => {}),
-      sb(`/rest/v1/kstartup_announcements?select=biz_pbanc_nm,supt_regin,supt_biz_clsfc,rcrt_prgs_yn,pbanc_rcpt_end_dt,pbanc_ntrp_nm,fetched_at&order=fetched_at.desc&limit=8`)
-        .then((rows) => {
-          state.announcements = rows || [];
-          state.source.kstartup = 'live';
-        })
-        .catch(() => {}),
+      loadBookings(weekStart, weekEnd).then((rows) => {
+        if (!rows.length) return;
+        state.bookings = rows;
+        state.source.bookings = 'live';
+      }),
+      loadAttendance(today).then((rows) => {
+        if (!rows.length) return;
+        state.attendance = rows;
+        state.source.attendance = 'live';
+      }),
+      loadReport(today).then((row) => {
+        if (!row) return;
+        state.report = row;
+        state.source.report = 'live';
+      }),
+      loadDdays().then((rows) => {
+        if (!rows.length) return;
+        state.ddays = rows;
+        state.source.dday = 'live';
+      }),
+      sbJson(
+        `/rest/v1/kstartup_announcements?select=biz_pbanc_nm,supt_regin,supt_biz_clsfc,rcrt_prgs_yn,pbanc_rcpt_end_dt,pbanc_ntrp_nm,fetched_at&order=fetched_at.desc&limit=8`
+      ).then((rows) => {
+        if (!(rows || []).length) return;
+        state.announcements = rows;
+        state.source.kstartup = 'live';
+      }),
     ];
 
     await Promise.allSettled(jobs);
@@ -301,15 +298,149 @@
     show(keepIndex, false);
   }
 
-  async function sb(path) {
-    const res = await fetch(SUPABASE_URL + path, {
+  async function sbFetch(path, options = {}) {
+    return fetch(SUPABASE_URL + path, {
+      ...options,
       headers: {
         apikey: SUPABASE_ANON_KEY,
         Authorization: 'Bearer ' + SUPABASE_ANON_KEY,
+        ...(options.headers || {}),
       },
     });
-    if (!res.ok) throw new Error('sb_' + res.status);
-    return res.json();
+  }
+
+  async function sbJson(path, options) {
+    const res = await sbFetch(path, options);
+    const data = await res.json().catch(() => null);
+    if (!res.ok) throw new Error((data && data.message) || 'sb_' + res.status);
+    return data;
+  }
+
+  async function listStorage(prefix) {
+    const res = await sbFetch('/storage/v1/object/list/public-data-csv', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ prefix, limit: 1000 }),
+    });
+    const files = await res.json().catch(() => null);
+    if (!res.ok) throw new Error((files && files.message) || 'storage_list');
+    return (Array.isArray(files) ? files : [])
+      .map((f) => f.name)
+      .filter((n) => n && n.endsWith('.json') && !String(n).startsWith('_'));
+  }
+
+  async function loadBookings(weekStart, weekEnd) {
+    try {
+      const rows = await sbJson(
+        `/rest/v1/class_bookings?status=eq.confirmed&starts_at=gte.${weekStart.toISOString()}&starts_at=lt.${weekEnd.toISOString()}&order=starts_at.asc&select=starts_at,ends_at,student_name,subject`
+      );
+      return (rows || []).map(normalizeBooking);
+    } catch (_) {
+      /* tables are often absent — same Storage JSON as schedule.html */
+    }
+    const names = await listStorage('class-bookings/');
+    const picked = names.filter((name) => {
+      const start = parseSlotKey(name.replace(/\.json$/, ''));
+      return start && start >= weekStart && start < weekEnd;
+    });
+    const rows = await Promise.all(
+      picked.map(async (name) => {
+        try {
+          const row = await sbJson('/storage/v1/object/public-data-csv/class-bookings/' + name);
+          if (!row || row.status === 'cancelled') return null;
+          const key = name.replace(/\.json$/, '');
+          const start = parseSlotKey(row.slot_key || key);
+          const end = start ? new Date(start.getTime() + 3600000) : null;
+          return normalizeBooking({
+            starts_at: row.starts_at || (start && start.toISOString()),
+            ends_at: row.ends_at || (end && end.toISOString()),
+            student_name: row.student_name || row.name || '',
+            subject: row.subject || '',
+          });
+        } catch (_) {
+          return null;
+        }
+      })
+    );
+    return rows.filter(Boolean);
+  }
+
+  async function loadAttendance(today) {
+    try {
+      const rows = await sbJson(
+        `/rest/v1/class_attendance?report_date=eq.${today}&select=attendance,subject,starts_at,student_name`
+      );
+      return rows || [];
+    } catch (_) {}
+    const names = await listStorage('class-attendance/');
+    const picked = names.filter((n) => n.startsWith(today + 'T'));
+    const rows = await Promise.all(
+      picked.map(async (name) => {
+        try {
+          const row = await sbJson('/storage/v1/object/public-data-csv/class-attendance/' + name);
+          if (!row) return null;
+          return {
+            attendance: row.attendance || 'pending',
+            subject: row.subject || '',
+            starts_at: row.starts_at || '',
+            student_name: row.student_name || row.name || '',
+          };
+        } catch (_) {
+          return null;
+        }
+      })
+    );
+    return rows.filter(Boolean);
+  }
+
+  async function loadReport(today) {
+    try {
+      const rows = await sbJson(
+        `/rest/v1/class_daily_reports?report_date=eq.${today}&select=summary,highlights,issues,next_plan,stats`
+      );
+      const row = rows?.[0];
+      if (row && (row.summary || row.highlights || row.issues || row.next_plan)) return row;
+    } catch (_) {}
+    try {
+      const row = await sbJson('/storage/v1/object/public-data-csv/class-reports/' + today + '.json');
+      if (row && (row.summary || row.highlights || row.issues || row.next_plan)) return row;
+    } catch (_) {}
+    return null;
+  }
+
+  async function loadDdays() {
+    try {
+      const rows = await sbJson(
+        `/rest/v1/dday_events?status=eq.active&order=target_date.asc&select=title,target_date,category,color,pinned,memo&limit=12`
+      );
+      return rows || [];
+    } catch (_) {}
+    const names = await listStorage('dday-events/');
+    const rows = await Promise.all(
+      names.map(async (name) => {
+        try {
+          const row = await sbJson('/storage/v1/object/public-data-csv/dday-events/' + name);
+          if (!row || row.status === 'deleted' || row.status === 'archived') return null;
+          return {
+            title: row.title || '',
+            target_date: row.target_date || row.targetDate || '',
+            category: row.category || 'personal',
+            color: row.color || '#4f8fff',
+            pinned: !!row.pinned,
+            memo: row.memo || '',
+          };
+        } catch (_) {
+          return null;
+        }
+      })
+    );
+    return rows.filter((row) => row && row.target_date);
+  }
+
+  function parseSlotKey(key) {
+    const m = String(key || '').match(/^(\d{4})-(\d{2})-(\d{2})T(\d{2})$/);
+    if (!m) return null;
+    return new Date(+m[1], +m[2] - 1, +m[3], +m[4], 0, 0);
   }
 
   function seedDemo() {
@@ -512,7 +643,7 @@
   }
 
   function renderDday() {
-    const list = upcomingDdays();
+    const list = displayDdays();
     const hero = list[0];
     const rest = list.slice(1, 5);
     const d = hero ? daysUntil(hero.target_date) : null;
@@ -659,6 +790,12 @@
     return [...state.ddays]
       .filter((e) => e.target_date >= today)
       .sort((a, b) => (b.pinned === true) - (a.pinned === true) || String(a.target_date).localeCompare(String(b.target_date)));
+  }
+
+  function displayDdays() {
+    const upcoming = upcomingDdays();
+    if (upcoming.length) return upcoming;
+    return [...state.ddays].sort((a, b) => String(b.target_date).localeCompare(String(a.target_date)));
   }
 
   function daysUntil(ymd) {
