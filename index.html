@@ -99,7 +99,7 @@
     .reveal{opacity:0;transform:translateY(30px);transition:all .7s ease-out}
     .reveal.visible{opacity:1;transform:translateY(0)}
 
-    .ops{max-width:1280px;padding-top:5rem}
+    .ops{max-width:1280px;padding-top:88px;padding-bottom:3.5rem;min-height:100vh}
     .ops-intro{display:flex;justify-content:space-between;align-items:end;gap:1.5rem;flex-wrap:wrap;margin-bottom:1.5rem}
     .ops-intro .section-desc{margin-bottom:0}
     .ops-frame{position:relative;border:1px solid var(--border);border-radius:22px;background:linear-gradient(180deg,#0d121c 0%,#080b12 100%);box-shadow:0 40px 90px rgba(0,0,0,.4),inset 0 1px 0 rgba(255,255,255,.04);overflow:hidden;min-height:720px;display:flex;flex-direction:column}
@@ -209,27 +209,11 @@
     <a href="schedule.html" class="nav-book nav-book-mobile" style="margin-left:auto;margin-right:12px">예약</a>
     <button class="nav-toggle" id="navToggle" aria-label="Menu"><span></span><span></span><span></span></button>
   </nav>
-  <section class="hero">
-    <div class="hero-bg"><div class="hero-grid"></div></div>
-    <div class="hero-content">
-      <div class="hero-badge">Seoul, South Korea — Est. 2025</div>
-      <h1>AI 기술로 여는<br><span class="gradient-text">교육의 새로운 문</span></h1>
-      <p class="hero-sub">인공지능 소프트웨어 개발 · 수학 &amp; 정보올림피아드 교육 · 전자출판<br>기술과 교육의 경계를 허무는 AI 스타트업, 스타게이트</p>
-      <div class="hero-ctas">
-        <a href="#ops" class="btn-primary">통합 대시보드</a>
-        <a href="schedule.html" class="btn-secondary">예약</a>
-        <a href="dday.html" class="btn-secondary">D-Day</a>
-        <a href="report.html" class="btn-secondary">출결 · 보고서</a>
-        <a href="kstartup/" class="btn-secondary">K-Startup</a>
-        <a href="#contact" class="btn-secondary">상담 문의</a>
-      </div>
-    </div>
-  </section>
   <section id="ops" class="ops">
     <div class="ops-intro">
       <div>
         <div class="section-label">// Operations</div>
-        <h2 class="section-title">통합 대시보드 초안</h2>
+        <h2 class="section-title">통합 대시보드</h2>
         <p class="section-desc">예약 · 출결 · D-Day · K-Startup · 사업 영역을 12개 스크린으로 순환합니다. 5초마다 자동 전환되며, 프레임에 마우스를 올리면 멈춥니다.</p>
       </div>
     </div>
@@ -251,6 +235,21 @@
       <div class="ops-progress-track"><span class="ops-progress" id="opsProgress"></span></div>
       <div class="ops-stage" id="opsStage" role="region" aria-label="통합 대시보드 스크린"></div>
       <nav class="ops-rail" id="opsRail" aria-label="대시보드 스크린 목록"></nav>
+    </div>
+  </section>
+  <section class="hero">
+    <div class="hero-bg"><div class="hero-grid"></div></div>
+    <div class="hero-content">
+      <div class="hero-badge">Seoul, South Korea — Est. 2025</div>
+      <h1>AI 기술로 여는<br><span class="gradient-text">교육의 새로운 문</span></h1>
+      <p class="hero-sub">인공지능 소프트웨어 개발 · 수학 &amp; 정보올림피아드 교육 · 전자출판<br>기술과 교육의 경계를 허무는 AI 스타트업, 스타게이트</p>
+      <div class="hero-ctas">
+        <a href="schedule.html" class="btn-primary">예약</a>
+        <a href="dday.html" class="btn-secondary">D-Day</a>
+        <a href="report.html" class="btn-secondary">출결 · 보고서</a>
+        <a href="kstartup/" class="btn-secondary">K-Startup</a>
+        <a href="#contact" class="btn-secondary">상담 문의</a>
+      </div>
     </div>
   </section>
   <div class="stats-bar">
