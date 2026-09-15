@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>TMAP 모빌리티 연구대시보드 | STARGATE</title>
+  <meta name="description" content="실시간 교통을 반영한 수도권 통행시간·거리·비용 분석">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;700;800&amp;family=Noto+Sans+KR:wght@400;500;700&amp;family=JetBrains+Mono:wght@500&amp;display=swap" rel="stylesheet">
+  <style>
+    :root{--bg:#06080d;--panel:#101620;--panel2:#0c1119;--line:rgba(255,255,255,.09);--blue:#4f8fff;--violet:#a855f7;--text:#e8ecf4;--muted:#8a94a6;--bad:#ff8a73}
+    *{box-sizing:border-box}body{margin:0;background:radial-gradient(circle at 15% 0,rgba(79,143,255,.12),transparent 34%),var(--bg);color:var(--text);font-family:'Noto Sans KR',sans-serif;min-height:100vh}
+    a{color:inherit}.shell{max-width:1280px;margin:0 auto;padding:28px 20px 60px}.top{display:flex;justify-content:space-between;align-items:center;gap:16px;margin-bottom:40px}.brand{font:800 18px 'Outfit';letter-spacing:3px;text-decoration:none}.back{color:var(--muted);text-decoration:none;font-size:14px}.eyebrow{font:500 12px 'JetBrains Mono';letter-spacing:2px;color:var(--blue)}
+    h1{font:800 clamp(34px,6vw,64px)/1.05 'Outfit';margin:12px 0;background:linear-gradient(100deg,#e8ecf4,#8bb6ff 55%,#c4a0ff);-webkit-background-clip:text;color:transparent}.lead{color:var(--muted);line-height:1.7;max-width:720px;margin:0 0 30px}
+    .query{display:grid;grid-template-columns:1fr 1fr auto;gap:12px;padding:18px;border:1px solid var(--line);border-radius:18px;background:rgba(16,22,32,.85);margin-bottom:16px}.place{display:grid;gap:8px}.place-title{font-weight:700;font-size:14px}.coords{display:grid;grid-template-columns:1fr 1fr;gap:8px}input,select,button{font:inherit}input,select{width:100%;height:43px;border:1px solid var(--line);border-radius:10px;background:#090d14;color:var(--text);padding:0 11px}button{align-self:end;height:94px;border:0;border-radius:12px;background:linear-gradient(135deg,var(--blue),#7065e8);color:white;font-weight:700;padding:0 26px;cursor:pointer}button:disabled{opacity:.55;cursor:wait}
+    .options{display:flex;align-items:center;gap:10px;margin:0 0 18px;color:var(--muted);font-size:13px}.options select{width:auto;height:36px}.alert{display:none;padding:12px 14px;border:1px solid rgba(255,138,115,.3);border-radius:10px;background:rgba(255,107,79,.08);color:var(--bad);margin-bottom:16px}.alert.show{display:block}
+    .kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:16px}.kpi{padding:18px;border:1px solid var(--line);border-radius:15px;background:var(--panel)}.kpi span{display:block;color:var(--muted);font-size:12px;margin-bottom:8px}.kpi strong{font:800 30px 'Outfit'}
+    .map-wrap{position:relative;min-height:560px;border:1px solid var(--line);border-radius:20px;overflow:hidden;background:var(--panel2)}#map{height:560px}.map-message{position:absolute;inset:0;display:grid;place-items:center;text-align:center;padding:24px;color:var(--muted);background:var(--panel2);z-index:1}.map-message.hidden{display:none}
+    .note{color:var(--muted);font-size:12px;line-height:1.6;margin-top:14px}.status{display:inline-flex;align-items:center;gap:8px;font:500 11px 'JetBrains Mono';letter-spacing:1px;color:#6ee7b7}.status::before{content:'';width:7px;height:7px;border-radius:50%;background:currentColor;box-shadow:0 0 12px currentColor}.status.off{color:#fbbf24}
+    @media(max-width:840px){.query{grid-template-columns:1fr}.query button{height:50px}.kpis{grid-template-columns:1fr 1fr}.map-wrap,#map{min-height:480px;height:480px}}
+    @media(max-width:480px){.shell{padding-inline:14px}.top{margin-bottom:28px}.coords{grid-template-columns:1fr}.kpis{grid-template-columns:1fr 1fr}.kpi strong{font-size:24px}}
+  </style>
+</head>
+<body>
+  <main class="shell">
+    <nav class="top"><a class="brand" href="../index.html">STARGATE</a><a class="back" href="../index.html#ops">← 통합 대시보드</a></nav>
+    <header>
+      <div class="eyebrow">STARGATE RESEARCH · MOBILITY</div>
+      <h1>TMAP 모빌리티<br>연구대시보드</h1>
+      <p class="lead">실시간 교통을 반영해 두 지점의 자동차 통행시간·거리·통행료를 비교합니다. 물류거점, 부동산 접근성, 휴게소 및 라스트마일 연구의 공통 분석 기반입니다.</p>
+    </header>
+
+    <form class="query" id="routeForm">
+      <fieldset class="place" style="border:0;padding:0;margin:0">
+        <legend class="place-title">출발지</legend>
+        <input id="startName" value="시흥 배곧" aria-label="출발지 이름">
+        <div class="coords"><input id="startLat" type="number" step="any" value="37.368" aria-label="출발지 위도"><input id="startLon" type="number" step="any" value="126.73" aria-label="출발지 경도"></div>
+      </fieldset>
+      <fieldset class="place" style="border:0;padding:0;margin:0">
+        <legend class="place-title">도착지</legend>
+        <input id="endName" value="강남역" aria-label="도착지 이름">
+        <div class="coords"><input id="endLat" type="number" step="any" value="37.4979" aria-label="도착지 위도"><input id="endLon" type="number" step="any" value="127.0276" aria-label="도착지 경도"></div>
+      </fieldset>
+      <button id="routeButton" type="submit">실시간 경로 분석</button>
+    </form>
+    <div class="options"><label for="searchOption">탐색 기준</label><select id="searchOption"><option value="0">교통 최적 + 추천</option><option value="1">교통 최적 + 무료 우선</option><option value="2">교통 최적 + 최소시간</option><option value="3">교통 최적 + 초보</option><option value="4">교통 최적 + 고속도로 우선</option></select><span class="status off" id="apiStatus">연결 확인 중</span></div>
+    <p class="alert" id="errorBox" role="alert"></p>
+
+    <section class="kpis" aria-label="경로 분석 결과">
+      <article class="kpi"><span>예상 시간</span><strong id="timeValue">-</strong></article>
+      <article class="kpi"><span>주행 거리</span><strong id="distanceValue">-</strong></article>
+      <article class="kpi"><span>통행 요금</span><strong id="fareValue">-</strong></article>
+      <article class="kpi"><span>택시 예상</span><strong id="taxiValue">-</strong></article>
+    </section>
+
+    <section class="map-wrap" aria-label="TMAP 경로 지도"><div id="map"></div><div class="map-message" id="mapMessage">TMAP 지도 연결을 준비하고 있습니다.</div></section>
+    <p class="note">초기 버전은 좌표 입력 방식입니다. 다음 단계에서 주소·POI 자동완성, 후보지 경로 매트릭스, CSV 다운로드 및 시간대별 혼잡지수 저장을 추가합니다.</p>
+  </main>
+  <script src="app.js"></script>
+</body>
+</html>
