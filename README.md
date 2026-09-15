@@ -68,7 +68,10 @@ stargate-homepage/
 ├── report.html                             # 출결 현황 · 당일 수업 보고서
 ├── dday.html                               # D-Day 카운트다운 캘린더 대시보드
 ├── kstartup/                               # K-Startup 지원사업 관측소 (100건/페이지)
+├── tmap/                                   # TMAP 모빌리티 연구대시보드
 ├── api/kstartup.js                         # K-Startup → Supabase 프록시
+├── api/tmap-route.js                       # TMAP 자동차 경로 서버 프록시
+├── api/tmap-config.js                      # Web 지도용 공개 키 전달
 ├── supabase/class_bookings.sql             # 예약 테이블 스키마
 ├── supabase/class_attendance.sql           # 출결 · 일일 보고서 스키마
 ├── supabase/dday_events.sql                # D-Day 이벤트 스키마

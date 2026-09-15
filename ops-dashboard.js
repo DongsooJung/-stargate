@@ -740,11 +740,12 @@
   function renderGate() {
     return `
       ${head('12', 'CONTACT', '다음 문을 고르세요', '상담, 예약, 관측소 — 같은 게이트에서 이어집니다.')}
-      <div class="ops-cards four ops-gates">
+      <div class="ops-cards ops-gates" style="grid-template-columns:repeat(auto-fit,minmax(170px,1fr))">
         <a href="schedule.html"><h3>예약</h3><p>주간 시간표</p></a>
         <a href="dday.html"><h3>D-Day</h3><p>카운트다운</p></a>
         <a href="report.html"><h3>출결</h3><p>당일 보고서</p></a>
         <a href="kstartup/"><h3>K-Startup</h3><p>지원사업 레이더</p></a>
+        <a href="tmap/"><h3>TMAP</h3><p>모빌리티 연구</p></a>
       </div>
       <p class="ops-note">서울 강남구 대치동 · 070-8017-8227 · rvcompany77@naver.com</p>`;
   }
