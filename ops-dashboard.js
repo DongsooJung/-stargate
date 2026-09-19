@@ -1,11 +1,13 @@
 /**
- * Stargate 통합 대시보드 초안
- * 12개 스크린을 5초 간격으로 전환. Supabase 실데이터 + 데모 폴백.
- * 공개 홈페이지이므로 수강생 성명은 마스킹한다.
+ * Stargate 통합 대시보드
+ * 10개 스크린 × 5초. 공개 홈이므로 수강생 성명은 마스킹한다.
+ * 데모는 fetch 실패에만 남기고, 빈 성공 응답은 live-empty로 표시한다.
  */
 (function () {
   const INTERVAL_MS = 5000;
+  const REFRESH_MS = 45000;
   const TZ = 'Asia/Seoul';
+  const TMAP_LAST_KEY = 'stargate-tmap-last';
   const SUPABASE_URL = 'https://inftexpcnfinglwlrvsj.supabase.co';
   const SUPABASE_ANON_KEY =
     'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImluZnRleHBjbmZpbmdsd2xydnNqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzI5MTMyMzgsImV4cCI6MjA4ODQ4OTIzOH0.HONuULp0L3B5T0gTiwJMnowjJonJzzNHhUV_LtpDQoI';
@@ -33,6 +35,11 @@
     excused: { label: '공결', color: '#38bdf8' },
     pending: { label: '미처리', color: '#545d6e' },
   };
+  const TMAP_SEED = {
+    start: { name: '대치동', lat: 37.494, lon: 127.057 },
+    end: { name: '강남역', lat: 37.498, lon: 127.028 },
+    searchOption: '0',
+  };
 
   const stage = document.getElementById('opsStage');
   const rail = document.getElementById('opsRail');
@@ -43,23 +50,28 @@
   const prevBtn = document.getElementById('opsPrev');
   const nextBtn = document.getElementById('opsNext');
   const fullBtn = document.getElementById('opsFull');
+  const kioskBtn = document.getElementById('opsKiosk');
   const progressEl = document.getElementById('opsProgress');
   const liveEl = document.getElementById('opsLive');
   const frame = document.getElementById('opsFrame');
   if (!stage || !rail) return;
 
   const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const kiosk = new URLSearchParams(location.search).get('kiosk') === '1';
+  if (kiosk) document.body.classList.add('ops-kiosk');
 
   const state = {
     index: 0,
     paused: false,
     userPaused: false,
     timer: null,
+    refreshTimer: null,
     bookings: [],
     attendance: [],
     report: null,
     ddays: [],
     announcements: [],
+    tmap: null,
     source: {
       bookings: 'demo',
       attendance: 'demo',
@@ -77,19 +89,21 @@
     { id: 'report', no: '05', title: '수업 보고서', kicker: 'REPORT', render: renderReport },
     { id: 'dday', no: '06', title: 'D-Day', kicker: 'COUNTDOWN', render: renderDday },
     { id: 'kstartup', no: '07', title: 'K-Startup', kicker: 'RADAR', render: renderKstartup },
-    { id: 'edu', no: '08', title: '수학 · KOI', kicker: 'EDUCATION', render: renderEdu },
-    { id: 'ai', no: '09', title: 'AI 소프트웨어', kicker: 'URBANVISION', render: renderAi },
-    { id: 'pub', no: '10', title: '출판 · 커머스', kicker: 'PUBLISH', render: renderPublish },
-    { id: 'founder', no: '11', title: '대표 소개', kicker: 'FOUNDER', render: renderFounder },
-    { id: 'gate', no: '12', title: '게이트', kicker: 'CONTACT', render: renderGate },
+    { id: 'tmap', no: '08', title: 'TMAP', kicker: 'MOBILITY', render: renderTmap },
+    { id: 'company', no: '09', title: '사업', kicker: 'STARGATE', render: renderCompany },
+    { id: 'gate', no: '10', title: '게이트', kicker: 'CONTACT', render: renderGate },
   ];
 
   boot();
 
   function boot() {
+    if (kioskBtn) {
+      kioskBtn.href = kiosk ? 'index.html' : '?kiosk=1';
+      kioskBtn.textContent = kiosk ? '홈' : '키오스크';
+    }
     seedDemo();
     buildRail();
-    renderAll();
+    renderAll(false);
     show(0, false);
     tickClock();
     setInterval(tickClock, 1000);
@@ -97,6 +111,9 @@
     else setPaused(true, false);
     bindControls();
     hydrateLive();
+    state.refreshTimer = setInterval(() => {
+      if (!document.hidden) hydrateLive();
+    }, REFRESH_MS);
   }
 
   function bindControls() {
@@ -136,12 +153,14 @@
       },
       { passive: true }
     );
-    frame?.addEventListener('mouseenter', () => {
-      if (!state.userPaused) setPaused(true, false);
-    });
-    frame?.addEventListener('mouseleave', () => {
-      if (!state.userPaused && !reduceMotion) setPaused(false, false);
-    });
+    if (!kiosk) {
+      frame?.addEventListener('mouseenter', () => {
+        if (!state.userPaused) setPaused(true, false);
+      });
+      frame?.addEventListener('mouseleave', () => {
+        if (!state.userPaused && !reduceMotion) setPaused(false, false);
+      });
+    }
     document.addEventListener('visibilitychange', () => {
       if (document.hidden) {
         stopTimer();
@@ -214,11 +233,9 @@
     rail.querySelectorAll('[data-ops-goto]').forEach((btn, i) => {
       btn.classList.toggle('is-active', i === index);
     });
-    if (indexEl) indexEl.textContent = String(index + 1).padStart(2, '0') + ' / 12';
+    if (indexEl) indexEl.textContent = String(index + 1).padStart(2, '0') + ' / ' + String(screens.length).padStart(2, '0');
     if (titleEl) titleEl.textContent = screen.title;
-    if (announce && titleEl) {
-      titleEl.setAttribute('aria-live', 'polite');
-    }
+    if (announce && titleEl) titleEl.setAttribute('aria-live', 'polite');
   }
 
   function buildRail() {
@@ -230,18 +247,26 @@
       .join('');
   }
 
-  function renderAll() {
-    stage.innerHTML = screens
-      .map((s, i) => `<article class="ops-screen" data-screen="${s.id}" aria-hidden="${i === 0 ? 'false' : 'true'}">${s.render()}</article>`)
-      .join('');
+  function renderAll(soft) {
+    const existing = stage.querySelectorAll('.ops-screen');
+    if (soft && existing.length === screens.length) {
+      screens.forEach((s) => {
+        const el = stage.querySelector('[data-screen="' + s.id + '"]');
+        if (el) el.innerHTML = s.render();
+      });
+    } else {
+      stage.innerHTML = screens
+        .map((s, i) => `<article class="ops-screen" data-screen="${s.id}" aria-hidden="${i === state.index ? 'false' : 'true'}">${s.render()}</article>`)
+        .join('');
+    }
     updateLiveBadge();
   }
 
   function updateLiveBadge() {
     if (!liveEl) return;
-    const liveCount = Object.values(state.source).filter((v) => v === 'live').length;
-    liveEl.dataset.mode = liveCount ? 'live' : 'demo';
-    liveEl.textContent = liveCount ? `LIVE ${liveCount}/5` : 'DEMO';
+    const connected = Object.values(state.source).filter((v) => v === 'live' || v === 'empty').length;
+    liveEl.dataset.mode = connected ? 'live' : 'demo';
+    liveEl.textContent = connected ? `LIVE ${connected}/5` : 'DEMO';
   }
 
   function tickClock() {
@@ -263,39 +288,42 @@
     const today = toYmd(now);
 
     const jobs = [
-      loadBookings(weekStart, weekEnd).then((rows) => {
-        if (!rows.length) return;
-        state.bookings = rows;
-        state.source.bookings = 'live';
+      applyLive('bookings', () => loadBookings(weekStart, weekEnd), (rows) => {
+        state.bookings = rows || [];
       }),
-      loadAttendance(today).then((rows) => {
-        if (!rows.length) return;
-        state.attendance = rows;
-        state.source.attendance = 'live';
+      applyLive('attendance', () => loadAttendance(today), (rows) => {
+        state.attendance = rows || [];
       }),
-      loadReport(today).then((row) => {
-        if (!row) return;
+      applyLive('report', () => loadReport(today), (row) => {
         state.report = row;
-        state.source.report = 'live';
+      }, { emptyIfNull: true }),
+      applyLive('dday', () => loadDdays(), (rows) => {
+        state.ddays = rows || [];
       }),
-      loadDdays().then((rows) => {
-        if (!rows.length) return;
-        state.ddays = rows;
-        state.source.dday = 'live';
-      }),
-      sbJson(
-        `/rest/v1/kstartup_announcements?select=biz_pbanc_nm,supt_regin,supt_biz_clsfc,rcrt_prgs_yn,pbanc_rcpt_end_dt,pbanc_ntrp_nm,fetched_at&order=fetched_at.desc&limit=8`
-      ).then((rows) => {
-        if (!(rows || []).length) return;
-        state.announcements = rows;
-        state.source.kstartup = 'live';
-      }),
+      applyLive(
+        'kstartup',
+        () =>
+          sbJson(
+            `/rest/v1/kstartup_announcements?select=biz_pbanc_nm,supt_regin,supt_biz_clsfc,rcrt_prgs_yn,pbanc_rcpt_end_dt,pbanc_ntrp_nm,fetched_at&order=fetched_at.desc&limit=8`
+          ),
+        (rows) => {
+          state.announcements = rows || [];
+        }
+      ),
+      loadTmapSnapshot(),
     ];
 
     await Promise.allSettled(jobs);
     const keepIndex = state.index;
-    renderAll();
+    renderAll(true);
     show(keepIndex, false);
+  }
+
+  async function applyLive(key, loader, assign, options = {}) {
+    const rows = await loader();
+    assign(rows);
+    const empty = options.emptyIfNull ? rows == null : !(Array.isArray(rows) ? rows.length : rows);
+    state.source[key] = empty ? 'empty' : 'live';
   }
 
   async function sbFetch(path, options = {}) {
@@ -335,9 +363,7 @@
         `/rest/v1/class_bookings?status=eq.confirmed&starts_at=gte.${weekStart.toISOString()}&starts_at=lt.${weekEnd.toISOString()}&order=starts_at.asc&select=starts_at,ends_at,student_name,subject`
       );
       return (rows || []).map(normalizeBooking);
-    } catch (_) {
-      /* tables are often absent — same Storage JSON as schedule.html */
-    }
+    } catch (_) {}
     const names = await listStorage('class-bookings/');
     const picked = names.filter((name) => {
       const start = parseSlotKey(name.replace(/\.json$/, ''));
@@ -398,14 +424,14 @@
       const rows = await sbJson(
         `/rest/v1/class_daily_reports?report_date=eq.${today}&select=summary,highlights,issues,next_plan,stats`
       );
-      const row = rows?.[0];
-      if (row && (row.summary || row.highlights || row.issues || row.next_plan)) return row;
+      return rows?.[0] || null;
     } catch (_) {}
     try {
-      const row = await sbJson('/storage/v1/object/public-data-csv/class-reports/' + today + '.json');
-      if (row && (row.summary || row.highlights || row.issues || row.next_plan)) return row;
-    } catch (_) {}
-    return null;
+      return await sbJson('/storage/v1/object/public-data-csv/class-reports/' + today + '.json');
+    } catch (_) {
+      await listStorage('class-reports/');
+      return null;
+    }
   }
 
   async function loadDdays() {
@@ -435,6 +461,46 @@
       })
     );
     return rows.filter((row) => row && row.target_date);
+  }
+
+  async function loadTmapSnapshot() {
+    const stored = readLastTmap();
+    if (stored) {
+      state.tmap = { ...stored, source: 'saved' };
+      return;
+    }
+    try {
+      const res = await fetch('/api/tmap-route', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(TMAP_SEED),
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        state.tmap = { error: data.error || 'TMAP 키 없음 · tmap/에서 설정', source: 'empty' };
+        return;
+      }
+      state.tmap = {
+        start: TMAP_SEED.start,
+        end: TMAP_SEED.end,
+        summary: data.summary || {},
+        source: 'live',
+      };
+    } catch (_) {
+      state.tmap = { error: 'TMAP 키 없음 · tmap/에서 설정', source: 'empty' };
+    }
+  }
+
+  function readLastTmap() {
+    try {
+      const raw = localStorage.getItem(TMAP_LAST_KEY);
+      if (!raw) return null;
+      const parsed = JSON.parse(raw);
+      if (!parsed || !parsed.summary) return null;
+      return parsed;
+    } catch (_) {
+      return null;
+    }
   }
 
   function parseSlotKey(key) {
@@ -478,6 +544,7 @@
       highlights: 'DFS/BFS 비교 정리 완료\n이차함수 최댓값 유형 오답 노트 작성',
       issues: '지각 1건 · 숙제 미제출 1건은 다음 세션에서 재확인',
       next_plan: '내일 KOI 그리디 워밍업, 주말 모의고사 D-Day 리마인드',
+      stats: { present: 2, late: 1, absent: 0, excused: 0, pending: 1, rate: 100 },
     };
     state.ddays = [
       { title: 'KOI 1차', target_date: shiftYmd(now, 18), category: 'exam', color: '#a855f7', pinned: true, memo: '알고리즘 모의고사' },
@@ -491,6 +558,12 @@
       { biz_pbanc_nm: '딥테크 팁스 연계', supt_regin: '전국', supt_biz_clsfc: 'R&D', rcrt_prgs_yn: 'Y', pbanc_rcpt_end_dt: shiftYmd(now, 40), pbanc_ntrp_nm: '중기부' },
       { biz_pbanc_nm: '글로벌 사우스 진출 지원', supt_regin: '서울', supt_biz_clsfc: '해외진출', rcrt_prgs_yn: 'N', pbanc_rcpt_end_dt: shiftYmd(now, -3), pbanc_ntrp_nm: 'KOTRA' },
     ];
+    state.tmap = {
+      start: TMAP_SEED.start,
+      end: TMAP_SEED.end,
+      summary: { totalTimeSeconds: 18 * 60, totalDistanceMeters: 4200, totalFareWon: 0, taxiFareWon: 8900 },
+      source: 'demo',
+    };
   }
 
   function normalizeBooking(row) {
@@ -502,6 +575,38 @@
     };
   }
 
+  function subjectCounts() {
+    const groups = { 수학: 0, KOI: 0, 상담: 0, 기타: 0 };
+    state.bookings.forEach((b) => {
+      const s = b.subject || '';
+      if (s.includes('수학')) groups.수학 += 1;
+      else if (s.includes('KOI') || s.includes('정보')) groups.KOI += 1;
+      else if (s.includes('상담')) groups.상담 += 1;
+      else groups.기타 += 1;
+    });
+    return groups;
+  }
+
+  function attendanceCounts() {
+    const stats = state.report && state.report.stats;
+    if (stats && typeof stats === 'object' && (stats.present != null || stats.total != null)) {
+      return {
+        present: Number(stats.present) || 0,
+        late: Number(stats.late) || 0,
+        absent: Number(stats.absent) || 0,
+        excused: Number(stats.excused) || 0,
+        pending: Number(stats.pending) || 0,
+        rate: Number(stats.rate),
+      };
+    }
+    const counts = { present: 0, late: 0, absent: 0, excused: 0, pending: 0 };
+    state.attendance.forEach((a) => {
+      const key = counts[a.attendance] != null ? a.attendance : 'pending';
+      counts[key] += 1;
+    });
+    return counts;
+  }
+
   function renderCommand() {
     const now = seoulNow();
     const todayYmd = toYmd(now);
@@ -510,8 +615,9 @@
     const upcoming = upcomingDdays().length;
     const openAnn = state.announcements.filter((a) => String(a.rcrt_prgs_yn).toUpperCase() === 'Y').length;
     const next = nextBooking(now);
+    const subjects = subjectCounts();
     return `
-      ${head('01', 'COMMAND', '스타게이트 운영 현황', '예약 · 출결 · D-Day · K-Startup을 한 벽면에 모은 초안입니다.')}
+      ${head('01', 'COMMAND', '스타게이트 운영 현황', '예약 · 출결 · 보고서 · D-Day · K-Startup 소스 상태를 그대로 보여 줍니다.')}
       <div class="ops-kpi">
         ${kpi('오늘 수업', todayCount, '세션', 'blue')}
         ${kpi('이번 주 예약', weekCount, '슬롯', 'violet')}
@@ -520,14 +626,16 @@
       </div>
       <div class="ops-split">
         <div class="ops-panel">
-          <div class="ops-panel-label">다음 세션</div>
-          ${next ? `<div class="ops-next"><strong>${escapeHtml(fmtTime(next.starts_at))}–${escapeHtml(fmtTime(next.ends_at))}</strong><span class="ops-chip ${tone(next.subject)}">${escapeHtml(next.subject)}</span><p>${escapeHtml(maskName(next.student_name))}</p></div>` : '<p class="ops-empty">오늘 남은 수업이 없습니다.</p>'}
+          <div class="ops-panel-label">다음 세션 · 과목 집계</div>
+          ${next ? `<div class="ops-next"><strong>${escapeHtml(fmtTime(next.starts_at))}–${escapeHtml(fmtTime(next.ends_at))}</strong><span class="ops-chip ${tone(next.subject)}">${escapeHtml(next.subject)}</span><p>${escapeHtml(maskName(next.student_name))}</p></div>` : `<p class="ops-empty">${emptyCopy(state.source.bookings, '오늘 남은 수업이 없습니다.')}</p>`}
+          <p class="ops-note">수학 ${subjects.수학} · KOI/정보 ${subjects.KOI} · 상담 ${subjects.상담} · 기타 ${subjects.기타}</p>
         </div>
         <div class="ops-panel">
           <div class="ops-panel-label">시스템</div>
           <ul class="ops-sys">
             ${sysRow('수업 예약', state.source.bookings)}
-            ${sysRow('출결 보고서', state.source.attendance)}
+            ${sysRow('출결', state.source.attendance)}
+            ${sysRow('보고서', state.source.report)}
             ${sysRow('D-Day', state.source.dday)}
             ${sysRow('K-Startup', state.source.kstartup)}
           </ul>
@@ -553,7 +661,7 @@
             </li>`
           )
           .join('')
-      : '<li class="ops-empty-row">오늘 확정된 수업이 없습니다. 주간 보드에서 빈 슬롯을 확인할 수 있습니다.</li>';
+      : `<li class="ops-empty-row">${emptyCopy(state.source.bookings, '오늘 확정된 수업이 없습니다.')}</li>`;
     return `
       ${head('02', 'TODAY', '오늘의 수업 보드', '성명은 마스킹됩니다. 상세 예약은 시간표에서 확인하세요.')}
       <ol class="ops-timeline">${list}</ol>
@@ -584,16 +692,15 @@
   }
 
   function renderAttendance() {
-    const counts = { present: 0, late: 0, absent: 0, excused: 0, pending: 0 };
-    state.attendance.forEach((a) => {
-      const key = counts[a.attendance] != null ? a.attendance : 'pending';
-      counts[key] += 1;
-    });
-    const total = Object.values(counts).reduce((s, n) => s + n, 0) || 1;
+    const counts = attendanceCounts();
+    const total = counts.present + counts.late + counts.absent + counts.excused + counts.pending || 1;
     const done = counts.present + counts.late + counts.excused;
-    const rate = Math.round((done / total) * 100);
+    const rate = Number.isFinite(counts.rate)
+      ? Math.round(counts.rate)
+      : Math.round((done / total) * 100);
     let acc = 0;
-    const stops = Object.entries(counts)
+    const stops = Object.entries(ATT_META)
+      .map(([k]) => [k, counts[k] || 0])
       .filter(([, n]) => n)
       .map(([k, n]) => {
         const from = acc;
@@ -602,7 +709,7 @@
       });
     const donut = stops.length ? `conic-gradient(${stops.join(',')})` : 'conic-gradient(#1a2230 0 100%)';
     const legend = Object.entries(ATT_META)
-      .map(([k, m]) => `<li><i style="background:${m.color}"></i>${m.label} <b>${counts[k]}</b></li>`)
+      .map(([k, m]) => `<li><i style="background:${m.color}"></i>${m.label} <b>${counts[k] || 0}</b></li>`)
       .join('');
     const rows = state.attendance
       .slice(0, 6)
@@ -611,20 +718,21 @@
       )
       .join('');
     return `
-      ${head('04', 'ATTENDANCE', '출결 현황', '당일 세션 기준. 비율은 처리된 출결을 포함합니다.')}
+      ${head('04', 'ATTENDANCE', '출결 현황', '당일 세션 기준. 보고서에 stats가 있으면 그 값을 우선합니다.')}
       <div class="ops-split">
         <div class="ops-donut-wrap">
-          <div class="ops-donut" style="background:${donut}"><span>${rate}<small>%</small></span></div>
+          <div class="ops-donut" style="background:${donut}"><span>${state.attendance.length || counts.present || counts.late ? rate : 0}<small>%</small></span></div>
           <p>처리율</p>
         </div>
         <ul class="ops-legend">${legend}</ul>
       </div>
-      <ul class="ops-mini">${rows || '<li class="ops-empty-row">오늘 출결 데이터가 없습니다.</li>'}</ul>
+      <ul class="ops-mini">${rows || `<li class="ops-empty-row">${emptyCopy(state.source.attendance, '오늘 출결 데이터가 없습니다.')}</li>`}</ul>
       <a class="ops-link" href="report.html">출결 · 보고서 →</a>`;
   }
 
   function renderReport() {
     const r = state.report || {};
+    const stats = r.stats && typeof r.stats === 'object' ? r.stats : null;
     const fields = [
       ['요약', r.summary],
       ['하이라이트', r.highlights],
@@ -633,10 +741,11 @@
     ];
     return `
       ${head('05', 'REPORT', '당일 수업 보고서', srcNote(state.source.report))}
+      ${stats ? `<p class="ops-note">stats · 출석 ${Number(stats.present) || 0} · 지각 ${Number(stats.late) || 0} · 결석 ${Number(stats.absent) || 0} · 비율 ${Number(stats.rate) || 0}%</p>` : ''}
       <div class="ops-report">
         ${fields
           .map(
-            ([label, text]) => `<div class="ops-panel"><div class="ops-panel-label">${label}</div><p>${escapeHtml(text || '아직 작성되지 않았습니다.').replaceAll('\n', '<br>')}</p></div>`
+            ([label, text]) => `<div class="ops-panel"><div class="ops-panel-label">${label}</div><p>${escapeHtml(text || emptyCopy(state.source.report, '아직 작성되지 않았습니다.')).replaceAll('\n', '<br>')}</p></div>`
           )
           .join('')}
       </div>`;
@@ -646,15 +755,14 @@
     const list = displayDdays();
     const hero = list[0];
     const rest = list.slice(1, 5);
-    const d = hero ? daysUntil(hero.target_date) : null;
     return `
       ${head('06', 'COUNTDOWN', 'D-Day 카운트다운', '시험·수업·일정을 한 화면에.')}
       <div class="ops-split ops-dday">
         <div class="ops-hero-dday">
-          ${hero ? `<div class="ops-dday-num" style="color:${escapeHtml(hero.color || '#4f8fff')}">${d === 0 ? 'D-DAY' : d > 0 ? 'D-' + d : 'D+' + Math.abs(d)}</div><h3>${escapeHtml(hero.title)}</h3><p>${escapeHtml(hero.target_date)} · ${escapeHtml(CAT_LABEL[hero.category] || '')}</p>` : '<p class="ops-empty">등록된 D-Day가 없습니다.</p>'}
+          ${hero ? `<div class="ops-dday-num" style="color:${escapeHtml(hero.color || '#4f8fff')}">${ddayLabel(hero.target_date)}</div><h3>${escapeHtml(hero.title)}</h3><p>${escapeHtml(hero.target_date)} · ${escapeHtml(CAT_LABEL[hero.category] || '')}</p>` : `<p class="ops-empty">${emptyCopy(state.source.dday, '등록된 D-Day가 없습니다.')}</p>`}
         </div>
         <ul class="ops-mini">
-          ${rest.map((e) => `<li><b style="color:${escapeHtml(e.color || '#4f8fff')}">${daysUntil(e.target_date) === 0 ? 'D-DAY' : 'D-' + daysUntil(e.target_date)}</b><strong>${escapeHtml(e.title)}</strong><span>${escapeHtml(e.target_date)}</span></li>`).join('') || '<li class="ops-empty-row">다음 일정이 더 없습니다.</li>'}
+          ${rest.map((e) => `<li><b style="color:${escapeHtml(e.color || '#4f8fff')}">${ddayLabel(e.target_date)}</b><strong>${escapeHtml(e.title)}</strong><span>${escapeHtml(e.target_date)}</span></li>`).join('') || '<li class="ops-empty-row">다음 일정이 더 없습니다.</li>'}
         </ul>
       </div>
       <a class="ops-link" href="dday.html">D-Day 캘린더 →</a>`;
@@ -667,79 +775,57 @@
       .map((a) => {
         const live = String(a.rcrt_prgs_yn).toUpperCase() === 'Y';
         return `<li>
-          <span class="ops-chip ${live ? 'teal' : ''}">${live ? '모집' : '마감'}</span>
-          <div><strong>${escapeHtml(a.biz_pbanc_nm || '공고')}</strong><span>${escapeHtml([a.pbanc_ntrp_nm, a.supt_regin, a.supt_biz_clsfc].filter(Boolean).join(' · '))}</span></div>
-          <time>${escapeHtml(a.pbanc_rcpt_end_dt || '')}</time>
+          <a href="kstartup/">
+            <span class="ops-chip ${live ? 'teal' : ''}">${live ? '모집' : '마감'}</span>
+            <div><strong>${escapeHtml(a.biz_pbanc_nm || '공고')}</strong><span>${escapeHtml([a.pbanc_ntrp_nm, a.supt_regin, a.supt_biz_clsfc].filter(Boolean).join(' · '))}</span></div>
+            <time>${escapeHtml(a.pbanc_rcpt_end_dt || '')}</time>
+          </a>
         </li>`;
       })
       .join('');
     return `
       ${head('07', 'RADAR', 'K-Startup 지원사업 레이더', `모집 중 ${open}건 · ${srcNote(state.source.kstartup)}`)}
-      <ol class="ops-timeline ops-radar">${rows || '<li class="ops-empty-row">저장된 공고가 없습니다.</li>'}</ol>
+      <ol class="ops-timeline ops-radar">${rows || `<li class="ops-empty-row">${emptyCopy(state.source.kstartup, '저장된 공고가 없습니다.')}</li>`}</ol>
       <a class="ops-link" href="kstartup/">관측소 전체 보기 →</a>`;
   }
 
-  function renderEdu() {
+  function renderTmap() {
+    const snap = state.tmap || {};
+    const summary = snap.summary || {};
+    const minutes = Math.round((summary.totalTimeSeconds || 0) / 60);
+    const km = ((summary.totalDistanceMeters || 0) / 1000).toFixed(1);
+    const taxi = Number(summary.taxiFareWon || 0).toLocaleString('ko-KR');
+    if (snap.error || snap.source === 'empty') {
+      return `
+        ${head('08', 'MOBILITY', 'TMAP 스냅샷', '지도 SDK는 이 화면에 올리지 않습니다.')}
+        <p class="ops-empty">${escapeHtml(snap.error || 'TMAP 키 없음 · tmap/에서 설정')}</p>
+        <a class="ops-link" href="tmap/">모빌리티 연구 페이지 →</a>`;
+    }
     return `
-      ${head('08', 'EDUCATION', '수학 · 정보올림피아드', '대치동 심화 수업과 KOI 알고리즘 트랙.')}
-      <div class="ops-cards three">
-        <article><h3>수학 심화</h3><p>경시·내신 상위권 유형을 구조화해 오답 패턴까지 추적합니다.</p><div class="ops-tags"><span>이차함수</span><span>기하</span><span>확률</span></div></article>
-        <article><h3>KOI / IOI</h3><p>그래프, DP, 그리디를 주간 루틴으로 쌓는 알고리즘 교육입니다.</p><div class="ops-tags"><span>BFS/DFS</span><span>DP</span><span>구현</span></div></article>
-        <article><h3>1:1 코칭</h3><p>빈 슬롯은 상담·코칭으로 열어 두었습니다. 예약 보드에서 바로 잡을 수 있습니다.</p><div class="ops-tags"><span>대치동</span><span>주간 예약</span></div></article>
-      </div>`;
+      ${head('08', 'MOBILITY', 'TMAP 스냅샷', `${escapeHtml((snap.start && snap.start.name) || '출발')} → ${escapeHtml((snap.end && snap.end.name) || '도착')} · 지도는 tmap/에서만 켭니다.`)}
+      <div class="ops-kpi">
+        ${kpi('소요', minutes, '분', 'blue')}
+        ${kpi('거리', km, 'km', 'violet')}
+        ${kpi('택시', taxi, '원', 'warm')}
+        ${kpi('출처', snap.source === 'saved' ? '저장' : snap.source === 'live' ? 'API' : 'DEMO', '', 'teal')}
+      </div>
+      <a class="ops-link" href="tmap/">실시간 경로 분석 →</a>`;
   }
 
-  function renderAi() {
+  function renderCompany() {
     return `
-      ${head('09', 'URBANVISION', 'AI 소프트웨어', '도시 공간 분석과 교육용 AI를 같은 엔진으로 연결합니다.')}
-      <div class="ops-cards two">
-        <article class="ops-feature">
-          <div class="ops-panel-label">UrbanVision</div>
-          <h3>공간계량 · GIS · ML</h3>
-          <p>헤도닉 가격모형, DID, Python/QGIS 파이프라인으로 도시 데이터를 제품화합니다.</p>
-        </article>
-        <article>
-          <ul class="ops-sys">
-            <li><span>모델</span><b>Hedonic / DID</b></li>
-            <li><span>스택</span><b>Python · TensorFlow</b></li>
-            <li><span>인프라</span><b>AWS · Vercel · Supabase</b></li>
-            <li><span>자동화</span><b>n8n · Claude API</b></li>
-          </ul>
-        </article>
-      </div>`;
-  }
-
-  function renderPublish() {
-    return `
-      ${head('10', 'PUBLISH', '전자출판 · 글로벌 커머스', '콘텐츠와 판매 채널을 한 사이클에 둡니다.')}
+      ${head('09', 'STARGATE', '사업 한 장', '교육 · AI · 출판을 한 스크린에 압축했습니다.')}
       <div class="ops-cards four">
-        <article><h3>Amazon KDP</h3><p>AI · EdTech 전문서를 전자책으로 제작합니다.</p></article>
-        <article><h3>Legal AI Kit</h3><p>실무 키트형 콘텐츠 라인.</p></article>
-        <article><h3>Coupang / Cafe24</h3><p>멀티채널 상품 운영.</p></article>
-        <article><h3>Naver Store</h3><p>국내 커머스 접점.</p></article>
-      </div>`;
-  }
-
-  function renderFounder() {
-    return `
-      ${head('11', 'FOUNDER', '정동수 · CEO', '공학, 정책, 교육을 관통하는 융합형 리더십')}
-      <div class="ops-split">
-        <ol class="ops-tl">
-          <li><time>2025</time><span>㈜별의문 설립</span></li>
-          <li><time>2024</time><span>서울대 스마트도시공학 박사과정 수료</span></li>
-          <li><time>2015–18</time><span>공군 시설장교 · ₩803억 인프라 관리</span></li>
-          <li><time>2012</time><span>서울대 공대 최연소 입학</span></li>
-        </ol>
-        <div class="ops-panel">
-          <div class="ops-panel-label">자격 · 교육</div>
-          <p>토목기사 · 개인과외교습자 제5277호<br>대구 정보올림피아드 · 지학사 교재 감수 7년</p>
-        </div>
+        <article><h3>수학 · KOI</h3><p>대치 심화와 알고리즘 트랙.</p></article>
+        <article><h3>UrbanVision</h3><p>GIS · 헤도닉 · DID.</p></article>
+        <article><h3>출판 · 커머스</h3><p>KDP, Coupang, Cafe24.</p></article>
+        <article><h3>정동수</h3><p>서울대 공대 · ㈜별의문.</p></article>
       </div>`;
   }
 
   function renderGate() {
     return `
-      ${head('12', 'CONTACT', '다음 문을 고르세요', '상담, 예약, 관측소 — 같은 게이트에서 이어집니다.')}
+      ${head('10', 'CONTACT', '다음 문을 고르세요', '상담, 예약, 관측소, 모빌리티 — 같은 게이트에서 이어집니다.')}
       <div class="ops-cards ops-gates" style="grid-template-columns:repeat(auto-fit,minmax(170px,1fr))">
         <a href="schedule.html"><h3>예약</h3><p>주간 시간표</p></a>
         <a href="dday.html"><h3>D-Day</h3><p>카운트다운</p></a>
@@ -747,7 +833,7 @@
         <a href="kstartup/"><h3>K-Startup</h3><p>지원사업 레이더</p></a>
         <a href="tmap/"><h3>TMAP</h3><p>모빌리티 연구</p></a>
       </div>
-      <p class="ops-note">서울 강남구 대치동 · 070-8017-8227 · rvcompany77@naver.com</p>`;
+      <p class="ops-note">서울 강남구 대치동</p>`;
   }
 
   function head(no, kicker, title, desc) {
@@ -759,15 +845,22 @@
   }
 
   function kpi(label, value, unit, toneName) {
-    return `<div class="ops-kpi-card ${toneName}"><span>${label}</span><strong>${escapeHtml(String(value))}<small>${unit}</small></strong></div>`;
+    return `<div class="ops-kpi-card ${toneName}"><span>${label}</span><strong>${escapeHtml(String(value))}${unit ? `<small>${unit}</small>` : ''}</strong></div>`;
   }
 
   function sysRow(name, src) {
-    return `<li><span>${name}</span><b class="ops-src ${src}">${src === 'live' ? 'LIVE' : 'DEMO'}</b></li>`;
+    const label = src === 'live' ? 'LIVE' : src === 'empty' ? 'EMPTY' : 'DEMO';
+    return `<li><span>${name}</span><b class="ops-src ${src}">${label}</b></li>`;
   }
 
   function srcNote(src) {
-    return src === 'live' ? '실시간 Supabase' : '초안 데모 데이터';
+    if (src === 'live') return '실시간 저장소';
+    if (src === 'empty') return '연결됨 · 이번 구간 데이터 없음';
+    return '초안 데모 데이터';
+  }
+
+  function emptyCopy(src, liveText) {
+    return src === 'demo' ? '초안 데모도 아직 없습니다. ' + liveText : liveText;
   }
 
   function tone(subject) {
@@ -804,6 +897,12 @@
     const a = fromYmd(today).getTime();
     const b = fromYmd(ymd).getTime();
     return Math.round((b - a) / 86400000);
+  }
+
+  function ddayLabel(ymd) {
+    const d = daysUntil(ymd);
+    if (d === 0) return 'D-DAY';
+    return d > 0 ? 'D-' + d : 'D+' + Math.abs(d);
   }
 
   function seoulNow() {

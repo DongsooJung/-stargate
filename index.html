@@ -108,11 +108,12 @@
     .ops-brand{display:flex;align-items:center;gap:10px;font-family:'Outfit',sans-serif;font-weight:800;letter-spacing:2px;font-size:.78rem}
     .ops-live{font-family:'JetBrains Mono',monospace;font-size:.68rem;letter-spacing:1px;padding:3px 8px;border-radius:999px;border:1px solid rgba(52,211,153,.4);color:#34d399}
     .ops-live[data-mode="demo"]{border-color:rgba(245,158,11,.45);color:#f59e0b}
+    .ops-src.empty{color:#8a94a6}
     .ops-chrome-mid{display:flex;align-items:center;gap:14px;color:var(--text-secondary);font-size:.8rem}
     .ops-clock{font-family:'JetBrains Mono',monospace;color:var(--text-primary)}
     .ops-screen-title{color:var(--text-primary);font-weight:600}
     .ops-chrome-actions{display:flex;gap:8px}
-    .ops-btn{background:rgba(255,255,255,.04);border:1px solid var(--border);color:var(--text-primary);border-radius:8px;padding:6px 10px;font-size:.75rem;cursor:pointer}
+    .ops-btn{background:rgba(255,255,255,.04);border:1px solid var(--border);color:var(--text-primary);border-radius:8px;padding:6px 10px;font-size:.75rem;cursor:pointer;text-decoration:none;display:inline-flex;align-items:center}
     .ops-btn:hover{border-color:var(--border-hover)}
     .ops-progress-track{height:2px;background:rgba(255,255,255,.06)}
     .ops-progress{display:block;height:100%;width:0;background:var(--gradient-hero);animation:opsFill 5s linear forwards}
@@ -153,6 +154,7 @@
     .ops-timeline time{font-family:'JetBrains Mono',monospace;color:var(--accent)}
     .ops-timeline strong{display:block}
     .ops-timeline span{color:var(--text-muted);font-size:.82rem}
+    .ops-radar a{display:grid;grid-template-columns:72px 1fr auto;gap:12px;align-items:center;text-decoration:none;color:inherit}
     .ops-link{display:inline-block;margin-top:14px;color:var(--accent);text-decoration:none;font-size:.88rem}
     .ops-heat{display:grid;grid-template-columns:36px repeat(7,1fr);gap:4px;font-size:.7rem}
     .ops-heat-dow,.ops-heat-hour{color:var(--text-muted);text-align:center;padding:4px 0}
@@ -189,7 +191,10 @@
     .ops-feature{background:radial-gradient(circle at 0 0,rgba(168,85,247,.16),transparent 55%),rgba(255,255,255,.02)}
     @media(prefers-reduced-motion:reduce){.ops-screen{transition:none}.ops-progress{animation:none;width:100%}}
     @media(max-width:900px){.ops-kpi,.ops-report,.ops-cards.three,.ops-cards.four,.ops-cards.two,.ops-split{grid-template-columns:1fr 1fr}.ops-frame{min-height:0}.ops-stage{min-height:640px}}
-    @media(max-width:768px){.ops-kpi,.ops-report,.ops-cards.three,.ops-cards.four,.ops-cards.two,.ops-split{grid-template-columns:1fr}.ops-chrome{flex-wrap:wrap}.ops-timeline li{grid-template-columns:1fr}.ops-heat{min-width:520px}}
+    @media(max-width:768px){.ops-kpi,.ops-report,.ops-cards.three,.ops-cards.four,.ops-cards.two,.ops-split{grid-template-columns:1fr}.ops-chrome{flex-wrap:wrap}.ops-timeline li,.ops-radar a{grid-template-columns:1fr}.ops-heat{min-width:520px}}
+    body.ops-kiosk nav,body.ops-kiosk .ops-intro,body.ops-kiosk .hero,body.ops-kiosk .stats-bar,body.ops-kiosk #services,body.ops-kiosk #about,body.ops-kiosk #tech,body.ops-kiosk #contact,body.ops-kiosk footer{display:none!important}
+    body.ops-kiosk .ops{max-width:none;min-height:100vh;padding:0}
+    body.ops-kiosk .ops-frame{min-height:100vh;border:0;border-radius:0;box-shadow:none}
   </style>
 </head>
 <body>
@@ -215,7 +220,7 @@
       <div>
         <div class="section-label">// Operations</div>
         <h2 class="section-title">통합 대시보드</h2>
-        <p class="section-desc">예약 · 출결 · D-Day · K-Startup · 사업 영역을 12개 스크린으로 순환합니다. 5초마다 자동 전환되며, 프레임에 마우스를 올리면 멈춥니다.</p>
+        <p class="section-desc">예약 · 출결 · D-Day · K-Startup · TMAP을 10개 스크린으로 순환합니다. 5초마다 자동 전환되며, 프레임에 마우스를 올리면 멈춥니다. TV는 키오스크 모드를 쓰세요.</p>
       </div>
     </div>
     <div class="ops-frame" id="opsFrame">
@@ -223,7 +228,7 @@
         <div class="ops-brand">STARGATE OPS <span class="ops-live" id="opsLive" data-mode="demo">DEMO</span></div>
         <div class="ops-chrome-mid">
           <span class="ops-clock" id="opsClock">--</span>
-          <span id="opsIndex">01 / 12</span>
+          <span id="opsIndex">01 / 10</span>
           <span class="ops-screen-title" id="opsTitle">커맨드 센터</span>
         </div>
         <div class="ops-chrome-actions">
@@ -231,6 +236,7 @@
           <button type="button" class="ops-btn" id="opsPause" aria-pressed="false">일시정지</button>
           <button type="button" class="ops-btn" id="opsNext" aria-label="다음 스크린">다음</button>
           <button type="button" class="ops-btn" id="opsFull">전체화면</button>
+          <a class="ops-btn" id="opsKiosk" href="?kiosk=1">키오스크</a>
         </div>
       </div>
       <div class="ops-progress-track"><span class="ops-progress" id="opsProgress"></span></div>

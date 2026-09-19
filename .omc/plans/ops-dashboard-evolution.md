@@ -175,3 +175,4 @@ TMAP 스냅샷 구현 제약:
 ## Changelog (계획 문서)
 
 - 초안: 코드 조사 기준 Phase 0–4 확정. 구현 시작 전 문서.
+- 구현: Phase 0–3을 `ops-dashboard.js` / `index.html` / `tmap/app.js`에 반영. Phase 4는 배포.
