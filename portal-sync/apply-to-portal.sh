@@ -16,4 +16,7 @@ cp "$ROOT/dongsoojung.github.io/.github/workflows/apply-kstartup-schema.yml" "$T
 cp "$ROOT/dongsoojung.github.io/strategy/index.html" "$TARGET/strategy/index.html"
 cp "$ROOT/dongsoojung.github.io/research/index.html" "$TARGET/research/index.html"
 cp "$ROOT/dongsoojung.github.io/index.html" "$TARGET/index.html"
-echo "Synced K-Startup dashboard + strategy/research/home links into $TARGET"
+mkdir -p "$TARGET/seoul-city" "$TARGET/api"
+cp -a "$ROOT/dongsoojung.github.io/seoul-city/." "$TARGET/seoul-city/"
+cp "$ROOT/dongsoojung.github.io/api/seoul-citydata.js" "$TARGET/api/"
+echo "Synced K-Startup dashboard + Seoul citydata + strategy/research/home links into $TARGET"

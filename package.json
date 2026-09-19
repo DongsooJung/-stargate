@@ -3,7 +3,8 @@
   "private": true,
   "scripts": {
     "deploy:kstartup-api": "bash scripts/deploy-kstartup-vercel.sh",
-    "test:kstartup": "node kstartup/test-parser.mjs"
+    "test:kstartup": "node kstartup/test-parser.mjs",
+    "test:seoul-city": "node seoul-city/test-parser.mjs"
   },
   "devDependencies": {
     "vercel": "^58.1.0"
