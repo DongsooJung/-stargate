@@ -69,7 +69,9 @@ stargate-homepage/
 ├── dday.html                               # D-Day 카운트다운 캘린더 대시보드
 ├── kstartup/                               # K-Startup 지원사업 관측소 (100건/페이지)
 ├── tmap/                                   # TMAP 모빌리티 연구대시보드
+├── seoul-city/                             # 서울 실시간 도시데이터 MCP 연구대시보드
 ├── api/kstartup.js                         # K-Startup → Supabase 프록시
+├── api/seoul-citydata.js                   # 서울 열린데이터 citydata 프록시
 ├── api/tmap-route.js                       # TMAP 자동차 경로 서버 프록시
 ├── api/tmap-config.js                      # Web 지도용 공개 키 전달
 ├── supabase/class_bookings.sql             # 예약 테이블 스키마
@@ -114,6 +116,24 @@ SUPABASE_ACCESS_TOKEN=... node scripts/apply-kstartup-schema.mjs
 www.stargateedu.co.kr 전략 대시보드 이식은 `portal-sync/` 참고.
 
 ---
+
+## 서울 실시간 도시데이터 (`seoul-city/`)
+
+서울 열린데이터광장 **실시간 도시데이터**(121장소)를 MCP 도구 형태로 연동한 연구 대시보드입니다.
+
+| 항목 | 내용 |
+|------|------|
+| 페이지 | `seoul-city/index.html` |
+| API 프록시 | `api/seoul-citydata.js` (`action=snapshot\|get_population_ranking\|...`) |
+| 업스트림 | `openapi.seoul.go.kr:8088` `citydata` / `citydata_ppltn` |
+| 키 | `SEOUL_OPEN_API_KEY` (없으면 샘플 키 → **광화문·덕수궁**만) |
+| 연구 허브 | `portal-sync/.../research/index.html` 카드 |
+
+로컬 `python3 -m http.server 3000`에서는 샘플 키로 광화문·덕수궁을 직접 호출합니다. 121장소 순위는 Vercel 환경변수 `SEOUL_OPEN_API_KEY`가 있을 때 동작합니다.
+
+```bash
+npm run test:seoul-city
+```
 
 ## 수업 시간표 · 예약 (`schedule.html`)
 
