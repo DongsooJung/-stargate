@@ -70,6 +70,7 @@ stargate-homepage/
 ├── kstartup/                               # K-Startup 지원사업 관측소 (100건/페이지)
 ├── tmap/                                   # TMAP 모빌리티 연구대시보드
 ├── seoul-city/                             # 서울 실시간 도시데이터 MCP 연구대시보드
+├── ops-dashboard.js                        # 홈 최상단 10스크린 순환 보드
 ├── api/kstartup.js                         # K-Startup → Supabase 프록시
 ├── api/seoul-citydata.js                   # 서울 열린데이터 citydata 프록시
 ├── api/tmap-route.js                       # TMAP 자동차 경로 서버 프록시

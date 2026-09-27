@@ -64,6 +64,12 @@
       });
       const result = await response.json();
       if (!response.ok) throw new Error(result.error || '경로 계산에 실패했습니다.');
+      try {
+        localStorage.setItem(
+          'stargate-tmap-last',
+          JSON.stringify({ start, end, summary: result.summary, at: Date.now() })
+        );
+      } catch (_) {}
       renderMetrics(result.summary);
       renderMap(start, end, result.path || []);
       apiStatus.textContent = '실시간 분석 완료';
