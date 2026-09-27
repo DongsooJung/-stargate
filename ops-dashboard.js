@@ -817,7 +817,7 @@
       ${head('09', 'STARGATE', '사업 한 장', '교육 · AI · 출판을 한 스크린에 압축했습니다.')}
       <div class="ops-cards four">
         <article><h3>수학 · KOI</h3><p>대치 심화와 알고리즘 트랙.</p></article>
-        <article><h3>UrbanVision</h3><p>GIS · 헤도닉 · DID.</p></article>
+        <article><h3>서울 도시데이터</h3><p>실시간 인구 · 상권 · 교통. <a href="seoul-city/">연구 보드</a></p></article>
         <article><h3>출판 · 커머스</h3><p>KDP, Coupang, Cafe24.</p></article>
         <article><h3>정동수</h3><p>서울대 공대 · ㈜별의문.</p></article>
       </div>`;
@@ -831,6 +831,7 @@
         <a href="dday.html"><h3>D-Day</h3><p>카운트다운</p></a>
         <a href="report.html"><h3>출결</h3><p>당일 보고서</p></a>
         <a href="kstartup/"><h3>K-Startup</h3><p>지원사업 레이더</p></a>
+        <a href="seoul-city/"><h3>서울</h3><p>실시간 도시데이터</p></a>
         <a href="tmap/"><h3>TMAP</h3><p>모빌리티 연구</p></a>
       </div>
       <p class="ops-note">서울 강남구 대치동</p>`;
