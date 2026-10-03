@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>도착지 근접 택시 합승 | STARGATE</title>
+  <meta name="description" content="하차 위치가 가까운 승객이 합승을 고르는 택시 매칭 시뮬레이터">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@500;700;800&amp;family=Noto+Sans+KR:wght@400;500;700&amp;family=JetBrains+Mono:wght@500&amp;display=swap" rel="stylesheet">
+  <style>
+    :root{--bg:#06080d;--panel:#101620;--line:rgba(255,255,255,.09);--blue:#4f8fff;--violet:#c084fc;--green:#34d399;--text:#e8ecf4;--muted:#8a94a6;--bad:#ff8a73}
+    *{box-sizing:border-box}body{margin:0;background:radial-gradient(circle at 12% 0,rgba(79,143,255,.14),transparent 32%),var(--bg);color:var(--text);font-family:'Noto Sans KR',sans-serif}
+    button,input,select{font:inherit;color:inherit}button{cursor:pointer}a{color:inherit}
+    .shell{max-width:1240px;margin:0 auto;padding:22px 18px 64px}
+    .top{display:flex;justify-content:space-between;align-items:center;margin-bottom:22px}.brand{font:800 18px 'Outfit',sans-serif;letter-spacing:3px;text-decoration:none}.back{color:var(--muted);text-decoration:none;font-size:14px}
+    .eyebrow{font:500 12px 'JetBrains Mono',monospace;letter-spacing:1.5px;color:var(--blue)}
+    h1{font:800 clamp(32px,5vw,52px)/1.08 'Outfit',sans-serif;margin:8px 0}.lead{color:var(--muted);line-height:1.7;max-width:760px;margin:0 0 18px}
+    .steps{display:grid;grid-template-columns:repeat(6,1fr);gap:8px;list-style:none;padding:0;margin:0 0 16px}
+    .steps li{padding:10px;border:1px solid var(--line);border-radius:12px;background:var(--panel);color:var(--muted);font-size:13px}
+    .steps span{display:block;font:700 12px 'JetBrains Mono',monospace;margin-bottom:4px}
+    .steps .is-done{color:var(--text);border-color:rgba(79,143,255,.35)}
+    .steps .is-now{color:#fff;background:#18243a;border-color:var(--blue)}
+    .steps .is-bad{color:var(--bad);border-color:rgba(255,138,115,.4)}
+    .workspace{display:grid;grid-template-columns:300px minmax(0,1fr) 340px;gap:14px;align-items:start}
+    .panel{border:1px solid var(--line);border-radius:16px;background:rgba(16,22,32,.9);padding:14px}
+    .panel h2{font-size:15px;margin:0 0 10px}
+    .presets,.pick-row{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:10px}
+    .presets button,.pick-row button,.ghost{border:1px solid var(--line);background:#0c121b;border-radius:999px;padding:7px 10px;font-size:12px}
+    .presets button.on,.pick-row button.on{border-color:var(--blue);color:#fff;background:#173056}
+    label{display:grid;gap:6px;margin:0 0 10px;font-size:13px;color:var(--muted)}
+    select,input[type=range]{width:100%}
+    select{height:40px;border-radius:10px;border:1px solid var(--line);background:#090d14;padding:0 10px}
+    .row-label{display:flex;justify-content:space-between;color:var(--text);font-weight:700}
+    .note,.hint{color:var(--muted);font-size:12px;line-height:1.55;margin:8px 0 0}
+    .alert{display:none;color:var(--bad);font-size:13px;margin:8px 0}.alert.show{display:block}
+    .kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:8px}
+    .kpi{padding:10px;border:1px solid var(--line);border-radius:12px;background:var(--panel)}
+    .kpi span{display:block;color:var(--muted);font-size:11px;margin-bottom:4px}.kpi strong{font:800 20px 'Outfit',sans-serif}
+    .map-frame{position:relative;border:1px solid var(--line);border-radius:16px;overflow:hidden;background:#0c1119;min-height:520px}
+    #map{height:520px}#map svg{width:100%;height:100%;display:block}
+    #map.picking{cursor:crosshair}
+    .banner{position:absolute;top:10px;left:10px;right:10px;margin:0;padding:8px 10px;border-radius:10px;background:rgba(23,48,86,.92);color:#fff;font-size:13px;pointer-events:none}
+    .banner[hidden]{display:none}.legend{display:flex;flex-wrap:wrap;gap:10px;color:var(--muted);font-size:12px;margin-top:8px}
+    .legend i{display:inline-block;width:9px;height:9px;border-radius:50%;margin-right:4px}
+    .cards{display:grid;gap:8px}.card{border:1px solid var(--line);border-radius:14px;padding:12px;background:#0d131c}
+    .card.on{border-color:rgba(192,132,252,.7)}
+    .card header,.card .meta{display:flex;justify-content:space-between;gap:8px;align-items:center}
+    .card header strong{font-size:16px}.score{font:700 13px 'JetBrains Mono',monospace;color:var(--violet)}
+    .route{margin:6px 0;color:var(--muted);font-size:13px}.meta{list-style:none;padding:0;margin:0 0 8px;color:var(--muted);font-size:12px}
+    .save{color:var(--green);font-weight:700}.solo{color:var(--muted);text-decoration:line-through;margin-left:6px;font-size:12px}
+    .card button,.trip button{width:100%;margin-top:8px;border:0;border-radius:10px;padding:10px;background:linear-gradient(135deg,var(--blue),#7065e8);color:#fff;font-weight:700}
+    .trip button.secondary,.board button.flat{background:#182030;border:1px solid var(--line)}
+    .empty{color:var(--muted);font-size:14px;line-height:1.6}
+    .trip{margin-top:12px;padding-top:12px;border-top:1px solid var(--line)}
+    .timeline{list-style:none;padding:0;margin:8px 0}.timeline li{display:flex;gap:8px;align-items:center;margin:6px 0;font-size:14px}
+    .timeline b{width:22px;height:22px;border-radius:50%;display:grid;place-items:center;background:#243044;font-size:12px}
+    table{width:100%;border-collapse:collapse;font-size:13px;margin:8px 0}th,td{text-align:right;padding:6px 4px;border-bottom:1px solid var(--line)}th:first-child,td:first-child{text-align:left;color:var(--muted)}
+    .driver{padding:10px;border-radius:10px;background:rgba(251,191,36,.1);color:#fde68a;font-size:14px}
+    .board{margin-top:16px}.board-head{display:flex;justify-content:space-between;gap:12px;align-items:end}
+    .rows{display:grid;gap:6px;margin-top:8px}.rows button{display:grid;grid-template-columns:72px 1fr auto;gap:8px;align-items:center;text-align:left;padding:10px;border-radius:12px;border:1px solid var(--line);background:#0d131c;font-weight:500}
+    .chip{font-size:11px;border-radius:999px;padding:4px 7px;background:#182030;color:var(--muted);white-space:nowrap}
+    .chip.ok{color:#06281c;background:var(--green)}.chip.cell{color:#dbe7ff;background:#24344f}.chip.time,.chip.dest,.chip.detour,.chip.overlap,.chip.fare{color:#ffd7cf;background:#3a241f}
+    .cell{font:500 11px 'JetBrains Mono',monospace;color:var(--blue)}
+    .rules{margin-top:16px}.rules dl{display:grid;grid-template-columns:140px 1fr;gap:8px 12px;margin:0}.rules dt{color:var(--blue);font-size:13px}.rules dd{margin:0;color:var(--muted);font-size:14px;line-height:1.55}
+    @media(max-width:980px){.workspace,.kpis,.rules dl{grid-template-columns:1fr}.steps{grid-template-columns:repeat(3,1fr)}.map-frame,#map{min-height:380px;height:380px}.rows button{grid-template-columns:1fr}.kpis{grid-template-columns:1fr 1fr}}
+  </style>
+</head>
+<body>
+  <main class="shell">
+    <nav class="top"><a class="brand" href="../index.html">STARGATE</a><a class="back" href="../index.html">← 홈</a></nav>
+    <header>
+      <div class="eyebrow">STARGATE MOBILITY · SHARE TAXI</div>
+      <h1>도착지가 가까운 사람끼리<br>택시를 나눠 탑니다</h1>
+      <p class="lead">카카오퀵이 주문을 픽업 위치 칸에 넣듯, 이 합승은 하차 위치를 지오해시 칸에 넣습니다. 칸 안의 요청만 제약으로 거르고 점수로 줄 세웁니다. 양쪽이 직접 수락해야 빈 차 한 대가 배차됩니다.</p>
+    </header>
+    <ol class="steps" id="steps">
+      <li data-step="1"><span>01</span>승차 요청</li>
+      <li data-step="2"><span>02</span>하차 칸 검색</li>
+      <li data-step="3"><span>03</span>제약 필터</li>
+      <li data-step="4"><span>04</span>점수순 후보</li>
+      <li data-step="5"><span>05</span>양쪽 수락</li>
+      <li data-step="6"><span>06</span>한 대 배차</li>
+    </ol>
+
+    <section class="workspace">
+      <div class="panel">
+        <h2>내 이동</h2>
+        <div class="presets" id="presets">
+          <button type="button" data-preset="gangnam">강남 → 서울대입구</button>
+          <button type="button" data-preset="hongdae">홍대 → 신촌</button>
+          <button type="button" data-preset="jamsil">잠실 → 가락시장</button>
+          <button type="button" data-preset="yeouido">여의도 → 공덕</button>
+        </div>
+        <label>출발<select id="pickup"></select></label>
+        <label>도착<select id="dropoff"></select></label>
+        <p class="hint" id="pointNote">역을 고르거나 지도에서 찍을 수 있습니다.</p>
+        <div class="pick-row">
+          <button type="button" id="pickPickup">지도에서 출발</button>
+          <button type="button" id="pickDropoff">지도에서 도착</button>
+          <button type="button" id="clearCustom" class="ghost" hidden>지도 선택 지우기</button>
+        </div>
+        <label>
+          <span class="row-label">내 출발 <output id="departValue">지금</output></span>
+          <input id="departMin" type="range" min="0" max="30" step="1" value="0">
+        </label>
+        <label>
+          <span class="row-label">도착지 반경 <output id="radiusValue">1.5km</output></span>
+          <input id="radiusMeters" type="range" min="500" max="3000" step="100" value="1500">
+        </label>
+        <label>요금 시간대
+          <select id="tier">
+            <option value="day">주간 · 기본 4,800원</option>
+            <option value="night20">심야 20% · 22–23시, 02–04시</option>
+            <option value="night40">심야 40% · 23–02시</option>
+          </select>
+        </label>
+        <p class="cell" id="myCell">하차 칸 -</p>
+        <p class="alert" id="formError" role="alert"></p>
+        <p class="note">열린 요청과 출발 시각이 10분을 넘기면 빠집니다. 강남 예시에서 출발을 20분 뒤로 두면, 아까 시각 때문에 빠졌던 카이만 남습니다.</p>
+      </div>
+
+      <div>
+        <section class="kpis" aria-label="합승 요약">
+          <article class="kpi"><span>합승 가능</span><strong id="matchCount">-</strong></article>
+          <article class="kpi"><span>가장 가까운 도착</span><strong id="nearestDest">-</strong></article>
+          <article class="kpi"><span>내 단독 예상</span><strong id="soloFare">-</strong></article>
+          <article class="kpi"><span>선택 시 내 요금</span><strong id="shareFare">-</strong></article>
+        </section>
+        <div class="map-frame">
+          <p class="banner" id="mapBanner" hidden>지도를 눌러 위치를 지정하세요.</p>
+          <div id="map"></div>
+        </div>
+        <div class="legend">
+          <span><i style="background:#4f8fff"></i>내 경로</span>
+          <span><i style="background:#34d399"></i>합승 가능 도착지</span>
+          <span><i style="background:#8a94a6"></i>조건 밖</span>
+          <span><i style="background:#c084fc"></i>고른 합승</span>
+          <span><i style="background:#fbbf24"></i>빈 차</span>
+        </div>
+      </div>
+
+      <aside class="panel" id="results">
+        <h2>합승 후보</h2>
+        <div class="cards" id="matchList"></div>
+        <div class="trip" id="tripPanel"></div>
+      </aside>
+    </section>
+
+    <section class="panel board">
+      <div class="board-head">
+        <h2>열린 요청 보드</h2>
+        <p class="hint" id="boardNote">조건 밖 요청을 누르면 빠지는 이유를 보여 줍니다.</p>
+      </div>
+      <div class="rows" id="board"></div>
+    </section>
+
+    <section class="panel rules">
+      <h2>매칭 규칙</h2>
+      <dl>
+        <dt>검색</dt>
+        <dd>하차 좌표를 지오해시 5단계 칸에 넣고, 그 칸과 이웃 칸만 꺼냅니다. 퀵이 픽업 칸으로 근처 기사를 찾듯, 여기서는 하차 칸으로 같은 방향의 승객을 찾습니다.</dd>
+        <dt>필수 조건</dt>
+        <dd>도착 반경(기본 1.5km), 출발 시각 차이 10분, 각자 탑승 거리 우회 45% 이하, 합승 전체 거리가 더 긴 단독의 1.4배 이하, 직선거리 10% 이상 절약, 합승 요금이 각자 단독보다 저렴할 것.</dd>
+        <dt>경유 순서</dt>
+        <dd>두 사람의 승차를 모두 마친 뒤에 내립니다. 가능한 네 순서 중 가장 짧은 길을 고릅니다.</dd>
+        <dt>점수</dt>
+        <dd>도착지 가까움 40, 탑승 우회 25, 경로 겹침 15, 출발 시각 10, 진행 방향 10. 방향은 감점만 하고, 방향이 달라도 우회가 작으면 후보에 남습니다.</dd>
+        <dt>수락과 배차</dt>
+        <dd>내가 후보를 골라도 상대가 수락하기 전에는 차가 움직이지 않습니다. 양쪽 수락 뒤 첫 승차지에서 가장 가까운 빈 차를 배차합니다.</dd>
+        <dt>요금</dt>
+        <dd>서울 중형택시 거리요금입니다. 주간 1.6km 4,800원 이후 131m당 100원, 심야는 20%·40% 구간의 기본요금과 거리단가를 씁니다. 합승 총액을 단독 요금 비율로 나눕니다.</dd>
+      </dl>
+      <p class="note">도로 거리는 직선에 도심 우회계수 1.35를 곱한 추정이고, 시속 15km 이하 시간요금은 넣지 않았습니다. 연구용 시뮬레이터이며 실제 동승은 여객자동차법이 허용하는 운송 방식 안에서만 가능합니다.</p>
+    </section>
+  </main>
+  <script type="module" src="app.js"></script>
+</body>
+</html>
