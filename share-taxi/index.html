@@ -19,8 +19,10 @@
     .steps{display:grid;grid-template-columns:repeat(6,1fr);gap:8px;list-style:none;padding:0;margin:0 0 16px}
     .steps li{padding:10px;border:1px solid var(--line);border-radius:12px;background:var(--panel);color:var(--muted);font-size:13px}
     .steps span{display:block;font:700 12px 'JetBrains Mono',monospace;margin-bottom:4px}
-    .steps .is-done{color:var(--text);border-color:rgba(79,143,255,.35)}
+    .steps .is-done{color:var(--text);border-color:rgba(79,143,255,.4);background:#121a28}
+    .steps .is-done span{color:var(--blue)}
     .steps .is-now{color:#fff;background:#18243a;border-color:var(--blue)}
+    .steps .is-now span{color:#9ec2ff}
     .steps .is-bad{color:var(--bad);border-color:rgba(255,138,115,.4)}
     .workspace{display:grid;grid-template-columns:300px minmax(0,1fr) 340px;gap:14px;align-items:start}
     .panel{border:1px solid var(--line);border-radius:16px;background:rgba(16,22,32,.9);padding:14px}
