@@ -14,7 +14,8 @@ export const TAXI = {
 };
 
 export const DEFAULT_RULES = {
-  destRadiusMeters: 1500,
+  pickupRadiusMeters: 1500,
+  corridorMeters: 1300,
   maxInVehicleDetour: 0.45,
   maxPoolDetour: 0.4,
   maxDepartGapMin: 10,
@@ -23,9 +24,9 @@ export const DEFAULT_RULES = {
   neighborRings: 1,
   tier: 'day',
   weights: {
-    dest: 0.4,
-    inVehicle: 0.25,
-    pool: 0.15,
+    pickup: 0.4,
+    corridor: 0.25,
+    inVehicle: 0.15,
     time: 0.1,
     bearing: 0.1,
   },
@@ -167,16 +168,52 @@ export function geohashDisk(hash, rings = 1) {
   return [...cells];
 }
 
-export function buildDropoffIndex(requests, precision = 5) {
+export function buildGeoIndex(requests, pointKey, precision = 5) {
   const index = new Map();
   for (const request of requests) {
-    if (!request || !request.dropoff || !request.id) continue;
-    const cell = encodeGeohash(request.dropoff.lat, request.dropoff.lon, precision);
+    const point = request && request[pointKey];
+    if (!point || !request.id) continue;
+    const cell = encodeGeohash(point.lat, point.lon, precision);
     const bucket = index.get(cell) || [];
     bucket.push(request.id);
     index.set(cell, bucket);
   }
   return index;
+}
+
+export function buildPickupIndex(requests, precision = 5) {
+  return buildGeoIndex(requests, 'pickup', precision);
+}
+
+export function buildDropoffIndex(requests, precision = 5) {
+  return buildGeoIndex(requests, 'dropoff', precision);
+}
+
+/** 점과 선분 사이 거리. along 은 0(시작)에서 1(끝) 사이로 자른 위치. */
+export function distanceToSegmentMeters(point, start, end) {
+  const ax = eastMeters(start, end);
+  const ay = northMeters(start, end);
+  const px = eastMeters(start, point);
+  const py = northMeters(start, point);
+  const len2 = ax * ax + ay * ay;
+  if (len2 < 1) {
+    return { meters: haversineMeters(point, start), along: 0 };
+  }
+  const along = Math.min(1, Math.max(0, (px * ax + py * ay) / len2));
+  const closest = {
+    lat: start.lat + (end.lat - start.lat) * along,
+    lon: start.lon + (end.lon - start.lon) * along,
+  };
+  return { meters: haversineMeters(point, closest), along };
+}
+
+export function intermediateDropCorridor(stops) {
+  const pickups = stops.filter((stop) => stop.kind === 'pickup');
+  const dropoffs = stops.filter((stop) => stop.kind === 'dropoff');
+  if (pickups.length < 1 || dropoffs.length < 2) {
+    return { meters: Infinity, along: 0 };
+  }
+  return distanceToSegmentMeters(dropoffs[0], pickups[pickups.length - 1], dropoffs[dropoffs.length - 1]);
 }
 
 export function nearbyRequestIds(index, dropoff, precision = 5, rings = 1) {
@@ -257,11 +294,15 @@ export function explainPair(me, other, rules) {
   const longer = Math.max(soloMe, soloThem);
   const poolDetour = longer > 0 ? shared / longer - 1 : Infinity;
   const savingsRatio = soloMe + soloThem > 0 ? (soloMe + soloThem - shared) / (soloMe + soloThem) : 0;
+  const corridor = intermediateDropCorridor(plan.stops);
   const rejects = [];
 
   if (!(soloMe > 200) || !(soloThem > 200)) rejects.push({ code: 'invalid', message: '너무 짧은 구간입니다.' });
-  if (destMeters > cfg.destRadiusMeters) {
-    rejects.push({ code: 'dest', message: `도착지가 ${formatDistance(destMeters)} 떨어져 있습니다.` });
+  if (pickupMeters > cfg.pickupRadiusMeters) {
+    rejects.push({ code: 'pickup', message: `출발지가 ${formatDistance(pickupMeters)} 떨어져 있습니다.` });
+  }
+  if (corridor.meters > cfg.corridorMeters) {
+    rejects.push({ code: 'route', message: `하차가 경로에서 ${formatDistance(corridor.meters)} 벗어나 있습니다.` });
   }
   if (departGapMin > cfg.maxDepartGapMin) {
     rejects.push({ code: 'time', message: `출발 시각이 ${departGapMin}분 차이 납니다.` });
@@ -286,9 +327,9 @@ export function explainPair(me, other, rules) {
   const weights = cfg.weights;
   const score = Math.round(
     100 * (
-      weights.dest * clamp01(1 - destMeters / cfg.destRadiusMeters) +
+      weights.pickup * clamp01(1 - pickupMeters / cfg.pickupRadiusMeters) +
+      weights.corridor * clamp01(1 - corridor.meters / cfg.corridorMeters) +
       weights.inVehicle * clamp01(1 - inVehicleDetour / cfg.maxInVehicleDetour) +
-      weights.pool * clamp01(1 - poolDetour / cfg.maxPoolDetour) +
       weights.time * clamp01(1 - departGapMin / cfg.maxDepartGapMin) +
       weights.bearing * clamp01(1 - bearingGap / 180)
     ),
@@ -307,7 +348,9 @@ export function explainPair(me, other, rules) {
     detour: { me: detourMe, them: detourThem, inVehicle: inVehicleDetour, pool: poolDetour },
     savingsRatio,
     stops: plan.stops,
-    dropoffCell: encodeGeohash(other.dropoff.lat, other.dropoff.lon, cfg.geohashPrecision),
+    corridorMeters: corridor.meters,
+    corridorAlong: corridor.along,
+    pickupCell: encodeGeohash(other.pickup.lat, other.pickup.lon, cfg.geohashPrecision),
     fare: {
       soloMe: fareSoloMe,
       soloThem: fareSoloThem,
@@ -322,15 +365,15 @@ export function explainPair(me, other, rules) {
 
 export function describeBoard(me, requests, rules) {
   const cfg = resolveRules(rules);
-  const index = buildDropoffIndex(requests, cfg.geohashPrecision);
-  const near = new Set(nearbyRequestIds(index, me.dropoff, cfg.geohashPrecision, cfg.neighborRings));
+  const index = buildPickupIndex(requests, cfg.geohashPrecision);
+  const near = new Set(nearbyRequestIds(index, me.pickup, cfg.geohashPrecision, cfg.neighborRings));
   const rows = requests.map((request) => ({
     ...explainPair(me, request, cfg),
     inCell: near.has(request.id),
   }));
   rows.sort((a, b) => {
     if (a.eligible !== b.eligible) return a.eligible ? -1 : 1;
-    return a.destMeters - b.destMeters;
+    return a.pickupMeters - b.pickupMeters;
   });
   return rows;
 }
@@ -338,16 +381,16 @@ export function describeBoard(me, requests, rules) {
 export function findMatches(me, requests, rules) {
   return describeBoard(me, requests, rules)
     .filter((row) => row.eligible && row.inCell)
-    .sort((a, b) => b.score - a.score || a.destMeters - b.destMeters);
+    .sort((a, b) => b.score - a.score || a.pickupMeters - b.pickupMeters);
 }
 
 export function scoreBreakdown(result, rules) {
   const cfg = resolveRules(rules);
   const weights = cfg.weights;
   const parts = [
-    { key: 'dest', label: '도착지', weight: weights.dest, unit: clamp01(1 - result.destMeters / cfg.destRadiusMeters) },
+    { key: 'pickup', label: '출발지', weight: weights.pickup, unit: clamp01(1 - result.pickupMeters / cfg.pickupRadiusMeters) },
+    { key: 'corridor', label: '경로 위 하차', weight: weights.corridor, unit: clamp01(1 - result.corridorMeters / cfg.corridorMeters) },
     { key: 'inVehicle', label: '탑승 우회', weight: weights.inVehicle, unit: clamp01(1 - result.detour.inVehicle / cfg.maxInVehicleDetour) },
-    { key: 'pool', label: '경로 겹침', weight: weights.pool, unit: clamp01(1 - result.detour.pool / cfg.maxPoolDetour) },
     { key: 'time', label: '출발 시각', weight: weights.time, unit: clamp01(1 - result.departGapMin / cfg.maxDepartGapMin) },
     { key: 'bearing', label: '방향', weight: weights.bearing, unit: clamp01(1 - result.bearingGap / 180) },
   ];
@@ -360,7 +403,7 @@ export function soloQuote(request, rules) {
   return {
     meters,
     fare: taxiFareWon(meters, { tier: cfg.tier || 'day', roadFactor: cfg.roadFactor }),
-    cell: encodeGeohash(request.dropoff.lat, request.dropoff.lon, cfg.geohashPrecision),
+    cell: encodeGeohash(request.pickup.lat, request.pickup.lon, cfg.geohashPrecision),
   };
 }
 
@@ -382,10 +425,11 @@ export function nextOfferPhase(phase, event) {
 
 export function boardStatus(row) {
   if (row.eligible) return { code: 'ok', label: '합승 가능' };
-  if (!row.inCell) return { code: 'cell', label: '다른 하차 칸' };
+  if (!row.inCell) return { code: 'cell', label: '다른 출발 칸' };
   const code = row.rejects[0] ? row.rejects[0].code : 'invalid';
   const labels = {
-    dest: '도착지 반경 밖',
+    pickup: '출발지 반경 밖',
+    route: '하차가 경로 밖',
     time: '출발 시각 불일치',
     detour: '우회 초과',
     overlap: '경로가 덜 겹침',
@@ -456,6 +500,14 @@ function clamp01(value) {
   if (!Number.isFinite(value) || value < 0) return 0;
   if (value > 1) return 1;
   return value;
+}
+
+function northMeters(a, b) {
+  return (b.lat - a.lat) * 111320;
+}
+
+function eastMeters(a, b) {
+  return (b.lon - a.lon) * 111320 * Math.cos(((a.lat + b.lat) / 2) * Math.PI / 180);
 }
 
 function toRad(deg) {

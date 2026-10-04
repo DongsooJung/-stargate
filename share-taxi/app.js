@@ -141,7 +141,7 @@ function currentMe() {
 }
 
 function currentRules() {
-  return { destRadiusMeters: Number(els.radius.value), tier: els.tier.value };
+  return { pickupRadiusMeters: Number(els.radius.value), tier: els.tier.value };
 }
 
 function refresh() {
@@ -166,8 +166,8 @@ function refresh() {
   els.map.classList.toggle('picking', Boolean(state.pickMode));
   els.clearCustom.hidden = !state.customPickup && !state.customDropoff;
   els.departValue.textContent = me.departInMin === 0 ? '지금' : `${me.departInMin}분 뒤`;
-  els.radiusValue.textContent = formatDistance(rules.destRadiusMeters);
-  els.myCell.textContent = `하차 칸 ${quote.cell}`;
+  els.radiusValue.textContent = formatDistance(rules.pickupRadiusMeters);
+  els.myCell.textContent = `출발 칸 ${quote.cell}`;
   els.pointNote.textContent = pointNote(me);
   els.formError.textContent = short ? '출발과 도착이 너무 가깝습니다.' : '';
   els.formError.classList.toggle('show', short);
@@ -177,7 +177,7 @@ function refresh() {
     : '지도를 눌러 도착지를 지정하세요.';
 
   document.getElementById('matchCount').textContent = short ? '-' : `${matches.length}명`;
-  document.getElementById('nearestDest').textContent = matches[0] ? formatDistance(matches[0].destMeters) : '-';
+  document.getElementById('nearestDest').textContent = matches[0] ? formatDistance(matches[0].pickupMeters) : '-';
   document.getElementById('soloFare').textContent = formatWon(quote.fare);
   document.getElementById('shareFare').textContent = selected ? formatWon(selected.fare.payMe) : '-';
 
@@ -210,7 +210,7 @@ function renderSteps(matchCount, short) {
 
 function renderMatches(matches, selected) {
   if (!matches.length) {
-    els.matchList.innerHTML = '<p class="empty">이 조건에서는 도착지가 가까운 열린 요청이 없습니다. 반경이나 출발 시각을 바꿔 보세요.</p>';
+    els.matchList.innerHTML = '<p class="empty">이 조건에서는 출발지가 가깝고 하차가 경로 안인 요청이 없습니다. 출발 반경이나 출발 시각을 바꿔 보세요.</p>';
     return;
   }
   els.matchList.innerHTML = matches.map((row) => {
@@ -218,7 +218,7 @@ function renderMatches(matches, selected) {
     return `<article class="card${on ? ' on' : ''}">
       <header><strong>${esc(row.request.name)}</strong><em class="score">${row.score}점</em></header>
       <p class="route">${esc(row.request.pickup.name)} → ${esc(row.request.dropoff.name)}</p>
-      <ul class="meta"><li>도착 ${formatDistance(row.destMeters)}</li><li>우회 ${Math.round(row.detour.inVehicle * 100)}%</li><li>${row.departGapMin}분 차</li></ul>
+      <ul class="meta"><li>출발 ${formatDistance(row.pickupMeters)}</li><li>경로 이탈 ${formatDistance(row.corridorMeters)}</li><li>${row.departGapMin}분 차</li></ul>
       <div><strong>${formatWon(row.fare.payMe)}</strong><span class="solo">${formatWon(row.fare.soloMe)}</span> <span class="save">${formatWon(row.fare.saveMe)} 절약</span></div>
       <button type="button" data-select="${esc(row.request.id)}">${esc(particle(row.request.name))} 합승 선택</button>
     </article>`;
@@ -274,15 +274,15 @@ function renderBoard(board) {
     const action = row.eligible ? `data-select="${esc(row.request.id)}"` : `data-reject="${esc(row.request.id)}"`;
     return `<button type="button" ${action}>
       <span>${esc(row.request.name)}</span>
-      <span>${esc(row.request.pickup.name)} → ${esc(row.request.dropoff.name)} · 도착 ${formatDistance(row.destMeters)}${hint ? ` · ${esc(hint)}` : ''}<br><span class="cell">${row.inCell ? '검색 칸' : '칸 밖'} ${esc(row.dropoffCell)}</span></span>
+      <span>${esc(row.request.pickup.name)} → ${esc(row.request.dropoff.name)} · 출발 ${formatDistance(row.pickupMeters)}${hint ? ` · ${esc(hint)}` : ''}<br><span class="cell">${row.inCell ? '검색 칸' : '칸 밖'} ${esc(row.pickupCell || '')}</span></span>
       <span class="chip ${esc(status.code)}">${esc(status.label)}</span>
     </button>`;
   }).join('');
 }
 
 function radiusHint(row, status) {
-  if (status.code !== 'dest') return '';
-  const needed = Math.ceil(row.destMeters / 100) * 100;
+  if (status.code !== 'pickup') return '';
+  const needed = Math.ceil(row.pickupMeters / 100) * 100;
   if (needed > 3000) return '';
   return `반경 ${formatDistance(needed)}면 재계산`;
 }
@@ -322,7 +322,7 @@ function onBoardClick(event) {
   const row = state.board.find((item) => item.request.id === rejectId);
   if (!row) return;
   const bits = [];
-  if (!row.inCell) bits.push('하차 지오해시 이웃 칸 밖이라 후보 검색에 들어가지 않습니다.');
+  if (!row.inCell) bits.push('출발 지오해시 이웃 칸 밖이라 후보 검색에 들어가지 않습니다.');
   bits.push(...row.rejects.slice(0, 2).map((reject) => reject.message));
   const hint = radiusHint(row, boardStatus(row));
   if (hint) bits.push(`${hint.replace('면 재계산', '')}로 넓히면 다시 계산됩니다.`);
