@@ -23,6 +23,7 @@ export const DEFAULT_RULES = {
   geohashPrecision: 5,
   neighborRings: 1,
   tier: 'day',
+  routeAnchor: 'shared',
   weights: {
     pickup: 0.4,
     corridor: 0.25,
@@ -31,6 +32,28 @@ export const DEFAULT_RULES = {
     bearing: 0.1,
   },
 };
+
+/** 샌드박스. 출발 0.5km, 하차는 내 승차→하차 선 위(80m). */
+export const SANDBOX_RULES = {
+  pickupRadiusMeters: 500,
+  corridorMeters: 80,
+  routeAnchor: 'host',
+};
+
+export function pointOnRoute(start, end, along) {
+  const t = Math.min(1, Math.max(0, Number(along) || 0));
+  return {
+    lat: start.lat + (end.lat - start.lat) * t,
+    lon: start.lon + (end.lon - start.lon) * t,
+  };
+}
+
+export function offsetMeters(origin, north, east) {
+  const lat = origin.lat + north / 111320;
+  const cos = Math.cos(origin.lat * Math.PI / 180);
+  const lon = origin.lon + east / (111320 * (Math.abs(cos) < 1e-6 ? 1e-6 : cos));
+  return { lat, lon };
+}
 
 export function haversineMeters(a, b) {
   const lat1 = toRad(a.lat);
@@ -294,7 +317,9 @@ export function explainPair(me, other, rules) {
   const longer = Math.max(soloMe, soloThem);
   const poolDetour = longer > 0 ? shared / longer - 1 : Infinity;
   const savingsRatio = soloMe + soloThem > 0 ? (soloMe + soloThem - shared) / (soloMe + soloThem) : 0;
-  const corridor = intermediateDropCorridor(plan.stops);
+  const corridor = cfg.routeAnchor === 'host'
+    ? distanceToSegmentMeters(other.dropoff, me.pickup, me.dropoff)
+    : intermediateDropCorridor(plan.stops);
   const rejects = [];
 
   if (!(soloMe > 200) || !(soloThem > 200)) rejects.push({ code: 'invalid', message: '너무 짧은 구간입니다.' });
@@ -302,7 +327,8 @@ export function explainPair(me, other, rules) {
     rejects.push({ code: 'pickup', message: `출발지가 ${formatDistance(pickupMeters)} 떨어져 있습니다.` });
   }
   if (corridor.meters > cfg.corridorMeters) {
-    rejects.push({ code: 'route', message: `하차가 경로에서 ${formatDistance(corridor.meters)} 벗어나 있습니다.` });
+    const where = cfg.routeAnchor === 'host' ? '내 경로 선' : '경로';
+    rejects.push({ code: 'route', message: `하차가 ${where}에서 ${formatDistance(corridor.meters)} 벗어나 있습니다.` });
   }
   if (departGapMin > cfg.maxDepartGapMin) {
     rejects.push({ code: 'time', message: `출발 시각이 ${departGapMin}분 차이 납니다.` });

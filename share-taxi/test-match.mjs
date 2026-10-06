@@ -17,9 +17,12 @@ import {
   nearbyRequestIds,
   nextOfferPhase,
   planSharedRoute,
+  pointOnRoute,
+  SANDBOX_RULES,
   taxiFareWon,
 } from './match.js';
-import { OPEN_REQUESTS, PLACES, TAXIS, requestFromPlaces } from './sample.js';
+import { OPEN_REQUESTS, PLACES, PRESETS, TAXIS, requestFromPlaces } from './sample.js';
+import { buildSandboxRequests } from './sandbox.js';
 
 assert.equal(haversineMeters(PLACES.gangnam, PLACES.gangnam), 0);
 const east = bearingDegrees({ lat: 37.5, lon: 127 }, { lat: 37.5, lon: 127.02 });
@@ -146,6 +149,35 @@ assert.equal(nextOfferPhase('waiting', 'accept-partner'), 'assigned');
 assert.equal(nextOfferPhase('waiting', 'expire'), 'expired');
 assert.equal(nextOfferPhase('proposed', 'accept-partner'), 'proposed');
 assert.equal(nextOfferPhase('assigned', 'cancel'), 'cancelled');
+
+const sandboxHost = requestFromPlaces(PLACES.gangnam, PLACES.snu, 0);
+const sandboxBoard = describeBoard(sandboxHost, buildSandboxRequests(sandboxHost), SANDBOX_RULES);
+assert.deepEqual(findMatches(sandboxHost, buildSandboxRequests(sandboxHost), SANDBOX_RULES).map((row) => row.request.id), ['woojin', 'minjae', 'harin']);
+assert.equal(boardStatus(sandboxBoard.find((row) => row.request.id === 'seah')).code, 'route');
+assert.equal(boardStatus(sandboxBoard.find((row) => row.request.id === 'gunwoo')).code, 'pickup');
+assert.equal(boardStatus(sandboxBoard.find((row) => row.request.id === 'yuna')).code, 'time');
+for (const id of ['woojin', 'minjae', 'harin', 'yuna', 'gunwoo']) {
+  assert.ok(sandboxBoard.find((row) => row.request.id === id).corridorMeters < 5);
+}
+const gunwoo = sandboxBoard.find((row) => row.request.id === 'gunwoo');
+assert.ok(gunwoo.pickupMeters > 500 && gunwoo.pickupMeters < 1000);
+const seah = sandboxBoard.find((row) => row.request.id === 'seah');
+assert.ok(seah.pickupMeters <= 500);
+assert.ok(seah.corridorMeters > 80);
+assert.equal(seah.rejects[0].code, 'route');
+for (const preset of PRESETS) {
+  const host = requestFromPlaces(PLACES[preset.pickup], PLACES[preset.dropoff], 0);
+  const people = buildSandboxRequests(host);
+  const matched = new Set(findMatches(host, people, SANDBOX_RULES).map((row) => row.request.id));
+  assert.deepEqual(matched, new Set(['woojin', 'minjae', 'harin']));
+  for (const person of people.filter((row) => row.onRoute)) {
+    const drop = pointOnRoute(host.pickup, host.dropoff, person.along);
+    assert.ok(Math.abs(drop.lat - person.dropoff.lat) < 1e-9);
+    assert.ok(Math.abs(drop.lon - person.dropoff.lon) < 1e-9);
+  }
+}
+const lateOnly = requestFromPlaces(PLACES.gangnam, PLACES.snu, 20);
+assert.deepEqual(findMatches(lateOnly, buildSandboxRequests(lateOnly), SANDBOX_RULES).map((row) => row.request.id), ['yuna']);
 
 const sameRoute = planSharedRoute(gangnam, OPEN_REQUESTS.find((row) => row.id === 'bora'));
 assert.ok(sameRoute.meters > 0);
