@@ -263,24 +263,26 @@ function renderMap(me, board, selected, short) {
     polyline([me.pickup, me.dropoff], bounds, 'fill="none" stroke="#4f8fff" stroke-width="5" stroke-linecap="round"'),
   ];
   for (const row of board) {
-    const color = row.eligible ? '#34d399' : '#ff8a73';
+    if (row.request.onRoute) continue;
     parts.push(polyline(
       [row.request.pickup, row.request.dropoff],
       bounds,
-      `fill="none" stroke="${color}" stroke-width="1.5" stroke-opacity="0.45"`,
+      'fill="none" stroke="#ff8a73" stroke-width="1.5" stroke-dasharray="4 4"',
     ));
   }
   if (selected) {
     parts.push(polyline(selected.stops, bounds, 'fill="none" stroke="#c084fc" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"'));
   }
-  for (const row of board) {
+  board.forEach((row, index) => {
     const color = selected && row.request.id === selected.request.id ? '#c084fc' : row.eligible ? '#34d399' : '#ff8a73';
-    parts.push(dot(row.request.dropoff, bounds, '#0c1119', 7));
-    parts.push(dot(row.request.dropoff, bounds, color, 4.5));
-    parts.push(dot(row.request.pickup, bounds, color, 6));
-    const pos = xy(row.request.pickup, bounds);
-    parts.push(`<text x="${(pos.x + 8).toFixed(1)}" y="${(pos.y - 8).toFixed(1)}" fill="${color}" font-size="13">${esc(row.request.name)}</text>`);
-  }
+    parts.push(dot(row.request.dropoff, bounds, '#0c1119', 8));
+    parts.push(dot(row.request.dropoff, bounds, color, 5));
+    parts.push(dot(row.request.pickup, bounds, color, 5));
+    const pos = xy(row.request.dropoff, bounds);
+    const above = index % 2 === 0;
+    const labelY = above ? pos.y - 12 : pos.y + 18;
+    parts.push(`<text x="${pos.x.toFixed(1)}" y="${labelY.toFixed(1)}" text-anchor="middle" fill="${color}" font-size="13">${esc(row.request.name)}</text>`);
+  });
   const taxi = selected && state.phase === 'assigned' ? assignNearestTaxi(TAXIS, selected.stops[0]) : null;
   for (const cab of TAXIS) {
     const on = taxi && cab.id === taxi.id;
