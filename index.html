@@ -260,6 +260,8 @@
     // 첨부한 음원으로 바꾸려면 src만 수정하거나, 같은 폴더에 stargate.mp3 / m4a / ogg / wav 를 두면 됩니다.
     const STARGATE_BGM = {
       src: "assets/bgm/stargate.mp3",
+      title: "No Longer Slaves",
+      artist: "Jonathan David & Melissa Helser",
       volume: 0.32,
       loop: true
     };
@@ -310,10 +312,16 @@
         };
         requestAnimationFrame(step);
       }
+      const trackName = [STARGATE_BGM.title, STARGATE_BGM.artist].filter(Boolean).join(" — ");
+      if (trackName) {
+        dock.title = trackName;
+        btn.title = trackName;
+      }
       function setUi(playing){
         dock.classList.toggle("is-on", playing);
         btn.setAttribute("aria-pressed", playing ? "true" : "false");
-        btn.setAttribute("aria-label", playing ? "배경음악 일시정지" : "배경음악 재생");
+        const action = playing ? "일시정지" : "재생";
+        btn.setAttribute("aria-label", trackName ? trackName + " " + action : "배경음악 " + action);
       }
       async function fileExists(src){
         try {
