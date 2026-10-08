@@ -1,12 +1,12 @@
 # Play Console — 순차 제출 가이드 (법인 계정)
 
 개발자 **법인 계정** 인증·결제 완료. 개인 계정용 비공개 테스트(12명×14일)는 **해당 없음**.
-패키지: `kr.co.stargateedu.app` · 버전 `1.0.0` (versionCode 3)
+패키지: `kr.co.stargateedu.app` · 버전 `0.0.1` (versionCode 3)
 
 콘솔: https://play.google.com/console/u/0/developers/5270732068654725252/app-list
 
 업로드 파일:
-- AAB: 아티팩트 `Stargate-1.0.0.aab`
+- AAB: 아티팩트 `Stargate-0.0.1.aab`
 - 아이콘: `play-store/store-listing/icon-512.png`
 - 피처 그래픽: `play-store/store-listing/feature-graphic.png`
 - 스크린샷: `play-store/store-listing/screenshots/` (01~05, 1080×1920)
@@ -86,7 +86,7 @@
 법인 계정이므로 비공개 테스트 트랙은 **생략**합니다.
 
 1. 출시 → **프로덕션** → 새 버전 만들기
-2. `Stargate-1.0.0.aab` 업로드
+2. `Stargate-0.0.1.aab` 업로드
 3. 출시 메모 예: `최초 출시. Stargate 포털·수업 예약·출결 TWA.`
 4. 대시보드 미완료 항목이 0인지 확인 후 **심사 제출**
 

@@ -10,7 +10,7 @@ Gradle 프로젝트·APK/AAB·서명키는 로컬에서 생성합니다(`.gitign
 | 앱 이름 | Stargate |
 | 시작 URL | `https://stargateedu.co.kr/` |
 | 개인정보처리방침 | `https://stargateedu.co.kr/-stargate/privacy.html` |
-| 현재 버전 | `1.0.0` (versionCode 3) |
+| 현재 버전 | `0.0.1` (versionCode 3) |
 
 ## 0. 사전 준비
 
