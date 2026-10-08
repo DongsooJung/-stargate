@@ -116,7 +116,7 @@
     .bgm-volume::-webkit-slider-thumb{-webkit-appearance:none;width:12px;height:12px;border-radius:50%;background:var(--accent);border:none;box-shadow:0 0 10px rgba(79,143,255,.5)}
     .bgm-volume::-moz-range-thumb{width:12px;height:12px;border-radius:50%;background:var(--accent);border:none}
     body.has-bgm footer{padding-bottom:5.5rem}
-    @media(max-width:768px){.bgm-volume{width:56px}}
+    @media(max-width:768px){.bgm-dock{z-index:110;top:14px;bottom:auto;right:141px;padding:0;background:transparent;border:none;box-shadow:none;backdrop-filter:none}.bgm-volume{display:none}body.has-bgm footer{padding-bottom:3rem}}
     @media(prefers-reduced-motion:reduce){.bgm-dock.is-on .bgm-bars i{animation:none;height:8px}}
   </style>
 </head>
@@ -243,7 +243,7 @@
       © 2025 Stargate Corporation. All rights reserved.
     </div>
   </footer>
-  <!-- 배경음악: assets/bgm/stargate.mp3 (또는 .m4a .ogg .wav) 를 넣으면 오른쪽 아래에서 재생됩니다. -->
+  <!-- 배경음악: assets/bgm/stargate.mp3 (또는 .m4a .ogg .wav) 를 넣으면 재생됩니다. -->
   <div class="bgm-dock" id="bgmDock" hidden>
     <button type="button" class="bgm-toggle" id="bgmToggle" aria-pressed="false" aria-label="배경음악 재생">
       <svg class="bgm-icon-play" viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5v14l11-7z"></path></svg>
@@ -297,12 +297,13 @@
       function currentVolume(){
         return Math.min(1, Math.max(0, Number(vol.value) / 100));
       }
-      function fadeTo(level){
+      function fadeTo(){
         const id = ++fadeId;
         const start = audio.volume;
         const t0 = performance.now();
         const step = (now) => {
           if (id !== fadeId) return;
+          const level = currentVolume();
           const p = Math.min(1, (now - t0) / 800);
           audio.volume = start + (level - start) * (1 - Math.pow(1 - p, 2));
           if (p < 1) requestAnimationFrame(step);
@@ -355,13 +356,12 @@
       async function play(){
         if (!audio.paused || pending || !audio.src) return;
         pending = true;
-        const level = currentVolume();
         audio.volume = 0;
         try {
           await audio.play();
           setUi(true);
           writeMode("on");
-          fadeTo(level);
+          fadeTo();
         } catch (e) {
           setUi(false);
           rememberGesture();
