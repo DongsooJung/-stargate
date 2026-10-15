@@ -14,6 +14,7 @@ This repo is a **static-first web project** (Stargate Corporation homepage + sev
 ### How to run locally
 - Serve the repo root on **port 3000** (the `api/kstartup.js` CORS allow-list expects `localhost:3000`):
   - `python3 -m http.server 3000` (then open `http://localhost:3000/schedule.html`, `/index.html`, `/kstartup/`, etc.)
+- Cloud Agent `start` already runs `python3 -m http.server 3000 --bind 0.0.0.0` and exits if that port is open. Reuse `http://localhost:3000` when it is listening.
 - Any static server works for the pure-static pages, but use port 3000 so the K-Startup proxy path behaves.
 - The booking/D-Day/report/K-Startup features require **outbound internet** to reach the hosted Supabase project and government/Vercel APIs. If those flows fail, first check network egress.
 
@@ -27,3 +28,4 @@ This repo is a **static-first web project** (Stargate Corporation homepage + sev
 - Node >= 18 (CI uses Node 22). `npm install` only pulls the `vercel` devDependency; the site itself needs no dependencies.
 - `package-lock.json` is gitignored, so `npm install` (not `npm ci`) is the correct install command.
 - Optional env vars (`DATA_GO_KR_API_KEY`, `SEOUL_OPEN_API_KEY`, `SUPABASE_ACCESS_TOKEN`/`DATABASE_URL`, `VERCEL_TOKEN`) are only needed for fetching fresh K-Startup/Seoul city data, applying DB schemas, or deploying — not for local viewing/testing.
+- Hosted Supabase `class_bookings` can return HTTP 402 (`exceed_db_size_quota`). The schedule page then falls back to Storage mode. That is a project quota, not a local setup failure. Environment checks should read the timetable and must not create or cancel bookings.
