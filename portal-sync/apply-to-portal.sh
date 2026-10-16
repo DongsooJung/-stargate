@@ -15,6 +15,9 @@ cp "$ROOT/dongsoojung.github.io/.github/workflows/apply-kstartup-schema.yml" "$T
 # Fully patched hub pages (strategy / research / home)
 cp "$ROOT/dongsoojung.github.io/strategy/index.html" "$TARGET/strategy/index.html"
 cp "$ROOT/dongsoojung.github.io/research/index.html" "$TARGET/research/index.html"
+mkdir -p "$TARGET/assets"
+cp "$ROOT/dongsoojung.github.io/assets/intelligence-hub.js" "$TARGET/assets/intelligence-hub.js"
+cp "$ROOT/dongsoojung.github.io/assets/theme-boot.js" "$TARGET/assets/theme-boot.js"
 cp "$ROOT/dongsoojung.github.io/index.html" "$TARGET/index.html"
 mkdir -p "$TARGET/seoul-city" "$TARGET/api"
 cp -a "$ROOT/dongsoojung.github.io/seoul-city/." "$TARGET/seoul-city/"
