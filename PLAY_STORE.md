@@ -5,7 +5,7 @@
 | 웹앱 | https://stargateedu.co.kr/-stargate/ |
 | 수업 예약 | https://stargateedu.co.kr/-stargate/schedule.html |
 | 출결 보고서 | https://stargateedu.co.kr/-stargate/report.html |
-| Play 패키지 | `kr.co.stargateedu.app` · 1.0.0 (versionCode 3) |
+| Play 패키지 | `kr.co.stargateedu.app` · 0.0.1 (versionCode 3) |
 | 개인정보처리방침 | https://stargateedu.co.kr/-stargate/privacy.html |
 
 계정: **법인(조직) 개발자** — 비공개 테스트 12명×14일 **불필요**. 설문·스토어 등록정보 완료 후 프로덕션 바로 제출.

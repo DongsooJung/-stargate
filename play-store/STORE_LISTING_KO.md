@@ -3,7 +3,7 @@
 ## 앱 정보
 - 이름: Stargate
 - 패키지: kr.co.stargateedu.app
-- 버전: 1.0.0 (versionCode 3)
+- 버전: 0.0.1 (versionCode 3)
 - 카테고리 추천: 교육
 - 이메일: ceo@stargateedu.co.kr
 - 웹사이트: https://stargateedu.co.kr/

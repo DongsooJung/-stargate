@@ -66,7 +66,7 @@ Stargate는 Stargate Corporation의 공식 포털 앱입니다.
 
 ## E. 출시 (AAB)
 
-1. [ ] 프로덕션 트랙에 `Stargate-1.0.0.aab` 업로드 (법인 계정 — 비공개 테스트 생략)
+1. [ ] 프로덕션 트랙에 `Stargate-0.0.1.aab` 업로드 (법인 계정 — 비공개 테스트 생략)
 2. [ ] Play App Signing → **앱 서명 키 SHA-256** 복사
 3. [ ] `.well-known/assetlinks.json`에 Play 서명 키 지문 추가 후 포털 배포
 4. [ ] Digital Asset Links [테스터](https://developers.google.com/digital-asset-links/tools/generator) 통과
