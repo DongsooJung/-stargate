@@ -1,6 +1,7 @@
 (() => {
   const cardGroups = document.querySelector('.card-groups');
-  if (cardGroups && !document.body.classList.contains('research') && !document.querySelector('#math-education')) {
+  const onResearchHub = document.body.classList.contains('research');
+  if (cardGroups && onResearchHub && !document.querySelector('#math-education')) {
     const group = document.createElement('details');
     group.className = 'card-group';
     group.dataset.cardGroup = '';
@@ -180,6 +181,16 @@
       if (filtering && groupVisible > 0) group.open = true;
       group.dataset.usagePeak = String(Math.max(0, ...groupCards.map(({ card }) => usageScore(card))));
     });
+
+    const parent = groups[0]?.parentElement;
+    if (parent && parent.dataset.preserveGroupOrder !== 'true') {
+      const orderedGroups = groups.slice().sort((a, b) => {
+        if (sortMode !== 'usage') return groups.indexOf(a) - groups.indexOf(b);
+        return (Number(b.dataset.usagePeak) || 0) - (Number(a.dataset.usagePeak) || 0)
+          || groups.indexOf(a) - groups.indexOf(b);
+      });
+      orderedGroups.forEach((group) => parent.appendChild(group));
+    }
 
     groups.forEach((group) => group.classList.remove('has-divider-after'));
     const orderedVisible = [...(groups[0]?.parentElement?.querySelectorAll('[data-card-group]') || [])]

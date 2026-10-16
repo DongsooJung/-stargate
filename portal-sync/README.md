@@ -15,7 +15,7 @@ www.stargateedu.co.kr 포털(`DongsooJung/dongsoojung.github.io`)에
 
 ## 연구 허브 레인 (2026-10-16)
 
-라이브 `research/index.html` 기준으로 카드를 관측 33 · 연구 16 · 교육 7 · 운영 5, 고유 61개로 다시 묶었습니다. 같은 주소의 서울 실시간·접근성 랩 카드는 한 장만 남깁니다. `assets/intelligence-hub.js` 는 연구 페이지에서 수학 그룹을 다시 끼워 넣지 않고, 그룹 순서를 사용빈도로 바꾸지 않습니다.
+라이브 `research/index.html` 기준으로 카드를 관측 33 · 연구 16 · 교육 7 · 운영 5, 고유 63개로 다시 묶었습니다. 같은 주소의 서울 실시간·접근성 랩 카드는 한 장만 남깁니다. `assets/intelligence-hub.js` 는 연구 페이지에서 수학 그룹을 다시 끼워 넣지 않고, 그룹 순서를 사용빈도로 바꾸지 않습니다.
 
 ```bash
 ./portal-sync/apply-research-structure.sh /path/to/dongsoojung.github.io
