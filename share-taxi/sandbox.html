@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>0.5km 합승 샌드박스 | STARGATE</title>
+  <meta name="description" content="출발지 500m 이내만 맞추고 하차를 내 경로 선 위에 두는 합승 샌드박스">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@500;700;800&amp;family=Noto+Sans+KR:wght@400;500;700&amp;family=JetBrains+Mono:wght@500&amp;display=swap" rel="stylesheet">
+  <style>
+    :root{--bg:#06080d;--panel:#101620;--line:rgba(255,255,255,.09);--blue:#4f8fff;--violet:#c084fc;--green:#34d399;--text:#e8ecf4;--muted:#8a94a6;--bad:#ff8a73}
+    *{box-sizing:border-box}body{margin:0;background:radial-gradient(circle at 12% 0,rgba(52,211,153,.12),transparent 32%),var(--bg);color:var(--text);font-family:'Noto Sans KR',sans-serif}
+    button,input,select{font:inherit;color:inherit}button{cursor:pointer}a{color:inherit}
+    .shell{max-width:1240px;margin:0 auto;padding:22px 18px 64px}
+    .top{display:flex;justify-content:space-between;align-items:center;margin-bottom:22px}.brand{font:800 18px 'Outfit',sans-serif;letter-spacing:3px;text-decoration:none}.back{color:var(--muted);text-decoration:none;font-size:14px}
+    .eyebrow{font:500 12px 'JetBrains Mono',monospace;letter-spacing:1.5px;color:var(--green)}
+    h1{font:800 clamp(32px,5vw,52px)/1.08 'Outfit',sans-serif;margin:8px 0}.lead{color:var(--muted);line-height:1.7;max-width:760px;margin:0 0 18px}
+    .steps{display:grid;grid-template-columns:repeat(6,1fr);gap:8px;list-style:none;padding:0;margin:0 0 16px}
+    .steps li{padding:10px;border:1px solid var(--line);border-radius:12px;background:var(--panel);color:var(--muted);font-size:13px}
+    .steps span{display:block;font:700 12px 'JetBrains Mono',monospace;margin-bottom:4px}
+    .steps .is-done{color:var(--text);border-color:rgba(52,211,153,.35);background:#101c18}
+    .steps .is-done span{color:var(--green)}
+    .steps .is-now{color:#fff;background:#143028;border-color:var(--green)}
+    .steps .is-now span{color:#b7f7df}
+    .steps .is-bad{color:var(--bad);border-color:rgba(255,138,115,.4)}
+    .workspace{display:grid;grid-template-columns:300px minmax(0,1fr) 340px;gap:14px;align-items:start}
+    .panel{border:1px solid var(--line);border-radius:16px;background:rgba(16,22,32,.9);padding:14px}
+    .panel h2{font-size:15px;margin:0 0 10px}
+    .presets{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:10px}
+    .presets button,.ghost{border:1px solid var(--line);background:#0c121b;border-radius:999px;padding:7px 10px;font-size:12px}
+    .presets button.on{border-color:var(--green);color:#fff;background:#12352c}
+    label{display:grid;gap:6px;margin:0 0 10px;font-size:13px;color:var(--muted)}
+    select,input[type=range]{width:100%}
+    select{height:40px;border-radius:10px;border:1px solid var(--line);background:#090d14;padding:0 10px}
+    .row-label{display:flex;justify-content:space-between;color:var(--text);font-weight:700}
+    .lock{padding:10px;border-radius:12px;background:rgba(52,211,153,.08);color:#d1fae5;font-size:13px;line-height:1.5;margin:0 0 10px}
+    .note,.hint{color:var(--muted);font-size:12px;line-height:1.55;margin:8px 0 0}
+    .alert{display:none;color:var(--bad);font-size:13px;margin:8px 0}.alert.show{display:block}
+    .kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:8px}
+    .kpi{padding:10px;border:1px solid var(--line);border-radius:12px;background:var(--panel)}
+    .kpi span{display:block;color:var(--muted);font-size:11px;margin-bottom:4px}.kpi strong{font:800 20px 'Outfit',sans-serif}
+    .map-frame{position:relative;border:1px solid var(--line);border-radius:16px;overflow:hidden;background:#0c1119;min-height:520px}
+    #map{height:520px}#map svg{width:100%;height:100%;display:block}
+    .legend{display:flex;flex-wrap:wrap;gap:10px;color:var(--muted);font-size:12px;margin-top:8px}
+    .legend i{display:inline-block;width:9px;height:9px;border-radius:50%;margin-right:4px}
+    .cards{display:grid;gap:8px}.card{border:1px solid var(--line);border-radius:14px;padding:12px;background:#0d131c}
+    .card.on{border-color:rgba(192,132,252,.7)}
+    .card header,.card .meta{display:flex;justify-content:space-between;gap:8px;align-items:center}
+    .card header strong{font-size:16px}.score{font:700 13px 'JetBrains Mono',monospace;color:var(--violet)}
+    .route{margin:6px 0;color:var(--muted);font-size:13px}.meta{list-style:none;padding:0;margin:0 0 8px;color:var(--muted);font-size:12px}
+    .save{color:var(--green);font-weight:700}.solo{color:var(--muted);text-decoration:line-through;margin-left:6px;font-size:12px}
+    .card button,.trip button{width:100%;margin-top:8px;border:0;border-radius:10px;padding:10px;background:linear-gradient(135deg,#149e72,#3b82f6);color:#fff;font-weight:700}
+    .trip button.secondary,.board button.flat{background:#182030;border:1px solid var(--line)}
+    .empty{color:var(--muted);font-size:14px;line-height:1.6}
+    .trip{margin-top:12px;padding-top:12px;border-top:1px solid var(--line)}
+    .timeline{list-style:none;padding:0;margin:8px 0}.timeline li{display:flex;gap:8px;align-items:center;margin:6px 0;font-size:14px}
+    .timeline b{width:22px;height:22px;border-radius:50%;display:grid;place-items:center;background:#243044;font-size:12px}
+    table{width:100%;border-collapse:collapse;font-size:13px;margin:8px 0}th,td{text-align:right;padding:6px 4px;border-bottom:1px solid var(--line)}th:first-child,td:first-child{text-align:left;color:var(--muted)}
+    .driver{padding:10px;border-radius:10px;background:rgba(251,191,36,.1);color:#fde68a;font-size:14px}
+    .board{margin-top:16px}.board-head{display:flex;justify-content:space-between;gap:12px;align-items:end}
+    .rows{display:grid;gap:6px;margin-top:8px}.rows button{display:grid;grid-template-columns:72px 1fr auto;gap:8px;align-items:center;text-align:left;padding:10px;border-radius:12px;border:1px solid var(--line);background:#0d131c;font-weight:500}
+    .chip{font-size:11px;border-radius:999px;padding:4px 7px;background:#182030;color:var(--muted);white-space:nowrap}
+    .chip.ok{color:#06281c;background:var(--green)}.chip.cell{color:#dbe7ff;background:#24344f}.chip.time,.chip.dest,.chip.pickup,.chip.route,.chip.detour,.chip.overlap,.chip.fare{color:#ffd7cf;background:#3a241f}
+    .rules{margin-top:16px}.rules dl{display:grid;grid-template-columns:140px 1fr;gap:8px 12px;margin:0}.rules dt{color:var(--green);font-size:13px}.rules dd{margin:0;color:var(--muted);font-size:14px;line-height:1.55}
+    @media(max-width:980px){.workspace,.kpis,.rules dl{grid-template-columns:1fr}.steps{grid-template-columns:repeat(3,1fr)}.map-frame,#map{min-height:380px;height:380px}.rows button{grid-template-columns:1fr}.kpis{grid-template-columns:1fr 1fr}}
+  </style>
+</head>
+<body>
+  <main class="shell">
+    <nav class="top"><a class="brand" href="../index.html">STARGATE</a><a class="back" href="./">← 합승 시뮬레이터</a></nav>
+    <header>
+      <div class="eyebrow">SANDBOX · 500m</div>
+      <h1>출발 0.5km 안에서<br>경로 선 위에 내립니다</h1>
+      <p class="lead">이 샌드박스는 출발지가 500m 이내인 사람만 후보로 둡니다. 맞출 사람의 하차는 내가 가는 승차–도착 직선 위에 올려 둡니다. 선에서 벗어난 하차와 500m 밖 출발은 같은 시각이어도 빠집니다. 양쪽이 수락해야 빈 차가 배차됩니다.</p>
+    </header>
+    <ol class="steps" id="steps">
+      <li data-step="1"><span>01</span>내 경로</li>
+      <li data-step="2"><span>02</span>선 위 하차</li>
+      <li data-step="3"><span>03</span>500m 필터</li>
+      <li data-step="4"><span>04</span>후보</li>
+      <li data-step="5"><span>05</span>양쪽 수락</li>
+      <li data-step="6"><span>06</span>한 대 배차</li>
+    </ol>
+
+    <section class="workspace">
+      <div class="panel">
+        <h2>내 경로</h2>
+        <div class="presets" id="presets">
+          <button type="button" data-preset="gangnam">강남 → 서울대입구</button>
+          <button type="button" data-preset="hongdae">홍대 → 신촌</button>
+          <button type="button" data-preset="jamsil">잠실 → 가락시장</button>
+          <button type="button" data-preset="yeouido">여의도 → 공덕</button>
+        </div>
+        <label>출발<select id="pickup"></select></label>
+        <label>도착<select id="dropoff"></select></label>
+        <p class="lock" id="ruleLock">출발 반경 500m · 하차는 내 경로 선에서 80m 안</p>
+        <label>
+          <span class="row-label">내 출발 <output id="departValue">지금</output></span>
+          <input id="departMin" type="range" min="0" max="30" step="1" value="0">
+        </label>
+        <label>요금 시간대
+          <select id="tier">
+            <option value="day">주간 · 기본 4,800원</option>
+            <option value="night20">심야 20% · 22–23시, 02–04시</option>
+            <option value="night40">심야 40% · 23–02시</option>
+          </select>
+        </label>
+        <p class="alert" id="formError" role="alert"></p>
+        <p class="note" id="pointNote">경로를 바꾸면 선 위 하차도 그 선으로 다시 놓입니다. 출발을 20분 뒤로 두면 윤아만 남습니다.</p>
+      </div>
+
+      <div>
+        <section class="kpis" aria-label="샌드박스 요약">
+          <article class="kpi"><span>500m 안 합승</span><strong id="matchCount">-</strong></article>
+          <article class="kpi"><span>가장 가까운 출발</span><strong id="nearestPickup">-</strong></article>
+          <article class="kpi"><span>선 위 하차</span><strong id="onLineCount">-</strong></article>
+          <article class="kpi"><span>선택 시 내 요금</span><strong id="shareFare">-</strong></article>
+        </section>
+        <div class="map-frame">
+          <div id="map"></div>
+        </div>
+        <div class="legend">
+          <span><i style="background:#4f8fff"></i>내 경로 선</span>
+          <span><i style="background:rgba(79,143,255,.45)"></i>500m</span>
+          <span><i style="background:#34d399"></i>선 위 · 매칭</span>
+          <span><i style="background:#ff8a73"></i>선 밖 또는 500m 밖</span>
+          <span><i style="background:#fbbf24"></i>빈 차</span>
+        </div>
+      </div>
+
+      <aside class="panel" id="results">
+        <h2>합승 후보</h2>
+        <div class="cards" id="matchList"></div>
+        <div class="trip" id="tripPanel"></div>
+      </aside>
+    </section>
+
+    <section class="panel board">
+      <div class="board-head">
+        <h2>샌드박스 승객</h2>
+        <p class="hint" id="boardNote">빠진 사람을 누르면 출발 거리와 선 이탈을 보여 줍니다.</p>
+      </div>
+      <div class="rows" id="board"></div>
+    </section>
+
+    <section class="panel rules">
+      <h2>샌드박스 규칙</h2>
+      <dl>
+        <dt>출발</dt>
+        <dd>내 승차 지점에서 500m 이내만 검색에 남깁니다. 반경은 이 화면에서 넓히지 않습니다.</dd>
+        <dt>하차</dt>
+        <dd>상대 하차를 내 승차와 내 도착을 잇는 직선 위에 둡니다. 그 선에서 80m를 넘으면 경로 밖으로 거절합니다. 선 위에 있어도 출발이 500m를 넘으면 빠집니다.</dd>
+        <dt>그 외</dt>
+        <dd>출발 시각 차이 10분, 탑승 우회, 겹치는 거리, 각자 단독보다 싼 합승 요금은 본 시뮬레이터와 같습니다. 양쪽 수락 뒤에만 첫 승차지에서 가장 가까운 빈 차를 배차합니다.</dd>
+      </dl>
+      <p class="note">연구용 샌드박스입니다. 실제 동승은 여객자동차법이 허용하는 운송 방식 안에서만 가능합니다.</p>
+    </section>
+  </main>
+  <script type="module" src="sandbox-app.js"></script>
+</body>
+</html>
