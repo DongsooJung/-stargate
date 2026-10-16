@@ -1,5 +1,7 @@
 # AGENTS.md
 
+> **Public portal ownership:** `DongsooJung/dongsoojung.github.io` is the canonical source for `stargateedu.co.kr` and `www.stargateedu.co.kr`. The `portal-sync/dongsoojung.github.io/` directory in this repository is a distribution snapshot and may be stale. Make public homepage, research, strategy, and aphorism changes in the canonical repository, and verify the matching GitHub Pages deployment. Continue to maintain this repository's independent services here.
+
 ## Cursor Cloud specific instructions
 
 This repo is a **static-first web project** (Stargate Corporation homepage + several small tools). There is **no build/compile step and no `npm run dev` script** — the `README.md`'s "Getting Started" section (React/Vite/Firebase/Cloudflare, `npm run dev`, `npm run build`, `.env.example`) is aspirational and does **not** match the actual code. Trust the code, not that section of the README.
