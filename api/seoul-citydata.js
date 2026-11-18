@@ -47,8 +47,7 @@ const ALLOWED_ORIGINS = new Set([
   'https://stargateedu.co.kr',
   'https://dongsoojung.github.io',
   'https://stargate-homepage.vercel.app',
-  'https://www.stargate11.com',
-  'https://stargate11.com',
+  'https://portal.stargateedu.co.kr',
   'http://localhost:3000',
   'http://127.0.0.1:3000',
 ]);
