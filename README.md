@@ -9,7 +9,7 @@
 </p>
 
 <p align="center">
-  <a href="https://www.stargate11.com">Website</a> •
+  <a href="https://portal.stargateedu.co.kr">Website</a> •
   <a href="#about">About</a> •
   <a href="#services">Services</a> •
   <a href="#tech-stack">Tech Stack</a> •
@@ -304,8 +304,8 @@ This project is licensed under the **MIT License** — see the [LICENSE](LICENSE
 
 ## Contact
 
-- 🌐 Website: [www.stargate11.com](https://www.stargate11.com)
-- 📧 Email: contact@stargate11.com
+- 🌐 Website: [portal.stargateedu.co.kr](https://portal.stargateedu.co.kr)
+- 📧 Email: support@stargateedu.co.kr
 - 📍 Location: Daechi-dong, Gangnam-gu, Seoul, South Korea
 
 ---
