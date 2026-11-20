@@ -21,6 +21,16 @@ www.stargateedu.co.kr 포털(`DongsooJung/dongsoojung.github.io`)에
 
 자세한 절차: [READING_LIBRARY.md](./READING_LIBRARY.md)
 
+## 전략 허브 선반 (2026-10-16)
+
+라이브 전략 페이지를 네 선반(기업 재무 19, 산업 신호 6, 실행·사업개발 9, 관측 트래커 9)으로 다시 묶습니다. 히어로 숫자는 카드 43·플랫폼 12선·기간 2022–26에 맞추고, 알라딘·서점 3사·BidScout·휴게소 입찰 레이더·재무 안내를 목록에 넣습니다. `theme-boot.js`가 전략 히어로에 버튼을 덧붙이고 카드 수를 1 올리던 동작은 빼서, 표시 숫자가 카드 수와 같습니다. 날씨 캘린더와 OneNote·Notion 상태판은 연구 허브로 옮깁니다. 공항 카드는 연구 허브에 이미 있습니다.
+
+`assets/intelligence-hub.js`는 교육·수학 AI 그룹을 연구 허브(`body.research`)에만 붙이고, 전략 허브는 `data-preserve-group-order`로 선반 순서를 유지합니다.
+
+```bash
+./portal-sync/apply-strategy-structure.sh /path/to/dongsoojung.github.io
+```
+
 ## K-Startup 한 줄 적용
 
 포털 저장소는 **vercel[bot]** 이 연결되어 있어, `api/kstartup.js` 가
